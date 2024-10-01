@@ -1,0 +1,18 @@
+#ifdef __OBJC__
+#import <Cocoa/Cocoa.h>
+#import "HermesAppDelegate.h"
+#include <libgen.h>
+
+#define NSLogd(fmt, args...) [(HermesAppDelegate *)HMSAppDelegate logMessage:[NSString stringWithFormat:@"%s:%d %s " fmt, basename(__FILE__), __LINE__, __PRETTY_FUNCTION__, ##args]];
+#define HMSLog NSLogd
+
+#define HMSAssert(expression, ...) \
+  do { \
+    if (!(expression)) { \
+      HMSLog(@"Assertion failure: %s in %s on line %s:%d. %@", #expression, __func__, __FILE__, __LINE__, [NSString stringWithFormat: @"" __VA_ARGS__]); \
+      abort(); \
+  } \
+} while (0)
+#endif
+
+#define HMSAppDelegate ((HermesAppDelegate *)[NSApp delegate])

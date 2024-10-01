@@ -1,0 +1,8 @@
+build
+.DS_Store
+.LSOverride
+*.xcodeproj/*.mode*
+*.xcodeproj/*.pbxuser
+*.xcodeproj/xcuserdata
+*.xcodeproj/*.xcworkspace
+Hermes.dmg
