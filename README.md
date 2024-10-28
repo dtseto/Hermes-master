@@ -1,6 +1,7 @@
-Hermes
+Hermes fork
 ======
 
+Forked from Hermes built in Xcode 12.5 MacOS 11 so should be more compatible with apple silicon otherwise no major changes
 
 [![Build Status](https://travis-ci.org/HermesApp/Hermes.svg?branch=master)](https://travis-ci.org/HermesApp/Hermes)
 
