@@ -1,7 +1,9 @@
+# Version 1.3.2 (dtseto fork)
+*[edits by @dtseto] change localizations for mac os 11 xcode , depracated code
+*[bug toolbar buttons no longer appear are in >>> as text only ]
+
 # Version 1.3.2 (unreleased)
-
 [Full changelog](https://github.com/HermesApp/Hermes/compare/v1.3.1...HEAD)
-
 * [fixed by @zachhowe] Allow user customized app icons for Hermes to show up in Dock (#304)
 
 # Version 1.3.1 (3/26/17)

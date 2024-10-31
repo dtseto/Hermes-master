@@ -11,7 +11,7 @@
 #import <SPMediaKeyTap/SPMediaKeyTap.h>
 #import <MediaPlayer/MediaPlayer.h>
 
-#import "Integration/Growler.h"
+//#import "Integration/Growler.h"
 #import "HistoryController.h"
 #import "ImageLoader.h"
 #import "PlaybackController.h"
@@ -337,7 +337,8 @@ BOOL playOnStart = YES;
     if ([song art] == nil || [[song art] isEqual: @""]) {
       [self setArtImage:nil];
       if (![self->playing isPaused])
-        [GROWLER growl:song withImage:nil isNew:YES];
+        //[GROWLER growl:song withImage:nil isNew:YES];
+        ;
     } else {
       [artLoading startAnimation:nil];
       [artLoading setHidden:NO];
@@ -355,7 +356,7 @@ BOOL playOnStart = YES;
         [HMSAppDelegate updateStatusItem:nil];
 
         if (![self->playing isPaused]) {
-          [GROWLER growl:song withImage:data isNew:YES];
+          //[GROWLER growl:song withImage:data isNew:YES];
         }
         [self setArtImage:image];
       }];
@@ -430,7 +431,7 @@ BOOL playOnStart = YES;
     return NO;
   } else {
     [playing play];
-    [GROWLER growl:[playing playingSong] withImage:lastImg isNew:NO];
+    //[GROWLER growl:[playing playingSong] withImage:lastImg isNew:NO];
     return YES;
   }
 }
