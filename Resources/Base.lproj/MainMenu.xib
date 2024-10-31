@@ -308,7 +308,7 @@
             <value key="minFullScreenContentSize" type="size" width="240" height="294"/>
             <view key="contentView" wantsLayer="YES" id="372" userLabel="View">
                 <rect key="frame" x="0.0" y="0.0" width="381" height="294"/>
-                <autoresizingMask key="autoresizingMask"/>
+                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <animations>
                     <caTransition key="subviews">
                         <mutableData key="keyedArchiveRepresentation">
@@ -1096,6 +1096,7 @@ DQ
                     </textFieldCell>
                 </textField>
             </subviews>
+            <point key="canvasLocation" x="4" y="121"/>
         </view>
         <customView id="1230" userLabel="Loading View">
             <rect key="frame" x="0.0" y="0.0" width="163" height="151"/>
