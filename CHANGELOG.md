@@ -1,6 +1,9 @@
 # Version 1.3.2 (dtseto fork)
-*[edits by @dtseto] change localizations for mac os 11 xcode , depracated code
-*[bug toolbar buttons no longer appear are in >>> as text only ]
+*[edits by @dtseto] change localizations for mac os 11 xcode , deprecated code,
+removed growler and notifications and updated sparkle to arm version can build for mac os 11 universal app now
+*[bug fixed toolbar buttons no longer appear are in >>> as text only ]
+*[bug toolbar buttons fixed for preferences and main settings 
+by changing automatic to preference and resizable]
 
 # Version 1.3.2 (unreleased)
 [Full changelog](https://github.com/HermesApp/Hermes/compare/v1.3.1...HEAD)

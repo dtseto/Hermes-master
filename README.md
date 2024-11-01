@@ -2,6 +2,15 @@ Hermes fork
 ======
 
 Forked from Hermes built in Xcode 12.5 MacOS 11 so should be more compatible with apple silicon otherwise no major changes
+removed growler and notifications, added arm compatible sparkle
+
+future will need to refactor URLconnection.m to use nsurlsession to build because cfnetwork deprecated past 10.11
+also refactor audiostream.m to use nsurlsession for same reason
+future notifications were commented out can be added back using mac os UNnotification
+optional a lot of hardcoded text needs to be localized
+
+
+
 
 [![Build Status](https://travis-ci.org/HermesApp/Hermes.svg?branch=master)](https://travis-ci.org/HermesApp/Hermes)
 
