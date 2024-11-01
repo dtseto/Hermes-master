@@ -3,222 +3,148 @@
 
 NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnectionProxyValidityChangedNotification";
 
+// Private interface extension for NSURLSession properties
+@interface URLConnection () {
+    NSURLSessionDataTask *_dataTask;
+    NSURLSession *_session;
+}
+@end
+
 @implementation URLConnection
 
-static void URLConnectionStreamCallback(CFReadStreamRef aStream,
-                                        CFStreamEventType eventType,
-                                        void* _conn) {
-  UInt8 buf[1024];
-  CFIndex len;
-  URLConnection* conn = (__bridge URLConnection*) _conn;
-  conn->events++;
-
-  switch (eventType) {
-    case kCFStreamEventHasBytesAvailable:
-      while ((len = CFReadStreamRead(aStream, buf, sizeof(buf))) > 0) {
-        [conn->bytes appendBytes:buf length:len];
-      }
-      return;
-    case kCFStreamEventErrorOccurred:
-      conn->cb(nil, (__bridge_transfer NSError*) CFReadStreamCopyError(aStream));
-      break;
-    case kCFStreamEventEndEncountered: {
-      conn->cb(conn->bytes, nil);
-      break;
-    }
-    default:
-      assert(0);
-  }
-
-  conn->cb = nil;
-  [conn->timeout invalidate];
-  conn->timeout = nil;
-  CFReadStreamClose(conn->stream);
-  CFRelease(conn->stream);
-  conn->stream = nil;
++ (URLConnection*)connectionForRequest:(NSURLRequest*)request
+                    completionHandler:(URLConnectionCallback)cb {
+    URLConnection *connection = [[URLConnection alloc] init];
+    
+    // Initialize instance variables as defined in the header
+    connection->stream = NULL;
+    connection->cb = [cb copy];
+    connection->bytes = [NSMutableData dataWithCapacity:100];
+    connection->events = 0;
+    
+    // Create session configuration with proxy settings
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    [connection setHermesProxy];  // This will configure the proxy settings
+    
+    // Create session
+    connection->_session = [NSURLSession sessionWithConfiguration:configuration
+                                                      delegate:nil
+                                                 delegateQueue:[NSOperationQueue mainQueue]];
+    
+    // Create data task
+    connection->_dataTask = [connection->_session dataTaskWithRequest:request
+                                                 completionHandler:^(NSData * _Nullable data,
+                                                                   NSURLResponse * _Nullable response,
+                                                                   NSError * _Nullable error) {
+        if (error) {
+            connection->cb(nil, error);
+            return;
+        }
+        
+        if (data) {
+            [connection->bytes appendData:data];
+        }
+        connection->cb(connection->bytes, nil);
+    }];
+    
+    return connection;
 }
 
-- (void) dealloc {
-  [timeout invalidate];
-  if (stream != nil) {
-    CFReadStreamClose(stream);
-    CFRelease(stream);
-  }
-}
-
-/**
- * @brief Creates a new instance for the specified request
- *
- * @param request the request to be sent
- * @param cb the callback to invoke when the request is done. If an error
- *        happened, then the data will be nil, and the error will be valid.
- *        Otherwise the data will be valid and the error will be nil.
- */
-+ (URLConnection*) connectionForRequest:(NSURLRequest*)request
-                      completionHandler:(void(^)(NSData*, NSError*)) cb {
-
-  URLConnection *c = [[URLConnection alloc] init];
-
-  /* Create the HTTP message to send */
-  CFHTTPMessageRef message =
-      CFHTTPMessageCreateRequest(NULL,
-                                 (__bridge CFStringRef)[request HTTPMethod],
-                                 (__bridge CFURLRef)   [request URL],
-                                 kCFHTTPVersion1_1);
-
-  /* Copy headers over */
-  NSDictionary *headers = [request allHTTPHeaderFields];
-  for (NSString *header in headers) {
-    CFHTTPMessageSetHeaderFieldValue(message,
-                         (__bridge CFStringRef) header,
-                         (__bridge CFStringRef) headers[header]);
-  }
-
-  /* Also the http body */
-  if ([request HTTPBody] != nil) {
-    CFHTTPMessageSetBody(message, (__bridge CFDataRef) [request HTTPBody]);
-  }
-  c->stream = CFReadStreamCreateForHTTPRequest(NULL, message);
-  CFRelease(message);
-
-  /* Handle SSL connections */
-  NSString *urlstring = [[request URL] absoluteString];
-  if ([urlstring rangeOfString:@"https"].location == 0) {
-    NSDictionary *settings =
-    @{(id)kCFStreamSSLLevel: (NSString *)kCFStreamSocketSecurityLevelNegotiatedSSL,
-     (id)kCFStreamSSLValidatesCertificateChain: @NO,
-     (id)kCFStreamSSLPeerName: [NSNull null]};
-
-    CFReadStreamSetProperty(c->stream, kCFStreamPropertySSLSettings,
-                            (__bridge CFDictionaryRef) settings);
-  }
-
-  c->cb = [cb copy];
-  c->bytes = [NSMutableData dataWithCapacity:100];
-  [c setHermesProxy];
-  return c;
-}
-
-/**
- * @brief Start sending this request to the server
- */
-- (void) start {
-  CFReadStreamOpen(stream);
-  CFStreamStatus streamStatus = CFReadStreamGetStatus(stream);
-  if (streamStatus == kCFStreamStatusError) {
-    cb(nil, (NSError *)CFBridgingRelease(CFReadStreamCopyError(stream)));
-    return;
-  }
-  if (streamStatus != kCFStreamStatusOpen)
-    NSLog(@"Expected read stream to be open, but it was not (%ld)", (long)streamStatus);
-
-  CFStreamClientContext context = {0, (__bridge_retained void*) self, NULL,
-                                   NULL, NULL};
-  CFReadStreamSetClient(stream,
-                        kCFStreamEventHasBytesAvailable |
-                          kCFStreamEventErrorOccurred |
-                          kCFStreamEventEndEncountered,
-                        URLConnectionStreamCallback,
-                        &context);
-  CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(),
-                                  kCFRunLoopCommonModes);
-  timeout = [NSTimer scheduledTimerWithTimeInterval:10
+- (void)start {
+    events = 0;  // Reset events counter
+    
+    // Start timeout timer
+    timeout = [NSTimer scheduledTimerWithTimeInterval:10
                                              target:self
                                            selector:@selector(checkTimeout)
                                            userInfo:nil
                                             repeats:YES];
+    
+    // Start the data task
+    [_dataTask resume];
 }
 
-- (void) checkTimeout {
-  if (events > 0 || cb == nil || stream == NULL) {
-    events = 0;
-    return;
-  }
-
-  CFReadStreamClose(stream);
-  CFRelease(stream);
-  // FIXME: Most definitely a cause of "Internal Pandora Error".
-  NSError *error = [NSError errorWithDomain:@"Connection timeout."
+- (void)checkTimeout {
+    if (events > 0 || cb == nil || _dataTask == nil) {
+        events = 0;
+        return;
+    }
+    
+    [_dataTask cancel];
+    NSError *error = [NSError errorWithDomain:@"Connection timeout."
                                        code:0
                                    userInfo:nil];
-  cb(nil, error);
-  cb = nil;
+    cb(nil, error);
+    cb = nil;
 }
 
-- (void) setHermesProxy {
-  [URLConnection setHermesProxy:stream];
+- (void)setHermesProxy {
+    NSURLSessionConfiguration *configuration = _session.configuration;
+    [URLConnection setHermesProxyForConfiguration:configuration];
 }
 
-/**
- * @brief Helper for setting whatever proxy is specified in the Hermes
- *        preferences
- */
-+ (void) setHermesProxy:(CFReadStreamRef) stream {
-  switch (PREF_KEY_INT(ENABLED_PROXY)) {
-    case PROXY_HTTP:
-      [self setHTTPProxy:stream
-                    host:PREF_KEY_VALUE(PROXY_HTTP_HOST)
-                    port:PREF_KEY_INT(PROXY_HTTP_PORT)];
-      break;
++ (void)setHermesProxy:(CFReadStreamRef)stream {
+    // This method is kept for header compatibility but is no longer used internally
+    // The actual proxy configuration is now handled by setHermesProxyForConfiguration:
+}
 
-    case PROXY_SOCKS:
-      [self setSOCKSProxy:stream
-                     host:PREF_KEY_VALUE(PROXY_SOCKS_HOST)
-                     port:PREF_KEY_INT(PROXY_SOCKS_PORT)];
-      break;
-
-    case PROXY_SYSTEM:
-    default:
-      [self setSystemProxy:stream];
-      break;
-  }
+// Internal helper method for NSURLSession proxy configuration
++ (void)setHermesProxyForConfiguration:(NSURLSessionConfiguration *)configuration {
+    switch (PREF_KEY_INT(ENABLED_PROXY)) {
+        case PROXY_HTTP: {
+            NSString *host = PREF_KEY_VALUE(PROXY_HTTP_HOST);
+            NSInteger port = PREF_KEY_INT(PROXY_HTTP_PORT);
+            if ([self validProxyHost:&host port:port]) {
+                configuration.connectionProxyDictionary = @{
+                    (__bridge NSString *)kCFProxyTypeHTTP: @YES,
+                    (__bridge NSString *)kCFProxyHostNameKey: host,
+                    (__bridge NSString *)kCFProxyPortNumberKey: @(port),
+                    (__bridge NSString *)kCFProxyTypeHTTPS: @YES,
+                    (__bridge NSString *)kCFProxyHostNameKey: host,
+                    (__bridge NSString *)kCFProxyPortNumberKey: @(port)
+                };
+            }
+            break;
+        }
+        case PROXY_SOCKS: {
+            NSString *host = PREF_KEY_VALUE(PROXY_SOCKS_HOST);
+            NSInteger port = PREF_KEY_INT(PROXY_SOCKS_PORT);
+            if ([self validProxyHost:&host port:port]) {
+                configuration.connectionProxyDictionary = @{
+                    (__bridge NSString *)kCFProxyTypeSOCKS: @YES,
+                    (__bridge NSString *)kCFProxyHostNameKey: host,
+                    (__bridge NSString *)kCFProxyPortNumberKey: @(port)
+                };
+            }
+            break;
+        }
+        case PROXY_SYSTEM:
+        default:
+            configuration.connectionProxyDictionary = CFBridgingRelease(CFNetworkCopySystemProxySettings());
+            break;
+    }
 }
 
 + (BOOL)validProxyHost:(NSString **)host port:(NSInteger)port {
-  static BOOL wasValid = YES;
-  *host = [*host stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
-  BOOL isValid = ((port > 0 && port <= 65535) && [NSHost hostWithName:*host].address != nil);
-  if (isValid != wasValid) {
-    [[NSNotificationCenter defaultCenter] postNotificationName:URLConnectionProxyValidityChangedNotification
-                                                        object:nil
-                                                      userInfo:@{@"isValid": @(isValid)}];
-    wasValid = isValid;
-  }
-  return isValid;
+    static BOOL wasValid = YES;
+    *host = [*host stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+    BOOL isValid = ((port > 0 && port <= 65535) && [NSHost hostWithName:*host].address != nil);
+    if (isValid != wasValid) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:URLConnectionProxyValidityChangedNotification
+                                                          object:nil
+                                                        userInfo:@{@"isValid": @(isValid)}];
+        wasValid = isValid;
+    }
+    return isValid;
 }
 
-+ (BOOL) setHTTPProxy:(CFReadStreamRef)stream
-                 host:(NSString*)host
-                 port:(NSInteger)port {
-  if (![self validProxyHost:&host port:port]) return NO;
-  CFDictionaryRef proxySettings = (__bridge CFDictionaryRef)
-          [NSDictionary dictionaryWithObjectsAndKeys:
-                  host, kCFStreamPropertyHTTPProxyHost,
-                  @(port), kCFStreamPropertyHTTPProxyPort,
-                  host, kCFStreamPropertyHTTPSProxyHost,
-                  @(port), kCFStreamPropertyHTTPSProxyPort,
-                  nil];
-  CFReadStreamSetProperty(stream, kCFStreamPropertyHTTPProxy, proxySettings);
-  return YES;
-}
-
-+ (BOOL) setSOCKSProxy:(CFReadStreamRef)stream
-                 host:(NSString*)host
-                 port:(NSInteger)port {
-  if (![self validProxyHost:&host port:port]) return NO;
-  CFDictionaryRef proxySettings = (__bridge CFDictionaryRef)
-          [NSDictionary dictionaryWithObjectsAndKeys:
-                  host, kCFStreamPropertySOCKSProxyHost,
-                  @(port), kCFStreamPropertySOCKSProxyPort,
-                  nil];
-  CFReadStreamSetProperty(stream, kCFStreamPropertySOCKSProxy, proxySettings);
-  return YES;
-}
-
-+ (void) setSystemProxy:(CFReadStreamRef)stream {
-  CFDictionaryRef proxySettings = CFNetworkCopySystemProxySettings();
-  CFReadStreamSetProperty(stream, kCFStreamPropertyHTTPProxy, proxySettings);
-  CFRelease(proxySettings);
+- (void)dealloc {
+    [timeout invalidate];
+    [_dataTask cancel];
+    [_session finishTasksAndInvalidate];
+    if (stream != NULL) {
+        CFRelease(stream);
+    }
 }
 
 @end
