@@ -1,4 +1,4 @@
-# Version 1.3.2 (dtseto fork)
+# Version 1.3.2b3 (dtseto fork)
 *[edits by @dtseto] change localizations for mac os 11 xcode , deprecated code,
 removed growler and notifications and updated sparkle to arm version can build for mac os 11 universal app now
 *[bug fixed toolbar buttons no longer appear are in >>> as text only ]

@@ -4,10 +4,12 @@ Hermes fork
 Forked from Hermes built in Xcode 12.5 MacOS 11 so should be more compatible with apple silicon otherwise no major changes
 removed growler and notifications, added arm compatible sparkle
 
-future will need to refactor URLconnection.m to use nsurlsession to build because cfnetwork deprecated past 10.11
-also refactor audiostream.m to use nsurlsession for same reason
-future notifications were commented out can be added back using mac os UNnotification
-optional a lot of hardcoded text needs to be localized
+future fixes:
+* Need to refactor URLconnection.m to use nsurlsession to build because cfnetwork deprecated past 10.11
+* Done in the buggy experimental branch
+* Need to refactor audiostream.m to use nsurlsession for same reason.
+* Notifications were commented out can be added back using mac os UNnotification
+* Optional a lot of hardcoded text needs to be localized
 
 
 
