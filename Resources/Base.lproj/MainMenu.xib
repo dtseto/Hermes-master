@@ -300,15 +300,13 @@
             </items>
             <point key="canvasLocation" x="162" y="496"/>
         </menu>
-        <window title="Hermes" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" appearanceType="aqua" frameAutosaveName="Preferences" animationBehavior="default" toolbarStyle="expanded" id="371" userLabel="Main Window" customClass="HermesMainWindow">
-            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" fullSizeContentView="YES"/>
-            <rect key="contentRect" x="300" y="434" width="381" height="294"/>
+        <window title="Hermes" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hasShadow="NO" releasedWhenClosed="NO" appearanceType="aqua" frameAutosaveName="Preferences" animationBehavior="default" tabbingMode="disallowed" toolbarStyle="expanded" id="371" userLabel="Main Window" customClass="HermesMainWindow">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+            <rect key="contentRect" x="300" y="434" width="240" height="294"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="900"/>
-            <value key="minSize" type="size" width="240" height="294"/>
-            <value key="minFullScreenContentSize" type="size" width="240" height="294"/>
             <view key="contentView" wantsLayer="YES" id="372" userLabel="View">
-                <rect key="frame" x="0.0" y="0.0" width="381" height="294"/>
-                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                <rect key="frame" x="0.0" y="0.0" width="240" height="294"/>
+                <autoresizingMask key="autoresizingMask"/>
                 <animations>
                     <caTransition key="subviews">
                         <mutableData key="keyedArchiveRepresentation">
@@ -323,34 +321,46 @@ MgA3AEkATABRAFMAXQBjAGwAcwB4AIAAlQCXAJkAmwCdAKcArACxALwAvwDBAMMAxQDKANUA3gDmAOkA
                     </caTransition>
                 </animations>
             </view>
-            <toolbar key="toolbar" implicitIdentifier="523691DA-3184-4F47-A885-9465F8ED1820" showsBaselineSeparator="NO" displayMode="iconAndLabel" sizeMode="regular" id="768">
+            <toolbar key="toolbar" implicitIdentifier="523691DA-3184-4F47-A885-9465F8ED1820" showsBaselineSeparator="NO" prefersToBeShown="NO" displayMode="iconAndLabel" sizeMode="small" id="768">
                 <allowedToolbarItems>
-                    <toolbarItem implicitItemIdentifier="93E09D6C-9E59-4A3C-A062-D1300904AE9D" label="Play" paletteLabel="Play/Pause" toolTip="Play/pause the current song" tag="-1" image="play" sizingBehavior="auto" id="776">
+                    <toolbarItem implicitItemIdentifier="93E09D6C-9E59-4A3C-A062-D1300904AE9D" label="Play" paletteLabel="Play/Pause" toolTip="Play/pause the current song" tag="-1" image="play" id="776">
+                        <size key="minSize" width="22" height="22"/>
+                        <size key="maxSize" width="22" height="22"/>
                         <connections>
                             <action selector="playpause:" target="835" id="854"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="C1F73AAE-CA9B-4AE4-84F0-6FD469CA5403" label="Next Song" paletteLabel="Next Song" toolTip="Skip current song" tag="-1" image="fast_forward" sizingBehavior="auto" id="777">
+                    <toolbarItem implicitItemIdentifier="C1F73AAE-CA9B-4AE4-84F0-6FD469CA5403" label="Next Song" paletteLabel="Next Song" toolTip="Skip current song" tag="-1" image="fast_forward" id="777">
+                        <size key="minSize" width="22" height="22"/>
+                        <size key="maxSize" width="22" height="22"/>
                         <connections>
                             <action selector="next:" target="835" id="853"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="63378708-9425-4BEA-BDC4-0A119EA2829F" label="History" paletteLabel="History/Stations" toolTip="Show playback history" tag="-1" image="history" sizingBehavior="auto" id="1328">
+                    <toolbarItem implicitItemIdentifier="63378708-9425-4BEA-BDC4-0A119EA2829F" label="History" paletteLabel="History/Stations" toolTip="Show playback history" tag="-1" image="history" id="1328">
+                        <size key="minSize" width="22" height="22"/>
+                        <size key="maxSize" width="22" height="22"/>
                         <connections>
                             <action selector="toggleDrawerContent:" target="494" id="2226"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="A449647C-5E3D-4B0A-A7A9-25D95931BEAA" explicitItemIdentifier="like" label="Like" paletteLabel="Like" toolTip="Like current song" tag="-1" image="thumbup" sizingBehavior="auto" selectable="YES" id="818">
+                    <toolbarItem implicitItemIdentifier="A449647C-5E3D-4B0A-A7A9-25D95931BEAA" explicitItemIdentifier="like" label="Like" paletteLabel="Like" toolTip="Like current song" tag="-1" image="thumbup" selectable="YES" id="818">
+                        <size key="minSize" width="19" height="22"/>
+                        <size key="maxSize" width="19" height="22"/>
                         <connections>
                             <action selector="like:" target="835" id="852"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="2C8D8643-12E0-4455-B548-CE63FB4051DD" label="Dislike" paletteLabel="Dislike" toolTip="Dislike current song" tag="-1" image="thumbdown" sizingBehavior="auto" id="819">
+                    <toolbarItem implicitItemIdentifier="2C8D8643-12E0-4455-B548-CE63FB4051DD" label="Dislike" paletteLabel="Dislike" toolTip="Dislike current song" tag="-1" image="thumbdown" id="819">
+                        <size key="minSize" width="18" height="22"/>
+                        <size key="maxSize" width="18" height="22"/>
                         <connections>
                             <action selector="dislike:" target="835" id="851"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="ACC84F8C-7985-4757-9D76-09A92CE90D5D" label="Tired" paletteLabel="Tired" toolTip="Don't play current song for a month" tag="-1" image="zzs" sizingBehavior="auto" id="820">
+                    <toolbarItem implicitItemIdentifier="ACC84F8C-7985-4757-9D76-09A92CE90D5D" label="Tired" paletteLabel="Tired" toolTip="Don't play current song for a month" tag="-1" image="zzs" id="820">
+                        <size key="minSize" width="30" height="22"/>
+                        <size key="maxSize" width="30" height="22"/>
                         <connections>
                             <action selector="tired:" target="835" id="850"/>
                         </connections>
@@ -365,13 +375,12 @@ MgA3AEkATABRAFMAXQBjAGwAcwB4AIAAlQCXAJkAmwCdAKcArACxALwAvwDBAMMAxQDKANUA3gDmAOkA
                     <toolbarItem reference="774"/>
                     <toolbarItem reference="818"/>
                     <toolbarItem reference="819"/>
-                    <toolbarItem reference="820"/>
                 </defaultToolbarItems>
             </toolbar>
             <userDefinedRuntimeAttributes>
                 <userDefinedRuntimeAttribute type="boolean" keyPath="movableByWindowBackground" value="YES"/>
             </userDefinedRuntimeAttributes>
-            <point key="canvasLocation" x="109.5" y="-308"/>
+            <point key="canvasLocation" x="39" y="-308"/>
         </window>
         <customObject id="420" customClass="NSFontManager"/>
         <customView appearanceType="aqua" id="701" userLabel="Stations Drawer" customClass="HermesBackgroundView">
@@ -657,7 +666,7 @@ DQ
             <value key="minSize" type="size" width="350" height="200"/>
             <view key="contentView" id="903">
                 <rect key="frame" x="0.0" y="0.0" width="480" height="313"/>
-                <autoresizingMask key="autoresizingMask"/>
+                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <tabView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2235">
                         <rect key="frame" x="-2" y="-4" width="484" height="311"/>
@@ -850,7 +859,7 @@ Gw
             <point key="canvasLocation" x="244" y="255.5"/>
         </window>
         <userDefaultsController representsSharedInstance="YES" id="979"/>
-        <window title="Preferences" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" appearanceType="aqua" frameAutosaveName="Hermes Preferences" animationBehavior="default" id="1112" userLabel="Preferences Window">
+        <window title="Preferences" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hasShadow="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" appearanceType="aqua" frameAutosaveName="Hermes Preferences" animationBehavior="default" toolbarStyle="expanded" id="1112" userLabel="Preferences Window">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <rect key="contentRect" x="0.0" y="0.0" width="362" height="451"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="900"/>
@@ -858,7 +867,7 @@ Gw
                 <rect key="frame" x="0.0" y="0.0" width="362" height="451"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             </view>
-            <toolbar key="toolbar" implicitIdentifier="15389171-D844-4B76-858A-C99C8D9DDD31" autosavesConfiguration="NO" allowsUserCustomization="NO" displayMode="iconAndLabel" sizeMode="regular" id="1535">
+            <toolbar key="toolbar" implicitIdentifier="15389171-D844-4B76-858A-C99C8D9DDD31" autosavesConfiguration="NO" allowsUserCustomization="NO" displayMode="iconAndLabel" sizeMode="small" id="1535">
                 <allowedToolbarItems>
                     <toolbarItem implicitItemIdentifier="8DA56A69-84EC-4744-ADD5-4591390ABFFD" explicitItemIdentifier="general" label="General" paletteLabel="General" toolTip="General Settings" tag="-1" image="NSPreferencesGeneral" selectable="YES" id="1543">
                         <size key="minSize" width="22" height="22"/>
@@ -1096,7 +1105,7 @@ DQ
                     </textFieldCell>
                 </textField>
             </subviews>
-            <point key="canvasLocation" x="4" y="121"/>
+            <point key="canvasLocation" x="6" y="310"/>
         </view>
         <customView id="1230" userLabel="Loading View">
             <rect key="frame" x="0.0" y="0.0" width="163" height="151"/>
@@ -1122,7 +1131,7 @@ DQ
                     </textFieldCell>
                 </textField>
             </subviews>
-            <point key="canvasLocation" x="747" y="16"/>
+            <point key="canvasLocation" x="5" y="322"/>
         </customView>
         <view wantsLayer="YES" id="1155" userLabel="Playback View">
             <rect key="frame" x="0.0" y="0.0" width="240" height="294"/>
@@ -1296,7 +1305,7 @@ DQ
                     </connections>
                 </button>
             </subviews>
-            <point key="canvasLocation" x="42" y="-767"/>
+            <point key="canvasLocation" x="5" y="421"/>
         </customView>
         <collectionViewItem id="1440" customClass="HistoryItem">
             <connections>
@@ -1764,7 +1773,7 @@ DQ
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                 </box>
             </subviews>
-            <point key="canvasLocation" x="-93" y="-1251"/>
+            <point key="canvasLocation" x="-576" y="-353"/>
         </customView>
         <customView id="1919" userLabel="Network Preferences View">
             <rect key="frame" x="0.0" y="0.0" width="362" height="273"/>
@@ -1942,7 +1951,7 @@ DQ
             </subviews>
             <point key="canvasLocation" x="-68" y="233"/>
         </customView>
-        <window title="Edit Station" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="Edit Station" animationBehavior="default" id="1641" userLabel="Edit Station Window">
+        <window title="Edit Station" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hasShadow="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="Edit Station" animationBehavior="default" toolbarStyle="expanded" id="1641" userLabel="Edit Station Window">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="131" y="159" width="611" height="286"/>
@@ -1950,7 +1959,7 @@ DQ
             <value key="minSize" type="size" width="611" height="286"/>
             <view key="contentView" id="1642">
                 <rect key="frame" x="0.0" y="0.0" width="611" height="286"/>
-                <autoresizingMask key="autoresizingMask"/>
+                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <imageView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1663">
                         <rect key="frame" x="17" y="144" width="100" height="100"/>
@@ -1981,7 +1990,7 @@ DQ
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" heightSizable="YES"/>
                                             <clipView key="contentView" drawsBackground="NO" id="L6f-ko-ucI">
                                                 <rect key="frame" x="1" y="1" width="198" height="149"/>
-                                                <autoresizingMask key="autoresizingMask"/>
+                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
                                                     <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" indentationPerLevel="16" outlineTableColumn="1683" id="1679">
                                                         <rect key="frame" x="0.0" y="0.0" width="198" height="149"/>
@@ -2026,7 +2035,7 @@ DQ
                                             <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" heightSizable="YES"/>
                                             <clipView key="contentView" drawsBackground="NO" id="lI6-Kh-VCf">
                                                 <rect key="frame" x="1" y="1" width="198" height="149"/>
-                                                <autoresizingMask key="autoresizingMask"/>
+                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
                                                     <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" indentationPerLevel="16" outlineTableColumn="1692" id="1688">
                                                         <rect key="frame" x="0.0" y="0.0" width="198" height="149"/>
@@ -2284,7 +2293,7 @@ DQ
                     </button>
                 </subviews>
             </view>
-            <point key="canvasLocation" x="-417" y="-314"/>
+            <point key="canvasLocation" x="-960" y="190"/>
         </window>
         <menu title="Title" id="2308" userLabel="Status bar menu">
             <items>
