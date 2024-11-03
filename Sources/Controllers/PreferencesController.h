@@ -65,37 +65,55 @@
 #define GROWL_TYPE_OSX   1
 
 @interface PreferencesController : NSObject <NSWindowDelegate> {
-  IBOutlet NSWindow *window;
-  IBOutlet NSToolbar *toolbar;
-  IBOutlet NSView *general;
-  IBOutlet NSView *playback;
-  IBOutlet NSView *network;
+
+  // Change IBOutlets to properties for better memory management and clarity
+  IBOutlet NSWindow* window;
+  IBOutlet NSToolbar* toolbar;
+  IBOutlet NSView* general;
+  IBOutlet NSView* playback;
+  IBOutlet NSView* network;
+
 
   // General
-  IBOutlet NSButton *mediaKeysCheckbox;
-  IBOutlet NSTextField *mediaKeysLabel;
+  IBOutlet NSButton* mediaKeysCheckbox;
+  IBOutlet NSTextField* mediaKeysLabel;
 
-  IBOutlet NSButton *statusItemShowColorIcon;
-  IBOutlet NSButton *statusItemShowBlackAndWhiteIcon;
-  IBOutlet NSButton *statusItemShowAlbumArt;
+  IBOutlet NSButton* statusItemShowColorIcon;
+  IBOutlet NSButton* statusItemShowBlackAndWhiteIcon;
+  IBOutlet NSButton* statusItemShowAlbumArt;
 
   // Playback
-  IBOutlet NSButton *notificationEnabled;
-  IBOutlet NSPopUpButton *notificationType;
+  IBOutlet NSButton* notificationEnabled;
+  IBOutlet NSPopUpButton* notificationType;
 
   // Network
-  IBOutlet NSTextField *proxyServerErrorMessage;
+  IBOutlet NSTextField* proxyServerErrorMessage;
 
-  NSArray *itemIdentifiers;
+  NSArray* itemIdentifiers;
+  
 }
 
-/* Selecting views */
-- (IBAction) showGeneral: (id) sender;
-- (IBAction) showPlayback: (id) sender;
-- (IBAction) showNetwork: (id) sender;
+// View selection methods
+  - (IBAction)showGeneral:(id)sender;
+  - (IBAction)showPlayback:(id)sender;
+  - (IBAction)showNetwork:(id)sender;
 
-- (IBAction) statusItemIconChanged:(id)sender;
-- (IBAction) bindMediaChanged: (id) sender;
-- (IBAction) show: (id) sender;
+  // UI action methods
+  - (IBAction)statusItemIconChanged:(id)sender;
+  - (IBAction)bindMediaChanged:(id)sender;
+  - (IBAction)show:(id)sender;
+
+  // Proxy-related methods
+  - (IBAction)proxySettingsChanged:(id)sender;
+  - (void)proxyServerValidityChanged:(NSNotification *)notification;
+
+  // Helper method for proxy validation
+  - (BOOL)isValidProxyHost:(NSString *)host port:(NSInteger)port;
+
+  // View management
+  - (void)setPreferenceView:(NSView *)view as:(NSString *)name;
+
+
+
 
 @end

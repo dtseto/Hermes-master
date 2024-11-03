@@ -142,35 +142,102 @@
 }
 
 - (IBAction)proxySettingsChanged:(id)sender {
-  BOOL proxyValid = NO;
-  NSString *proxyHost;
-  NSInteger proxyPort;
+    // Validate UI elements first
+    if (!proxyServerErrorMessage) {
+        NSLog(@"Error: proxyServerErrorMessage outlet not connected");
+        return;
+    }
+    
+    BOOL proxyValid = NO;
+    NSString *proxyHost = nil;
+    NSInteger proxyPort = 0;
+    
+    // Get proxy type with bounds checking
+    NSInteger proxyType = PREF_KEY_INT(ENABLED_PROXY);
+    
+    // Validate and set proxy configuration based on type
+    switch (proxyType) {
+        case PROXY_SYSTEM:
+            proxyValid = YES;  // System proxy is assumed valid
+            break;
+            
+        case PROXY_HTTP: {
+            proxyHost = PREF_KEY_VALUE(PROXY_HTTP_HOST);
+            proxyPort = PREF_KEY_INT(PROXY_HTTP_PORT);
+            
+            // Validate HTTP proxy settings
+            if (![self isValidProxyHost:proxyHost port:proxyPort]) {
+                NSLog(@"Invalid HTTP proxy configuration - Host: %@, Port: %ld",
+                      proxyHost, (long)proxyPort);
+            }
+            break;
+        }
+            
+        case PROXY_SOCKS: {
+            proxyHost = PREF_KEY_VALUE(PROXY_SOCKS_HOST);
+            proxyPort = PREF_KEY_INT(PROXY_SOCKS_PORT);
+            
+            // Validate SOCKS proxy settings
+            if (![self isValidProxyHost:proxyHost port:proxyPort]) {
+                NSLog(@"Invalid SOCKS proxy configuration - Host: %@, Port: %ld",
+                      proxyHost, (long)proxyPort);
+            }
+            break;
+        }
+            
+        default:
+            NSLog(@"Error: Invalid proxy type specified: %ld", (long)proxyType);
+            break;
+    }
+    
+    // Only validate non-system proxies
+    if (!proxyValid && proxyType != PROXY_SYSTEM) {
+        proxyValid = [URLConnection validProxyHost:&proxyHost port:proxyPort];
+        
+        // Log validation result
+        if (!proxyValid) {
+            NSLog(@"Proxy validation failed for host: %@, port: %ld",
+                  proxyHost, (long)proxyPort);
+        }
+    }
+    
+    // Update UI
+    proxyServerErrorMessage.hidden = proxyValid;
+}
 
-  switch (PREF_KEY_INT(ENABLED_PROXY)) {
-    case PROXY_SYSTEM:
-      proxyValid = YES;
-      break;
-    case PROXY_HTTP:
-      proxyHost = PREF_KEY_VALUE(PROXY_HTTP_HOST);
-      proxyPort = PREF_KEY_INT(PROXY_HTTP_PORT);
-      break;
-    case PROXY_SOCKS:
-      proxyHost = PREF_KEY_VALUE(PROXY_SOCKS_HOST);
-      proxyPort = PREF_KEY_INT(PROXY_SOCKS_PORT);
-  }
-  if (!proxyValid) {
-    proxyValid = [URLConnection validProxyHost:&proxyHost port:proxyPort];
-  }
-  proxyServerErrorMessage.hidden = proxyValid;
+// Helper method for proxy validation
+- (BOOL)isValidProxyHost:(NSString *)host port:(NSInteger)port {
+    return host.length > 0 && port > 0 && port <= 65535;
 }
 
 - (void)proxyServerValidityChanged:(NSNotification *)notification {
-  BOOL proxyServerValid = [notification.userInfo[@"isValid"] boolValue];
-  proxyServerErrorMessage.hidden = proxyServerValid;
-  if (!proxyServerValid) {
-    [self showNetwork:nil];
-    [window orderFront:nil];
-  }
+    // Validate notification data
+    if (!notification.userInfo[@"isValid"]) {
+        NSLog(@"Error: Invalid proxy server validation notification data");
+        return;
+    }
+    
+    // Get validation status
+    BOOL proxyServerValid = [notification.userInfo[@"isValid"] boolValue];
+    
+    // Update UI
+    if (proxyServerErrorMessage) {
+        proxyServerErrorMessage.hidden = proxyServerValid;
+    } else {
+        NSLog(@"Error: proxyServerErrorMessage outlet not connected");
+    }
+    
+    // Show network preferences if proxy is invalid
+    if (!proxyServerValid) {
+        [self showNetwork:nil];
+        
+        // Ensure window exists before ordering front
+        if (window) {
+            [window orderFront:nil];
+        } else {
+            NSLog(@"Error: window outlet not connected");
+        }
+    }
 }
 
 @end

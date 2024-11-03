@@ -3,6 +3,7 @@
 
 NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnectionProxyValidityChangedNotification";
 
+<<<<<<< Updated upstream
 @implementation URLConnection
 
 static void URLConnectionStreamCallback(CFReadStreamRef aStream,
@@ -36,6 +37,55 @@ static void URLConnectionStreamCallback(CFReadStreamRef aStream,
   CFReadStreamClose(conn->stream);
   CFRelease(conn->stream);
   conn->stream = nil;
+=======
+@interface URLConnection () {
+    NSURLSessionDataTask *_dataTask;
+    NSURLSession *_session;
+}
+@end
+
+@implementation URLConnection
+
++ (URLConnection*)connectionForRequest:(NSURLRequest*)request
+                    completionHandler:(URLConnectionCallback)cb {
+    URLConnection *connection = [[URLConnection alloc] init];
+    
+    // Initialize instance variables exactly as defined in header
+    connection->stream = NULL;
+    connection->cb = [cb copy];
+    connection->bytes = [NSMutableData dataWithCapacity:100];
+    connection->timeout = nil;
+    connection->events = 0;
+    
+    // Create session configuration
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    
+    // Create session
+    connection->_session = [NSURLSession sessionWithConfiguration:configuration
+                                                      delegate:nil
+                                                 delegateQueue:[NSOperationQueue mainQueue]];
+    
+    // Apply proxy settings before creating data task
+    [connection setHermesProxy];
+    
+    // Create data task
+    connection->_dataTask = [connection->_session dataTaskWithRequest:request
+                                                 completionHandler:^(NSData * _Nullable data,
+                                                                   NSURLResponse * _Nullable response,
+                                                                   NSError * _Nullable error) {
+        if (error) {
+            connection->cb(nil, error);
+            return;
+        }
+        
+        if (data) {
+            [connection->bytes appendData:data];
+        }
+        connection->cb(connection->bytes, nil);
+    }];
+    
+    return connection;
+>>>>>>> Stashed changes
 }
 
 - (void) dealloc {
@@ -145,6 +195,7 @@ static void URLConnectionStreamCallback(CFReadStreamRef aStream,
   cb = nil;
 }
 
+<<<<<<< Updated upstream
 - (void) setHermesProxy {
   [URLConnection setHermesProxy:stream];
 }
@@ -185,6 +236,173 @@ static void URLConnectionStreamCallback(CFReadStreamRef aStream,
     wasValid = isValid;
   }
   return isValid;
+=======
+- (void)setHermesProxy {
+    if (!_session) {
+        NSLog(@"Error: No session available for proxy configuration");
+        return;
+    }
+    
+    NSURLSessionConfiguration *configuration = _session.configuration;
+    NSMutableDictionary *proxyDict = [NSMutableDictionary new];
+    
+    switch (PREF_KEY_INT(ENABLED_PROXY)) {
+        case PROXY_HTTP: {
+            NSString *host = PREF_KEY_VALUE(PROXY_HTTP_HOST);
+            NSInteger port = PREF_KEY_INT(PROXY_HTTP_PORT);
+            if ([URLConnection validProxyHost:&host port:port]) {
+                // HTTP Proxy settings
+                [proxyDict addEntriesFromDictionary:@{
+                    (NSString *)kCFProxyTypeKey: (NSString *)kCFProxyTypeHTTP,
+                    (NSString *)kCFProxyHostNameKey: host,
+                    (NSString *)kCFProxyPortNumberKey: @(port),
+                    (NSString *)kCFStreamPropertyHTTPSProxyHost: host,
+                    (NSString *)kCFStreamPropertyHTTPSProxyPort: @(port)
+                }];
+                NSLog(@"HTTP proxy configured: %@:%ld", host, (long)port);
+            } else {
+                NSLog(@"Invalid HTTP proxy configuration: %@:%ld", host, (long)port);
+            }
+            break;
+        }
+        
+        case PROXY_SOCKS: {
+            NSString *host = PREF_KEY_VALUE(PROXY_SOCKS_HOST);
+            NSInteger port = PREF_KEY_INT(PROXY_SOCKS_PORT);
+            if ([URLConnection validProxyHost:&host port:port]) {
+                // SOCKS Proxy settings
+                [proxyDict addEntriesFromDictionary:@{
+                    (NSString *)kCFProxyTypeKey: (NSString *)kCFProxyTypeSOCKS,
+                    (NSString *)kCFProxyHostNameKey: host,
+                    (NSString *)kCFProxyPortNumberKey: @(port),
+                    (NSString *)kCFStreamPropertySOCKSProxyHost: host,
+                    (NSString *)kCFStreamPropertySOCKSProxyPort: @(port)
+                }];
+                NSLog(@"SOCKS proxy configured: %@:%ld", host, (long)port);
+            } else {
+                NSLog(@"Invalid SOCKS proxy configuration: %@:%ld", host, (long)port);
+            }
+            break;
+        }
+        
+        case PROXY_SYSTEM:
+        default: {
+            CFDictionaryRef systemProxySettings = CFNetworkCopySystemProxySettings();
+            if (systemProxySettings) {
+                proxyDict = [(__bridge NSDictionary *)systemProxySettings mutableCopy];
+                CFRelease(systemProxySettings);
+                NSLog(@"System proxy settings applied");
+            } else {
+                NSLog(@"Failed to get system proxy settings");
+            }
+            break;
+        }
+    }
+    
+    if (proxyDict.count > 0) {
+        // Configure session with proxy settings
+        configuration.connectionProxyDictionary = proxyDict;
+        
+        // Enable necessary session features
+        configuration.HTTPShouldUsePipelining = YES;
+        configuration.HTTPShouldSetCookies = YES;
+        configuration.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+        
+        // Recreate session with new configuration
+        NSURLSession *newSession = [NSURLSession sessionWithConfiguration:configuration
+                                                               delegate:nil
+                                                          delegateQueue:[NSOperationQueue mainQueue]];
+        
+        // Clean up old session and assign new one
+        [_session finishTasksAndInvalidate];
+        _session = newSession;
+        
+        NSLog(@"Proxy configuration applied to session");
+    } else {
+        NSLog(@"No proxy configuration applied");
+    }
+}
+
++ (void)setHermesProxy:(CFReadStreamRef)stream {
+    if (!stream) return;
+    
+    CFDictionaryRef proxyDict = NULL;
+    
+    switch (PREF_KEY_INT(ENABLED_PROXY)) {
+        case PROXY_HTTP: {
+            NSString *host = PREF_KEY_VALUE(PROXY_HTTP_HOST);
+            NSInteger port = PREF_KEY_INT(PROXY_HTTP_PORT);
+            if ([self validProxyHost:&host port:port]) {
+                const CFStringRef keys[] = {
+                    kCFProxyTypeKey,
+                    kCFProxyHostNameKey,
+                    kCFProxyPortNumberKey
+                };
+                const void *values[] = {
+                    kCFProxyTypeHTTP,
+                    (__bridge CFStringRef)host,
+                    (__bridge CFNumberRef)@(port)
+                };
+                proxyDict = CFDictionaryCreate(NULL, (const void **)&keys,
+                                             (const void **)&values, 3,
+                                             &kCFTypeDictionaryKeyCallBacks,
+                                             &kCFTypeDictionaryValueCallBacks);
+            }
+            break;
+        }
+        
+        case PROXY_SOCKS: {
+            NSString *host = PREF_KEY_VALUE(PROXY_SOCKS_HOST);
+            NSInteger port = PREF_KEY_INT(PROXY_SOCKS_PORT);
+            if ([self validProxyHost:&host port:port]) {
+                const CFStringRef keys[] = {
+                    kCFProxyTypeKey,
+                    kCFProxyHostNameKey,
+                    kCFProxyPortNumberKey
+                };
+                const void *values[] = {
+                    kCFProxyTypeSOCKS,
+                    (__bridge CFStringRef)host,
+                    (__bridge CFNumberRef)@(port)
+                };
+                proxyDict = CFDictionaryCreate(NULL, (const void **)&keys,
+                                             (const void **)&values, 3,
+                                             &kCFTypeDictionaryKeyCallBacks,
+                                             &kCFTypeDictionaryValueCallBacks);
+            }
+            break;
+        }
+        
+        case PROXY_SYSTEM:
+        default:
+            proxyDict = CFNetworkCopySystemProxySettings();
+            break;
+    }
+    
+    if (proxyDict) {
+        CFReadStreamSetProperty(stream, kCFStreamPropertyHTTPProxy, proxyDict);
+        CFRelease(proxyDict);
+    }
+}
+
++ (BOOL)validProxyHost:(NSString **)host port:(NSInteger)port {
+    static BOOL wasValid = YES;
+    
+    if (!host || !*host) return NO;
+    
+    *host = [*host stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    BOOL isValid = ((port > 0 && port <= 65535) &&
+                   [NSHost hostWithName:*host].address != nil);
+    
+    if (isValid != wasValid) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:URLConnectionProxyValidityChangedNotification
+                                                          object:nil
+                                                        userInfo:@{@"isValid": @(isValid)}];
+        wasValid = isValid;
+    }
+    
+    return isValid;
+>>>>>>> Stashed changes
 }
 
 + (BOOL) setHTTPProxy:(CFReadStreamRef)stream
