@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F828EA42CD93B7200C35281 /* NotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F828EA32CD93A5900C35281 /* NotificationManager.m */; };
 		0FA6A7F22CD2F6A100961AD0 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAD42F8713678F7500E935CA /* Sparkle.framework */; };
 		0FA6A7F32CD2F6A100961AD0 /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FAD42F8713678F7500E935CA /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD58140DA1D0A300B32029 /* MainMenu.xib */; };
@@ -113,6 +114,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0F828EA12CD9388F00C35281 /* NotificationManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NotificationManager.h; path = ../../../NotificationManager.h; sourceTree = "<group>"; };
+		0F828EA32CD93A5900C35281 /* NotificationManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NotificationManager.m; sourceTree = "<group>"; };
 		0FE7696E2C8EB09A00E3189E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		0FE769702C8EB09F00E3189E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
@@ -437,6 +440,8 @@
 				FA2A3F76132BF97E0089AECC /* StationsController.m */,
 				FACFACD415673690008A2140 /* StationController.h */,
 				FACFACD515673690008A2140 /* StationController.m */,
+				0F828EA32CD93A5900C35281 /* NotificationManager.m */,
+				0F828EA12CD9388F00C35281 /* NotificationManager.h */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -657,6 +662,7 @@
 				FA1063BE132C6A8A00D6DE42 /* Keychain.m in Sources */,
 				FAEFFAB1132CB173007DC6FB /* AuthController.m in Sources */,
 				FA3CFF44132FC4CF003554E2 /* PlaybackController.m in Sources */,
+				0F828EA42CD93B7200C35281 /* NotificationManager.m in Sources */,
 				FA560C511331701E00215F71 /* ImageLoader.m in Sources */,
 				FA85E72E13347A64005C96B8 /* HermesAppDelegate.m in Sources */,
 				B2A26AEF1AE39E9B00ADD460 /* MusicProgressSliderCell.m in Sources */,
@@ -760,6 +766,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = GHTQCRGWTR;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)",
@@ -774,6 +781,7 @@
 				);
 				INFOPLIST_FILE = "Resources/Hermes-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MARKETING_VERSION = 1.3.2b3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.alexcrichton.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Hermes;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -798,6 +806,8 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = GHTQCRGWTR;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)",
@@ -812,6 +822,7 @@
 				);
 				INFOPLIST_FILE = "Resources/Hermes-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MARKETING_VERSION = 1.3.2b3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.alexcrichton.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Hermes;
 				PROVISIONING_PROFILE_SPECIFIER = "";

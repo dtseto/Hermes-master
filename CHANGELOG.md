@@ -1,6 +1,11 @@
-# Version 1.3.2 (dtseto fork)
-*[edits by @dtseto] change localizations for mac os 11 xcode , depracated code
+# Version 1.32b3 
+fixes to notifications to use macos instead of growler, notifications should work now
+
+# Version 1.3.2b2 (dtseto fork)
+*[edits by @dtseto] change localizations for mac os 11 xcode , depracated code, merge unreleased pull requests from 1.32 etc
+removed growler and notifications
 *[bug toolbar buttons no longer appear are in >>> as text only ]
+universal app
 
 # Version 1.3.2 (unreleased)
 [Full changelog](https://github.com/HermesApp/Hermes/compare/v1.3.1...HEAD)
