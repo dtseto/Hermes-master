@@ -1,27 +1,37 @@
-Hermes fork
+ApolloGenome a Hermes Pandora MacOS client fork for Intel and Apple Silicon
 ======
 
-Forked from Hermes built in Xcode 12.5 MacOS 11 so should be more compatible with apple silicon otherwise no major changes
+Forked from Hermes built in Xcode 12.5 MacOS 11 as a universal app so works with apple silicon as well otherwise no major changes
 
-[![Build Status](https://travis-ci.org/HermesApp/Hermes.svg?branch=master)](https://travis-ci.org/HermesApp/Hermes)
+Includes music genome project data when playing song information.
 
-A [Pandora](http://www.pandora.com/) client for macOS.
+A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 
-### THIS PROJECT IS UNMAINTAINED
+### THIS PROJECT IS MAINTAINED BUT VOLUNTEERS ARE WELCOME
 
-This means that bugs will not be fixed and features will not be added unless someone else does so.  Unfortunately, the former maintainers no longer have the time and/or resources to work on Hermes further.
+This means that bugs are documented and workarounds can be attempted.
 
-If you're interested in fixing up Hermes, please reply to this [GitHub issue (237)](https://github.com/HermesApp/Hermes/issues/237).
+New features will happen slowly.
 
-### Download Hermes
+You can also make pull requests and add to issues and I will try to reply.
 
-- Click Download at [hermesapp.org](http://hermesapp.org/).
-- Or install using [Homebrew](http://brew.sh)/[Caskroom](https://caskroom.github.io): `brew cask install hermes`.
+### Download ApolloGenome
+
+- Click Download in the releases
 
 If you would like to compile Hermes, continue reading.
 
-### Develop against Hermes
+### Develop against ApolloGenome
 
+- Adding stations type controls like Crowd Faves, Deep Cuts instead of only My Station default
+  
+- Possible features fixing proxy bugs better error message display
+
+- Improve support for later MacOS currently written for 10.10+ rewrite for 11+
+
+- Hard redesign for swift instead of interface builder
+
+Below for Hermes
 Thanks to the suggestions by [blalor](https://github.com/blalor), there's a few
 ways you can develop against Hermes if you really want to.
 
