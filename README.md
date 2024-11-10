@@ -1,4 +1,4 @@
-ApolloGenome a Hermes Pandora MacOS client fork for Intel and Apple Silicon
+ApolloGenome a Hermes fork Pandora MacOS client for Intel and Apple Silicon
 ======
 
 Forked from Hermes built in Xcode 12.5 MacOS 11 as a universal app so works with apple silicon as well otherwise no major changes
