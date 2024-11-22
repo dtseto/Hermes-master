@@ -5,6 +5,8 @@ Forked from Hermes built in Xcode 12.5 MacOS 11 as a universal app so works with
 
 Includes music genome project data when playing song information.
 
+Also new feature includes pandora station modes.
+
 A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 
 ### THIS PROJECT IS MAINTAINED BUT VOLUNTEERS ARE WELCOME
