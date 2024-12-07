@@ -1,15 +1,18 @@
 ApolloGenome a Hermes fork Pandora MacOS client for Intel and Apple Silicon
 ======
+![image](https://github.com/user-attachments/assets/9e8fdbfe-ff6c-4558-9993-4403acd2368b)
+
+Picture ApolloGenome/Hermes 1.32b4 running on Macbook Air M1 Apple Silicon Sequoia 15.1
 
 Forked from Hermes built in Xcode 12.5 MacOS 11 as a universal app so works with apple silicon as well otherwise no major changes
 
 Includes music genome project data when playing song information.
 
-Also new feature includes pandora station modes.
+Also new feature includes pandora station modes. (on 1.32b5 and b6 not stable yet on apple silicon)
 
 A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 
-### THIS PROJECT IS MAINTAINED BUT VOLUNTEERS ARE WELCOME
+### THIS PROJECT IS MAINTAINED BUT VOLUNTEERS TO TEST ARE WELCOME
 
 This means that bugs are documented and workarounds can be attempted.
 
@@ -19,7 +22,9 @@ You can also make pull requests and add to issues and I will try to reply.
 
 ### Download ApolloGenome
 
-- Click Download in the releases
+- Click Download in the releases source code also provided with most apps
+
+- On newer MAC OS download the app, extract if needed, double click to open, on warning message, open again, go to system settings, privacy and security, scroll to the bottom and click open anyways, open the app enter your password should open normally after.
 
 If you would like to compile Hermes, continue reading.
 
@@ -29,9 +34,9 @@ If you would like to compile Hermes, continue reading.
   
 - Possible features fixing proxy bugs better error message display
 
-- Improve support for later MacOS currently written for 10.10+ rewrite for 11+
+- Improve support for later MacOS currently written for 10.10+ rewrite for 11+, setup app sandboxing, app notarization, use new keychain code, 
 
-- Hard redesign for swift instead of interface builder
+- Hard redesign for swift instead of interface builder (probably not since Hermes is forked from pianobar written in C)
 
 Below for Hermes
 Thanks to the suggestions by [blalor](https://github.com/blalor), there's a few
