@@ -156,11 +156,64 @@ static NSString *hierrs[] = {
 
 @implementation Pandora
 
-@synthesize stations;
+
+- (void)explainSong:(Song *)song {
+  if (!song || !song.token) { // Change trackToken to token to match Song property
+      return;
+  }
+
+  // Create piano request
+  NSMutableDictionary *d = [self defaultRequestDictionary];
+  d[@"trackToken"] = song.token;
+  
+  PandoraRequest *req = [self defaultRequestWithMethod:@"track.explainTrack"];
+  [req setRequest:d];
+  [req setTls:FALSE];
+  [req setCallback:^(NSDictionary* dict) {
+    NSLog(@"Got explanation response: %@", dict);
+    NSDictionary *result = dict[@"result"];
+    NSArray *explanations = result[@"explanations"];
+    
+    if (explanations && [explanations count] > 0) {
+        // Build explanation string from all traits
+        NSMutableString *explanation = [NSMutableString string];
+        [explanation appendString:@"Chosen for: "];
+        
+        for (NSUInteger i = 0; i < [explanations count]; i++) {
+            NSDictionary *trait = explanations[i];
+            [explanation appendString:trait[@"focusTraitName"]];
+            
+            // Add appropriate separators between traits
+            if (i < [explanations count] - 2) {
+                [explanation appendString:@", "];
+            } else if (i == [explanations count] - 2) {
+                [explanation appendString:@", and "];
+            }
+        }
+        [explanation appendString:@"."];
+        
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName:PandoraDidExplainSongNotification
+            object:song
+            userInfo:@{@"explanation": explanation}];
+    } else {
+        NSString *error = @"Could not get explanation";
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName:PandoraDidExplainSongNotification
+            object:song
+            userInfo:@{@"error": error}];
+    }
+  }];
+
+
+  [self sendRequest:req];
+}
+
+@synthesize stations = _stations;
 
 - (id) init {
   if ((self = [super init])) {
-    stations = [[NSMutableArray alloc] init];
+    _stations = [[NSMutableArray alloc] init];  // Initialize as mutable
     retries  = 0;
     self.device = [PandoraDevice android];
   }
@@ -314,9 +367,9 @@ static NSString *hierrs[] = {
 
 - (void) logout {
   [self logoutNoNotify];
-  for (Station *s in stations)
+  for (Station *s in _stations)  // Use _stations directly
     [Station removeStation:s];
-  [stations removeAllObjects];
+  [_stations removeAllObjects];  // Use _stations directly
   [self postNotification:PandoraDidLogOutNotification];
   // Always assume non-subscriber until API says otherwise.
   self.cachedSubscriberStatus = nil;
@@ -349,7 +402,7 @@ static NSString *hierrs[] = {
     Station *s = [self parseStationFromDictionary:result];
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"station"] = s;
-    [self->stations addObject:s];
+    [self->_stations addObject:s];  // Use _stations directly
     [Station addStation:s];
     [self postNotification:PandoraDidCreateStationNotification result:dict];
   }];
@@ -367,18 +420,18 @@ static NSString *hierrs[] = {
     unsigned int i;
     
     /* Remove the station internally */
-    for (i = 0; i < [self->stations count]; i++) {
-      if ([[self->stations[i] token] isEqual:stationToken]) {
-        break;
-      }
+    for (i = 0; i < [self->_stations count]; i++) {
+        if ([[self->_stations[i] token] isEqual:stationToken]) {
+            break;
+        }
     }
 
-    if ([self->stations count] == i) {
+    if ([self->_stations count] == i) {
       NSLogd(@"Deleted unknown station?!");
     } else {
-      Station *stationToRemove = self->stations[i];
+      Station *stationToRemove = self->_stations[i];
       [Station removeStation:stationToRemove];
-      [self->stations removeObjectAtIndex:i];
+      [self->_stations removeObjectAtIndex:i];  // Use _stations directly
       [self postNotification:PandoraDidDeleteStationNotification request:stationToRemove];
     }
     
@@ -411,14 +464,15 @@ static NSString *hierrs[] = {
   [r setRequest:d];
   [r setTls:FALSE];
   [r setCallback: ^(NSDictionary* dict) {
-    NSDictionary *result = dict[@"result"];
-    for (NSDictionary *s in result[@"stations"]) {
-      Station *station = [self parseStationFromDictionary:s];
-      if (![self->stations containsObject:station]) {
-        [self->stations addObject:station];
-        [Station addStation:station];
-      }
-    };
+      NSDictionary *result = dict[@"result"];
+      for (NSDictionary *s in result[@"stations"]) {
+          Station *station = [self parseStationFromDictionary:s];
+          if (![self->_stations containsObject:station]) {  // Changed stations to _stations
+              [self->_stations addObject:station];          // Changed stations to _stations
+              [Station addStation:station];
+          }
+      };
+
     
     [self postNotification:PandoraDidLoadStationsNotification];
   }];
@@ -635,7 +689,7 @@ static NSString *hierrs[] = {
 #pragma mark Sort stations in UI
 
 - (void) sortStations:(NSInteger)sort {
-  [stations sortUsingComparator:
+  [_stations sortUsingComparator:  // Use _stations directly
    ^NSComparisonResult (Station *s1, Station *s2) {
      // keep Shuffle/QuickMix at the top of the list
      if ([s1 isQuickMix]) return NSOrderedAscending;

@@ -1,4 +1,7 @@
 #import "Pandora.h"
+// add cocoa
+#import <Cocoa/Cocoa.h>
+
 
 #define USERNAME_KEY @"pandora.username"
 
@@ -19,7 +22,8 @@
 @class NetworkConnection;
 @class PreferencesController;
 
-@interface HermesAppDelegate : NSObject <NSApplicationDelegate> {
+// Explicitly conform to NSWindowRestoration
+@interface HermesAppDelegate : NSObject <NSApplicationDelegate, NSWindowRestoration> {
   /* Generic loading view */
   IBOutlet NSView *loadingView;
   IBOutlet NSProgressIndicator *loadingIcon;
@@ -44,8 +48,9 @@
   IBOutlet NSMenuItem *playbackState;
 }
 
+@property (weak) IBOutlet NSWindow *window;  // Your main window outlet
 @property (readonly) Pandora *pandora;
-@property (readonly) IBOutlet NSWindow *window;
+//@property (readonly) IBOutlet NSWindow *window;
 @property (readonly) IBOutlet StationsController *stations;
 @property (readonly) IBOutlet HistoryController *history;
 @property (readonly) IBOutlet AuthController *auth;

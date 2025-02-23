@@ -15,6 +15,14 @@
 
   IBOutlet NSView *playbackView;
 
+  //new explanation
+  IBOutlet NSTextField *explanationLabel;
+  
+  
+  
+  IBOutlet NSMenu *songContextMenu;  // Add this
+
+  
   // Song view items
   IBOutlet NSTextField *songLabel;
   IBOutlet NSTextField *artistLabel;

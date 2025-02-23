@@ -1,6 +1,24 @@
-# Version 1.3.2 (dtseto fork)
-*[edits by @dtseto] change localizations for mac os 11 xcode , depracated code
+#Version 1.32b7
+rollback new pandora features that were added 1.32b5-b6
+fixed ui
+removed intel support
+added newer keychain support for mac os 11 removed arc 
+still built for 10.10 pending refactor
+built on xcode 16
+updated hermesappdelegate windows restoration code
+
+# Version 1.32b4 
+some fixes to proxy settings
+new feature pandora music explanation
+
+# Version 1.32b3 
+fixes to notifications to use macos instead of growler, notifications should work now
+
+# Version 1.3.2b2 (dtseto fork)
+*[edits by @dtseto] change localizations for mac os 11 xcode , depracated code, merge unreleased pull requests from 1.32 etc
+removed growler and notifications
 *[bug toolbar buttons no longer appear are in >>> as text only ]
+universal app
 
 # Version 1.3.2 (unreleased)
 [Full changelog](https://github.com/HermesApp/Hermes/compare/v1.3.1...HEAD)

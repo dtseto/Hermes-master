@@ -11,7 +11,10 @@
 #import <SPMediaKeyTap/SPMediaKeyTap.h>
 #import <MediaPlayer/MediaPlayer.h>
 
+
 //#import "Integration/Growler.h"
+#import "NotificationManager.h"
+
 #import "HistoryController.h"
 #import "ImageLoader.h"
 #import "PlaybackController.h"
@@ -164,6 +167,32 @@ BOOL playOnStart = YES;
   }
 #endif
 #endif
+  
+  
+  
+  // Add menu item to context menu
+  NSMenuItem *explainItem = [[NSMenuItem alloc]
+                            initWithTitle:@"Why this song?"
+                            action:@selector(explainSong:)
+                            keyEquivalent:@""];
+  [explainItem setTarget:self];
+  [songContextMenu addItem:[NSMenuItem separatorItem]];
+  [songContextMenu addItem:explainItem];
+  
+  // Setup explanation label
+  [explanationLabel setSelectable:YES];
+  [explanationLabel setFont:[NSFont systemFontOfSize:11]];
+  [explanationLabel setTextColor:[NSColor secondaryLabelColor]];
+  [explanationLabel setHidden:YES];
+  
+  // Add observer for explanation
+  [[NSNotificationCenter defaultCenter]
+      addObserver:self
+      selector:@selector(songExplanationReceived:)
+      name:PandoraDidExplainSongNotification
+      object:nil];
+
+  
 }
 
 - (void)showToolbar {
@@ -332,12 +361,21 @@ BOOL playOnStart = YES;
 
   song.playDate = [NSDate date];
 
+  // Reset explanation when new song plays
+  [explanationLabel setStringValue:@"Loading explanation..."];
+  [explanationLabel setHidden:NO];
+  // Automatically request explanation for the new song
+  [[HMSAppDelegate pandora] explainSong:song];
+
+  
   /* Prevent a flicker by not loading the same image twice */
   if ([song art] != lastImgSrc) {
     if ([song art] == nil || [[song art] isEqual: @""]) {
       [self setArtImage:nil];
       if (![self->playing isPaused])
         //[GROWLER growl:song withImage:nil isNew:YES];
+        [[NotificationManager sharedManager] notifySongPlaying:song withImageData:nil isNew:YES];
+
         ;
     } else {
       [artLoading startAnimation:nil];
@@ -357,6 +395,8 @@ BOOL playOnStart = YES;
 
         if (![self->playing isPaused]) {
           //[GROWLER growl:song withImage:data isNew:YES];
+          [[NotificationManager sharedManager] notifySongPlaying:song withImageData:data isNew:YES];
+
         }
         [self setArtImage:image];
       }];
@@ -432,6 +472,8 @@ BOOL playOnStart = YES;
   } else {
     [playing play];
     //[GROWLER growl:[playing playingSong] withImage:lastImg isNew:NO];
+    [[NotificationManager sharedManager] notifySongPlaying:[playing playingSong] withImageData:lastImg isNew:NO];
+
     return YES;
   }
 }
@@ -483,6 +525,41 @@ BOOL playOnStart = YES;
   if ([[HMSAppDelegate history] selectedItem] == song) {
     [[HMSAppDelegate history] updateUI];
   }
+}
+
+
+
+- (IBAction)explainSong:(id)sender {
+    if (playing == nil || [playing playingSong] == nil) {
+        return;
+    }
+    
+    [explanationLabel setStringValue:@"Loading explanation..."];
+    [explanationLabel setHidden:NO];
+    [self showSpinner];
+    [[HMSAppDelegate pandora] explainSong:[playing playingSong]];
+}
+
+
+- (void)songExplanationReceived:(NSNotification *)notification {
+    NSLog(@"Received explanation notification: %@", notification.userInfo);
+    [self hideSpinner];
+    
+    Song *song = notification.object;
+    if (song == [playing playingSong]) {
+        NSString *explanation = notification.userInfo[@"explanation"];
+        if (explanation) {
+            NSLog(@"Got explanation: %@", explanation);
+            [explanationLabel setAlphaValue:0.0];
+            [explanationLabel setHidden:NO];
+            [explanationLabel setStringValue:explanation];
+            
+            [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+                context.duration = 0.3;
+                [[explanationLabel animator] setAlphaValue:1.0];
+            }];
+        }
+    }
 }
 
 /* Toggle between playing and pausing */
@@ -653,6 +730,10 @@ BOOL playOnStart = YES;
 }
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+  
+  if ([menuItem action] == @selector(explainSong:)) {
+      return [playing playingSong] != nil;
+  }
   if (![[self pandora] isAuthenticated]) {
     return NO;
   }

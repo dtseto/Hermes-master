@@ -5,6 +5,11 @@
  */
 
 /* If these are changed, then the xib also needs to be updated */
+
+#define NOTIFICATION_ENABLED @"notification.enabled"
+
+
+
 #define PLEASE_BIND_MEDIA          @"pleaseBindMedia"
 #define PLEASE_SCROBBLE            @"pleaseScrobble"
 #define PLEASE_SCROBBLE_LIKES      @"pleaseScrobbleLikes"
@@ -72,6 +77,11 @@
   IBOutlet NSView *network;
 
   // General
+  
+  //new
+  //IBOutlet NSButton *notificationEnabled;
+
+  
   IBOutlet NSButton *mediaKeysCheckbox;
   IBOutlet NSTextField *mediaKeysLabel;
 

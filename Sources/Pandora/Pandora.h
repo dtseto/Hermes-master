@@ -74,7 +74,9 @@ typedef void(^PandoraCallback)(NSDictionary*);
 
 /* Implementation of Pandora's API */
 @interface Pandora : NSObject {
-  NSMutableArray *stations;
+
+  NSMutableArray *_stations;  // Add this instance variable declaration
+
   int retries;
 
   NSString *partner_id;
@@ -85,6 +87,8 @@ typedef void(^PandoraCallback)(NSDictionary*);
   uint64_t start_time;
   int64_t syncOffset;
 }
+
+//@synthesize stations = _stations; // Add this line to properly synthesize the property
 
 @property (readonly) NSArray* stations;
 @property (strong) NSDictionary *device;
@@ -284,6 +288,13 @@ typedef void(^PandoraCallback)(NSDictionary*);
  *        disliked
  */
 - (BOOL) rateSong:(Song*) song as:(BOOL) liked;
+
+/**
+ * Request explanation for why a song is playing
+ * Posts PandoraDidExplainSongNotification on completion
+ */
+- (void)explainSong:(Song *)song;
+
 
 /**
  * @brief Delete a rating for a song

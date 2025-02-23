@@ -626,78 +626,126 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   stream = CFReadStreamCreateForHTTPRequest(NULL, message);
   CFRelease(message);
 
+  
+  if (!stream) {
+      NSLog(@"Failed to create HTTP stream");
+      [self failWithErrorCode:AS_FILE_STREAM_OPEN_FAILED];
+      return NO;
+  }
+  
   /* Follow redirection codes by default */
   if (!CFReadStreamSetProperty(stream,
                                kCFStreamPropertyHTTPShouldAutoredirect,
                                kCFBooleanTrue)) {
+    NSLog(@"Failed to set redirect property");
     [self failWithErrorCode:AS_FILE_STREAM_GET_PROPERTY_FAILED];
     return NO;
   }
 
   /* Deal with proxies */
+  BOOL proxySuccess = NO;
   switch (proxyType) {
-    case PROXY_HTTP: {
-      CFDictionaryRef proxySettings = (__bridge CFDictionaryRef)
-        [NSMutableDictionary dictionaryWithObjectsAndKeys:
-          proxyHost, kCFStreamPropertyHTTPProxyHost,
-          @(proxyPort), kCFStreamPropertyHTTPProxyPort,
-          nil];
-      CFReadStreamSetProperty(stream, kCFStreamPropertyHTTPProxy,
-                              proxySettings);
-      break;
+      // In AudioStreamer.m - fix proxy setup
+      case PROXY_HTTP: {
+          // Create settings dictionary with both HTTP and HTTPS proxy settings
+          NSDictionary *proxySettings = @{
+              (__bridge NSString *)kCFStreamPropertyHTTPProxyHost: proxyHost,
+              (__bridge NSString *)kCFStreamPropertyHTTPProxyPort: @(proxyPort),
+              (__bridge NSString *)kCFStreamPropertyHTTPSProxyHost: proxyHost,
+              (__bridge NSString *)kCFStreamPropertyHTTPSProxyPort: @(proxyPort)
+          };
+          
+        proxySuccess = CFReadStreamSetProperty(stream,
+                                             kCFStreamPropertyHTTPProxy,
+                                             (__bridge CFDictionaryRef)proxySettings);
+        if (!proxySuccess) {
+            NSLog(@"Failed to set HTTP proxy settings - host: %@ port: %d", proxyHost, proxyPort);
+        }
+        break;
     }
+
     case PROXY_SOCKS: {
-      CFDictionaryRef proxySettings = (__bridge CFDictionaryRef)
-        [NSMutableDictionary dictionaryWithObjectsAndKeys:
-          proxyHost, kCFStreamPropertySOCKSProxyHost,
-          @(proxyPort), kCFStreamPropertySOCKSProxyPort,
-          nil];
-      CFReadStreamSetProperty(stream, kCFStreamPropertySOCKSProxy,
-                              proxySettings);
-      break;
+        NSDictionary *proxySettings = @{
+            (__bridge NSString *)kCFStreamPropertySOCKSProxyHost: proxyHost,
+            (__bridge NSString *)kCFStreamPropertySOCKSProxyPort: @(proxyPort)
+        };
+        
+        proxySuccess = CFReadStreamSetProperty(stream,
+                                             kCFStreamPropertySOCKSProxy,
+                                             (__bridge CFDictionaryRef)proxySettings);
+        if (!proxySuccess) {
+            NSLog(@"Failed to set SOCKS proxy settings - host: %@ port: %d", proxyHost, proxyPort);
+        }
+        break;
     }
+     
     default:
     case PROXY_SYSTEM: {
-      CFDictionaryRef proxySettings = CFNetworkCopySystemProxySettings();
-      CFReadStreamSetProperty(stream, kCFStreamPropertyHTTPProxy, proxySettings);
-      CFRelease(proxySettings);
-      break;
+        CFDictionaryRef systemSettings = CFNetworkCopySystemProxySettings();
+        if (systemSettings) {
+            proxySuccess = CFReadStreamSetProperty(stream,
+                                                 kCFStreamPropertyHTTPProxy,
+                                                 systemSettings);
+            if (!proxySuccess) {
+                NSLog(@"Failed to set system proxy settings");
+            }
+            CFRelease(systemSettings);
+        } else {
+            NSLog(@"Failed to get system proxy settings");
+        }
+        break;
     }
+}
+  
+  
+  if (!proxySuccess) {
+      NSLog(@"Warning: Failed to set proxy settings, attempting to continue without proxy");
   }
 
+  
   /* handle SSL connections */
   if ([[url absoluteString] rangeOfString:@"https"].location == 0) {
-    NSDictionary *sslSettings = @{
-      (id)kCFStreamSSLLevel: (NSString*)kCFStreamSocketSecurityLevelNegotiatedSSL,
-      (id)kCFStreamSSLValidatesCertificateChain:  @YES,
-      (id)kCFStreamSSLPeerName:                   [NSNull null]
-    };
+        NSDictionary *sslSettings = @{
+            (id)kCFStreamSSLLevel: (NSString*)kCFStreamSocketSecurityLevelNegotiatedSSL,
+            (id)kCFStreamSSLValidatesCertificateChain: @YES,
+            (id)kCFStreamSSLPeerName: [NSNull null]
+        };
 
-    CFReadStreamSetProperty(stream, kCFStreamPropertySSLSettings,
-                            (__bridge CFDictionaryRef) sslSettings);
-  }
+        if (!CFReadStreamSetProperty(stream,
+                                   kCFStreamPropertySSLSettings,
+                                   (__bridge CFDictionaryRef)sslSettings)) {
+            NSLog(@"Failed to set SSL settings");
+        }
+    }
 
   [self setState:AS_WAITING_FOR_DATA];
 
-  if (!CFReadStreamOpen(stream)) {
-    [self failWithErrorCode:AS_FILE_STREAM_OPEN_FAILED];
-    return NO;
-  }
+  /* Open stream after all properties are set */
+     if (!CFReadStreamOpen(stream)) {
+         NSLog(@"Failed to open stream");
+         [self failWithErrorCode:AS_FILE_STREAM_OPEN_FAILED];
+         return NO;
+     }
+  
+  
+  /* Set the callback to receive events after stream is open */
+     CFStreamClientContext context = {0, (__bridge void*) self, NULL, NULL, NULL};
+     if (!CFReadStreamSetClient(stream,
+                               kCFStreamEventHasBytesAvailable |
+                                 kCFStreamEventErrorOccurred |
+                                 kCFStreamEventEndEncountered,
+                               ASReadStreamCallBack,
+                               &context)) {
+         NSLog(@"Failed to set stream client");
+         [self failWithErrorCode:AS_FILE_STREAM_SET_PROPERTY_FAILED];
+         return NO;
+     }
+     
+     CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(),
+                                     kCFRunLoopCommonModes);
 
-  /* Set the callback to receive a few events, and then we're ready to
-     schedule and go */
-  CFStreamClientContext context = {0, (__bridge void*) self, NULL, NULL, NULL};
-  CFReadStreamSetClient(stream,
-                        kCFStreamEventHasBytesAvailable |
-                          kCFStreamEventErrorOccurred |
-                          kCFStreamEventEndEncountered,
-                        ASReadStreamCallBack,
-                        &context);
-  CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(),
-                                  kCFRunLoopCommonModes);
-
-  return YES;
-}
+     return YES;
+ }
 
 //
 // handleReadFromStream:eventType:

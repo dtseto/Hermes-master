@@ -18,6 +18,8 @@ NSString * const AppleScreenIsLockedDistributedNotification          = @"com.app
 NSString * const AppleScreenIsUnlockedDistributedNotification        = @"com.apple.screenIsUnlocked";
 
 #pragma mark - Internal Notifications
+//song explain
+NSString * const PandoraDidExplainSongNotification                   = @"PandoraDidExplainSongNotification";
 
 NSString * const PandoraDidErrorNotification                         = @"PandoraDidErrorNotification";
 NSString * const PandoraDidAuthenticateNotification                  = @"PandoraDidAuthenticateNotification";

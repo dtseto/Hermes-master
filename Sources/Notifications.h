@@ -20,6 +20,9 @@ extern NSString * const AppleScreenIsUnlockedDistributedNotification;
 
 #pragma mark Internal Notifications
 
+//songexplain info
+extern NSString * const PandoraDidExplainSongNotification; // object: song, userInfo: explanation/error
+ 
 extern NSString * const PandoraDidErrorNotification; // userInfo: error
 extern NSString * const PandoraDidAuthenticateNotification;
 extern NSString * const PandoraDidLogOutNotification;

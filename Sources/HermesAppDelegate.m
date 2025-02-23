@@ -8,6 +8,8 @@
 #import <SPMediaKeyTap/SPMediaKeyTap.h>
 #import <MediaPlayer/MediaPlayer.h>
 
+#import "HermesAppDelegate.h"
+
 #import "AuthController.h"
 #import "HistoryController.h"
 #import "Integration/Keychain.h"
@@ -187,6 +189,16 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+  // Enable window restoration
+  [self.window setRestorationClass:[HermesAppDelegate class]];
+  
+  // Set a unique identifier for the window
+  [self.window setIdentifier:@"MainWindow"];
+  
+  // Enable restoration for the window
+  [self.window setRestorable:YES];
+  
+  
   NSUInteger flags = ([NSEvent modifierFlags] & NSDeviceIndependentModifierFlagsMask);
   BOOL isOptionPressed = (flags == NSAlternateKeyMask);
   
@@ -262,16 +274,32 @@
   [self updateAlwaysOnTop:nil];
 }
 
+// Required for macOS 10.15+ (Catalina and later)
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app {
+    return YES;
+}
+
+
 - (void)applicationWillResignActive:(NSNotification *)aNotification {
   [playback saveState];
   [history saveSongs];
 }
 
-- (void) applicationWillTerminate: (NSNotification *)aNotification {
-  [playback saveState];
-  [playback stop];
-  [history saveSongs];
+// Save additional window state when needed
+- (void)applicationWillTerminate:(NSNotification *)aNotification {
+    // Get the window's frame
+    NSRect frame = [self.window frame];
+    
+    // Save it to user defaults or other persistent storage if needed
+    [[NSUserDefaults standardUserDefaults] setObject:NSStringFromRect(frame)
+                                            forKey:@"MainWindowFrame"];
 }
+
+// Optional: Handle window closing
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
+    return YES;  // App will quit when last window is closed
+}
+
 
 #pragma mark - NSWindow notification
 
@@ -281,12 +309,26 @@
 
 #pragma mark - NSWindowRestoration
 
-+ (BOOL)restoreWindowWithIdentifier:(NSString *)identifier
-                              state:(NSCoder *)state
-                  completionHandler:(void (^)(NSWindow *, NSError *))done {
-  [PlaybackController setPlayOnStart:NO];
-  done(nil, nil);
-  return YES;
+// Window restoration handler
++ (void)restoreWindowWithIdentifier:(NSString *)identifier
+                            state:(NSCoder *)state
+                completionHandler:(void (^)(NSWindow *, NSError *))completionHandler {
+    // Check if it's our main window
+    if ([identifier isEqualToString:@"MainWindow"]) {
+        // Get the main window from the app delegate
+        NSWindow *window = [(HermesAppDelegate *)[NSApp delegate] window];
+        
+        // Restore window frame if saved
+        if ([state containsValueForKey:@"windowFrame"]) {
+            NSRect savedFrame = [state decodeRectForKey:@"windowFrame"];
+            [window setFrame:savedFrame display:NO];
+        }
+        
+        completionHandler(window, nil);
+    } else {
+        // Unknown window identifier
+        completionHandler(nil, nil);
+    }
 }
 
 #pragma mark -
