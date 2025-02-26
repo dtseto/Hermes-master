@@ -197,11 +197,12 @@ static NSString *hierrs[] = {
             object:song
             userInfo:@{@"explanation": explanation}];
     } else {
-        NSString *error = @"Could not get explanation";
-        [[NSNotificationCenter defaultCenter]
-            postNotificationName:PandoraDidExplainSongNotification
-            object:song
-            userInfo:@{@"error": error}];
+      // Instead of an error, send a neutral message
+      NSString *message = @"No explanation available for this song";
+      [[NSNotificationCenter defaultCenter]
+          postNotificationName:PandoraDidExplainSongNotification
+          object:song
+          userInfo:@{@"explanation": message}];
     }
   }];
 
@@ -233,10 +234,15 @@ static NSString *hierrs[] = {
 }
 
 - (void)postNotification:(NSString *)notificationName request:(id)request result:(NSDictionary *)result {
+  // Add the dispatch barrier here to ensure thread safety
+  dispatch_barrier_async(dispatch_get_main_queue(), ^{
+
   [[NSNotificationCenter defaultCenter] postNotificationName:notificationName
                                                       object:request
                                                     userInfo:result];
+  });
 }
+
 
 #pragma mark - Error handling
 
@@ -865,6 +871,8 @@ static NSString *hierrs[] = {
 
 
 - (BOOL) sendRequest: (PandoraRequest*) request {
+  NSLog(@"[DEBUG] Starting sendRequest for method: %@", request.method);
+
   NSString *url  = [NSString stringWithFormat:
                     @"http%s://%@" PANDORA_API_PATH
                     @"?method=%@&partner_id=%@&auth_token=%@&user_id=%@",
@@ -883,52 +891,91 @@ static NSString *hierrs[] = {
   [nsrequest addValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
   
   /* Create the body */
-  NSData *data = [NSJSONSerialization dataWithJSONObject:request.request options:0 error:nil];
+  NSError *jsonError = nil;
+  NSData *data = [NSJSONSerialization dataWithJSONObject:request.request
+                                                options:0
+                                                  error:&jsonError];
+  if (jsonError) {
+    NSLog(@"[DEBUG] JSON serialization error: %@", jsonError);
+    return FALSE;
+  }
+
+  //NSData *data = [NSJSONSerialization dataWithJSONObject:request.request options:0 error:nil];
   if ([request encrypted]) { data = [self encryptData:data]; }
   [nsrequest setHTTPBody: data];
+  
+  NSLog(@"[DEBUG] Sending request with body length: %lu bytes", (unsigned long)[data length]);
   
   /* Create the connection with necessary callback for when done */
   URLConnection *c =
   [URLConnection connectionForRequest:nsrequest
                     completionHandler:^(NSData *d, NSError *e) {
+    NSLog(@"[DEBUG] URLConnection completed: data=%lu bytes, error=%@",
+          d ? (unsigned long)[d length] : 0, e);
+
+    
                       NSDictionary *dict = nil;
-                      /* Parse the JSON if we don't have an error */
-                      if (!e) {
-                        dict = [NSJSONSerialization JSONObjectWithData:d options:0 error:&e];
-                      }
+    /* Parse the JSON if we don't have an error */
+    if (!e) {
+      if (d) {
+        NSError *jsonParseError = nil;  // Declare it here
+        dict = [NSJSONSerialization JSONObjectWithData:d
+                                               options:0
+                                                 error:&jsonParseError];
+        if (jsonParseError) {
+          NSLog(@"[DEBUG] JSON parsing error: %@", jsonParseError);
+          e = jsonParseError;
+        } else {
+          NSLog(@"[DEBUG] Response parsed: %@", dict);
+        }
+      } else {
+        NSLog(@"[DEBUG] No data received in response");
+      }
+    }
 
-                      NSString *err = e ? [e localizedDescription] : nil;
-                      /* If we still don't have an error, look at the JSON for an error */
-                      if (!err && dict) {
-                        if ([dict[@"stat"] isEqualToString:@"fail"]) {
-                          err = dict[@"message"];
-                        }
-                      }
-                      
-                      /* If we don't have an error, then invoke the callback. */
-                      if (err == nil) {
-                        assert(dict != nil);
-                        [request callback](dict);
-                        return;
-                      }
+    NSString *err = e ? [e localizedDescription] : nil;
+    /* If we still don't have an error, look at the JSON for an error */
+    if (!err && dict) {
+      if ([dict[@"stat"] isEqualToString:@"fail"]) {
+        err = dict[@"message"];
+        NSLog(@"[DEBUG] Pandora API error: %@", err);
+      }
+    }
+    
+    /* If we don't have an error, then invoke the callback. */
+    if (err == nil) {
+      NSLog(@"[DEBUG] No errors, invoking success callback");
+      assert(dict != nil);
+      [request callback](dict);
+      return;
+    }
 
-                      /* Otherwise build the error dictionary. */
-                      NSMutableDictionary *info = [NSMutableDictionary dictionary];
-                      info[@"request"] = request;
-                      info[@"err"] = err;
-                      if (e) {
-                        NSInteger code = e.code;
-                        if (code != 0)
-                          info[@"nsErrorCode"] = @(code); /* This is a NSError code. */
-                      } else if (dict) {
-                        info[@"code"] = dict[@"code"]; /* This is a Pandora error code. */
-                      }
-                      [[NSNotificationCenter defaultCenter] postNotificationName:PandoraDidErrorNotification
-                                                                          object:self
-                                                                        userInfo:info];
-                    }];
-  [c start];
-  return TRUE;
+    /* Otherwise build the error dictionary. */
+    NSMutableDictionary *info = [NSMutableDictionary dictionary];
+    info[@"request"] = request;
+    info[@"error"] = err;  // Use "error" as the key consistently
+    
+    if (e) {
+      NSInteger code = e.code;
+      if (code != 0) {
+        info[@"nsErrorCode"] = @(code); /* This is a NSError code. */
+        NSLog(@"[DEBUG] NSError code: %ld", (long)code);
+      }
+    } else if (dict) {
+      info[@"code"] = dict[@"code"]; /* This is a Pandora error code. */
+      NSLog(@"[DEBUG] Pandora error code: %@", dict[@"code"]);
+    }
+    
+    NSLog(@"[DEBUG] Posting error notification with info: %@", info);
+    NSLog(@"[DEBUG] Error call stack: %@", [NSThread callStackSymbols]);
+    
+    [[NSNotificationCenter defaultCenter]
+      postNotificationName:PandoraDidErrorNotification
+                    object:self
+                  userInfo:info];
+  }];
+[c start];
+return TRUE;
 }
 
 @end

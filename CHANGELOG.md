@@ -1,3 +1,11 @@
+#Version 1.32b8
+refactor to use nsurlsession instead of cfreadstream in audiostreamer and urlconnection
+minor proxy fixes
+fix a refresh error caused by blank music project data, and in labelhover show field
+fix several thread async errors in hermes app delegate, but it throws a refresh error just click try again
+built for 10.11+ arm only xcode 16
+release should be developer signed should work on newer computers
+
 #Version 1.32b7
 rollback new pandora features that were added 1.32b5-b6
 fixed ui

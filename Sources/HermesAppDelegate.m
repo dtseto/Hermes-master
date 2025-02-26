@@ -746,10 +746,27 @@
 }
 
 - (void) handlePandoraError: (NSNotification*) notification {
+  
+  // Log thread information
+  NSLog(@"[DEBUG] handlePandoraError called on thread: %@, isMainThread: %d",
+         [NSThread currentThread], [NSThread isMainThread]);
+  
+
+  // Ensure we're on the main thread for UI operations
+  if (![NSThread isMainThread]) {
+    NSLog(@"[DEBUG] Dispatching handlePandoraError to main thread");
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self handlePandoraError:notification];
+    });
+    return;
+  }
+
+  
   NSDictionary *info = [notification userInfo];
   NSString *err      = info[@"error"];
   NSNumber *nscode   = info[@"code"];
   NSLogd(@"error received %@", info);
+  NSLog(@"[DEBUG] Pandora error code: %@, error message: %@", nscode, err);
   /* If this is a generic error (like a network error) it's possible to retry.
    Otherewise if it's a Pandora error (with a code listed) there's likely
    nothing we can do about it */
@@ -758,47 +775,65 @@
   int code = [nscode intValue];
   NSString *other = [Pandora stringForErrorCode:code];
   if (other != nil) {
+    NSLog(@"[DEBUG] Using mapped error string: %@ for code: %d", other, code);
     err = other;
   }
 
   if (nscode != nil) {
+    NSLog(@"[DEBUG] Handling specific error code: %d", code);
     [errorButton setHidden:TRUE];
 
     switch (code) {
       case INVALID_SYNC_TIME:
       case INVALID_AUTH_TOKEN: {
+        NSLog(@"[DEBUG] Auth token or sync time invalid, attempting reauth");
         NSString *user = [self getSavedUsername];
         NSString *pass = [self getSavedPassword];
         if (user == nil || pass == nil) {
+          NSLog(@"[DEBUG] No saved credentials, showing auth failure");
           [[playback playing] pause];
           [auth authenticationFailed:notification error:err];
         } else {
-          [pandora logoutNoNotify];
-          [pandora authenticate:user
-                       password:pass
-                        request:info[@"request"]];
+          // Create a local copy of the request
+          PandoraRequest *originalRequest = [info[@"request"] copy];
+          NSLog(@"[DEBUG] Have credentials, reauthing with request: %@", originalRequest);
+          
+          // Do logout and re-auth with proper sequencing
+          dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"[DEBUG] Performing logout and reauth");
+            [self->pandora logoutNoNotify];
+            [self->pandora authenticate:user
+                              password:pass
+                               request:originalRequest];
+          });
         }
         return;
       }
+
 
         /* Oddly enough, the same error code is given our for invalid login
          information as is for invalid partner login information... */
       case INVALID_PARTNER_LOGIN:
       case INVALID_USERNAME:
       case INVALID_PASSWORD:
+        NSLog(@"[DEBUG] Invalid credentials, showing auth failure");
+
         [[playback playing] pause];
         [auth authenticationFailed:notification error:err];
         return;
 
       case NO_SEEDS_LEFT:
+        NSLog(@"[DEBUG] No seeds left error, handling in station controller");
+
         [station seedFailedDeletion:notification];
         return;
 
       default:
+        NSLog(@"[DEBUG] Unhandled specific error code: %d", code);
         break;
     }
   }
-
+  NSLog(@"[DEBUG] General error handling, showing error view");
   lastRequest = [notification userInfo][@"request"];
   [self setCurrentView:errorView];
   [errorLabel setStringValue:err];
@@ -809,6 +844,7 @@
   // code 0 == INTERNAL, "It can denote that your account has been temporarily blocked due to having too frequent station.getPlaylist calls."
   // code 1039 == PLAYLIST_EXCEEDED, "Returned on excessive calls to station.getPlaylist. Error self clears (probably 1 hour)."
   if (code != 0 && code != 1039) {
+    NSLog(@"[DEBUG] Setting up auto-retry for error code: %d", code);
     autoRetry = [NSTimer scheduledTimerWithTimeInterval:20
                                                  target:self
                                                selector:@selector(retry:)

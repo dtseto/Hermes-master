@@ -8,6 +8,8 @@
 
 #import <Cocoa/Cocoa.h>
 
+@class LabelHoverShowField;  // Forward declaration
+
 @interface LabelHoverShowFieldCell : NSTextFieldCell
 
 @end
