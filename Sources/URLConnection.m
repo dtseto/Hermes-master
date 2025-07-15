@@ -17,7 +17,7 @@ NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnection
     c->bytes = [NSMutableData dataWithCapacity:100];
     
     // Create session configuration
-    NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
     [URLConnection setHermesProxy:config];  // Use the class method to set proxy
     
     // Create session and data task
@@ -94,7 +94,7 @@ NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnection
     [dataTask cancel]; // Cancel existing task
     
     // Create new configuration and session
-    NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
     [URLConnection setHermesProxy:config];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
     

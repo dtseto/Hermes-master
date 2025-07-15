@@ -542,14 +542,14 @@ BOOL playOnStart = YES;
 
 
 - (void)songExplanationReceived:(NSNotification *)notification {
-    NSLog(@"Received explanation notification: %@", notification.userInfo);
+   // NSLog(@"Received explanation notification: %@", notification.userInfo);
     [self hideSpinner];
     
     Song *song = notification.object;
     if (song == [playing playingSong]) {
         NSString *explanation = notification.userInfo[@"explanation"];
         if (explanation) {
-            NSLog(@"Got explanation: %@", explanation);
+           // NSLog(@"Got explanation: %@", explanation);
             [explanationLabel setAlphaValue:0.0];
             [explanationLabel setHidden:NO];
             [explanationLabel setStringValue:explanation];

@@ -170,7 +170,7 @@ static NSString *hierrs[] = {
   [req setRequest:d];
   [req setTls:FALSE];
   [req setCallback:^(NSDictionary* dict) {
-    NSLog(@"Got explanation response: %@", dict);
+   // longest log NSLog(@"Got explanation response: %@", dict);
     NSDictionary *result = dict[@"result"];
     NSArray *explanations = result[@"explanations"];
     
@@ -926,7 +926,8 @@ static NSString *hierrs[] = {
           NSLog(@"[DEBUG] JSON parsing error: %@", jsonParseError);
           e = jsonParseError;
         } else {
-          NSLog(@"[DEBUG] Response parsed: %@", dict);
+          NSLog(@"Response parsed:");
+          //NSLog(@"[DEBUG] Response parsed: %@", dict);
         }
       } else {
         NSLog(@"[DEBUG] No data received in response");

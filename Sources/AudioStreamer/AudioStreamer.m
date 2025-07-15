@@ -2,6 +2,7 @@
 //  AudioStreamer.m
 //  StreamingAudioPlayer
 //
+//#import <AVFoundation/AVFoundation.h>
 
 #import "AudioStreamer.h"
 
@@ -436,6 +437,8 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
 - (BOOL)openURLSession {
   NSAssert(session == NULL, @"Session already initialized");
   
+  // macOS audio setup - force modern Core Audio: now in app delegate
+  
   // Create session configuration
   NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
   sessionConfig.timeoutIntervalForRequest = timeoutInterval;
@@ -642,10 +645,10 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
         return kAudioFileAIFCType;
       } else if ([fileExtension isEqual:@"aiff"]) {
         return kAudioFileAIFFType;
-      } else if ([fileExtension isEqual:@"m4a"]) {
-        return kAudioFileM4AType;
-      } else if ([fileExtension isEqual:@"mp4"]) {
-        return kAudioFileMPEG4Type;
+      }  else if ([fileExtension isEqual:@"mp4"] || [fileExtension isEqual:@"m4a"]) {
+        NSLog(@"MP4/M4A detected, using auto-detection");
+        return 0;// <-- Try this instead of kAudioFileMPEG4Type
+       // return kAudioFileMPEG4Type;
       } else if ([fileExtension isEqual:@"caf"]) {
         return kAudioFileCAFType;
       } else if ([fileExtension isEqual:@"aac"]) {
@@ -670,7 +673,9 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
       } else if ([mimeType isEqual:@"audio/x-m4a"]) {
         return kAudioFileM4AType;
       } else if ([mimeType isEqual:@"audio/mp4"]) {
-        return kAudioFileMPEG4Type;
+        NSLog(@"MP4 MIME detected, using auto-detection");
+        return 0;  // <-- Try this instead of kAudioFileMPEG4Type
+       // return kAudioFileMPEG4Type;
       } else if ([mimeType isEqual:@"audio/x-caf"]) {
         return kAudioFileCAFType;
       } else if ([mimeType isEqual:@"audio/aac"] ||
@@ -724,10 +729,15 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
             }
           }
         }
-        
+
+        //logging to check audiofilestream filetype detection
+        NSLog(@"Creating AudioFileStream with fileType: 0x%x (%u)", (unsigned int)fileType, (unsigned int)fileType);
+
         // Create an audio file stream parser
         err = AudioFileStreamOpen((__bridge void*) self, MyPropertyListenerProc,
-                                  MyPacketsProc, fileType, &audioFileStream);
+                                  MyPacketsProc, kAudioFileAAC_ADTSType, &audioFileStream);
+        NSLog(@"AudioFileStreamOpen result: %d", (int)err);
+
         CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED);
       }
       
@@ -883,6 +893,21 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
       return 1;
     }
     
+- (void)logBitrateInfo {
+    UInt32 bitrate = 0;
+    UInt32 bitrateSize = sizeof(bitrate);
+    OSStatus err = AudioFileStreamGetProperty(audioFileStream,
+                                              kAudioFileStreamProperty_BitRate,
+                                              &bitrateSize, &bitrate);
+    
+    if (err == 0 && bitrate > 0) {
+        NSLog(@"Stream Bitrate: %u bps (%.1f kbps)", (unsigned int)bitrate, bitrate / 1000.0);
+    } else {
+        NSLog(@"Stream Bitrate: Unknown");
+    }
+}
+
+
     //
     // createQueue
     //
@@ -896,11 +921,52 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
     - (void)createQueue {
       assert(audioQueue == NULL);
       
+      // DEBUG LOGGING:
+      NSLog(@"ASBD Format: mFormatID=0x%x, mSampleRate=%.0f, mChannelsPerFrame=%u",
+            (unsigned int)asbd.mFormatID, asbd.mSampleRate, (unsigned int)asbd.mChannelsPerFrame);
+      NSLog(@"ASBD: mBitsPerChannel=%u, mBytesPerFrame=%u, mFramesPerPacket=%u",
+            (unsigned int)asbd.mBitsPerChannel, (unsigned int)asbd.mBytesPerFrame, (unsigned int)asbd.mFramesPerPacket);
+
+      // ADD BITRATE DETECTION:
+      [self logBitrateInfo];
+
+    
       // create the audio queue
+      // remove cfrunloopgetcurrent	that would cause usage of old carbon content manager
       err = AudioQueueNewOutput(&asbd, MyAudioQueueOutputCallback,
-                                (__bridge void*) self, CFRunLoopGetCurrent(), NULL,
+                                (__bridge void*) self, NULL, NULL,
                                 0, &audioQueue);
+      NSLog(@"AudioQueueNewOutput result: %d", (int)err);  // <-- debug format type
       CHECK_ERR(err, AS_AUDIO_QUEUE_CREATION_FAILED);
+      
+      // ADD DEBUG HERE:
+      NSLog(@"About to add property listener...");
+      err = AudioQueueAddPropertyListener(audioQueue, kAudioQueueProperty_IsRunning,
+                                          MyAudioQueueIsRunningCallback,
+                                          (__bridge void*) self);
+      NSLog(@"AudioQueueAddPropertyListener result: %d", (int)err);
+      CHECK_ERR(err, AS_AUDIO_QUEUE_ADD_LISTENER_FAILED);
+      
+      NSLog(@"About to get packet size properties...");
+      UInt32 sizeOfUInt32 = sizeof(UInt32);
+      err = AudioFileStreamGetProperty(audioFileStream,
+                                       kAudioFileStreamProperty_PacketSizeUpperBound, &sizeOfUInt32,
+                                       &packetBufferSize);
+      NSLog(@"PacketSizeUpperBound result: %d, size: %u", (int)err, (unsigned int)packetBufferSize);
+      
+      if (err || packetBufferSize == 0) {
+          err = AudioFileStreamGetProperty(audioFileStream,
+                                           kAudioFileStreamProperty_MaximumPacketSize, &sizeOfUInt32,
+                                           &packetBufferSize);
+          NSLog(@"MaximumPacketSize result: %d, size: %u", (int)err, (unsigned int)packetBufferSize);
+          if (err || packetBufferSize == 0) {
+              packetBufferSize = bufferSize;
+              NSLog(@"Using default buffer size: %u", (unsigned int)packetBufferSize);
+          }
+      }
+      
+      NSLog(@"About to allocate buffers...");
+
       
       // start the queue if it has not been started already
       // listen to the "isRunning" property
@@ -911,7 +977,7 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
       
       /* Try to determine the packet size, eventually falling back to some
        reasonable default of a size */
-      UInt32 sizeOfUInt32 = sizeof(UInt32);
+    //  UInt32 sizeOfUInt32 = sizeof(UInt32);
       err = AudioFileStreamGetProperty(audioFileStream,
                                        kAudioFileStreamProperty_PacketSizeUpperBound, &sizeOfUInt32,
                                        &packetBufferSize);
@@ -1190,7 +1256,8 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
       /* we're only registered for one audio queue... */
       assert(inAQ == audioQueue);
       /* Sanity check to make sure we're on the right thread */
-      assert([NSThread currentThread] == [NSThread mainThread]);
+      // thread assertion removed for carbon component manager fix
+      //assert([NSThread currentThread] == [NSThread mainThread]);
       
       /* Figure out which buffer just became free, and it had better damn well be
        one of our own buffers */
@@ -1239,7 +1306,8 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
     - (void)handlePropertyChangeForQueue:(AudioQueueRef)inAQ
                               propertyID:(AudioQueuePropertyID)inID {
       /* Sanity check to make sure we're on the expected thread */
-      assert([NSThread currentThread] == [NSThread mainThread]);
+      //thread assertion removed
+     // assert([NSThread currentThread] == [NSThread mainThread]);
       /* We only asked for one property, so the audio queue had better damn well
          only tell us about this property */
       assert(inID == kAudioQueueProperty_IsRunning);

@@ -1,3 +1,9 @@
+#Version 1.32b9
+Audiostreamer changed to force newer mac os coreaudio and less legacy audio carbon componenet manager fixing refresh error
+forced aac decoder to run in appdelegate to fix refresh cfbunflr error
+removed metal validation
+removed some useless network logging and pandora music genome logging
+added hardened runtime network, memory should be more compatible with newer computers
 #Version 1.32b8
 refactor to use nsurlsession instead of cfreadstream in audiostreamer and urlconnection
 minor proxy fixes

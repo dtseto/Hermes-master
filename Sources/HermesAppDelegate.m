@@ -9,6 +9,8 @@
 #import <MediaPlayer/MediaPlayer.h>
 
 #import "HermesAppDelegate.h"
+// Add this to the top with other imports:
+#import <AudioToolbox/AudioToolbox.h>
 
 #import "AuthController.h"
 #import "HistoryController.h"
@@ -52,6 +54,72 @@
   }
 }
 
+// dummy callback functions before initializeModernAudioSystem:
+static void DummyPropertyListenerProc(void *inClientData,
+                                     AudioFileStreamID inAudioFileStream,
+                                     AudioFileStreamPropertyID inPropertyID,
+                                     UInt32 *ioFlags) {
+    // Empty dummy callback
+}
+
+static void DummyPacketsProc(void *inClientData,
+                           UInt32 inNumberBytes,
+                           UInt32 inNumberPackets,
+                           const void *inInputData,
+                           AudioStreamPacketDescription *inPacketDescriptions) {
+    // Empty dummy callback
+}
+
+
+#pragma mark - Audio System Initialization
+- (void)initializeModernAudioSystem {
+    NSLog(@"Initializing modern audio system at app startup...");
+    
+  AudioComponentDescription descriptions[] = {
+      {
+          .componentType = kAudioUnitType_Output,
+          .componentSubType = kAudioUnitSubType_DefaultOutput,
+          .componentManufacturer = kAudioUnitManufacturer_Apple
+      },
+      {
+          .componentType = kAudioUnitType_Output,
+          .componentSubType = kAudioUnitSubType_HALOutput,
+          .componentManufacturer = kAudioUnitManufacturer_Apple
+      },
+      {
+          .componentType = kAudioUnitType_FormatConverter,
+          .componentSubType = kAudioUnitSubType_AUConverter,
+          .componentManufacturer = kAudioUnitManufacturer_Apple
+      }
+  };
+  
+  int componentCount = sizeof(descriptions) / sizeof(descriptions[0]);
+  for (int i = 0; i < componentCount; i++) {
+      AudioComponent component = AudioComponentFindNext(NULL, &descriptions[i]);
+      if (component) {
+          NSLog(@"Modern audio component %d initialized successfully", i);
+      }
+  }
+  
+  // Pre-load AAC decoder via AudioFileStream (this is the key part):
+  AudioFileStreamID testStream;
+  OSStatus err = AudioFileStreamOpen(NULL, DummyPropertyListenerProc, DummyPacketsProc,
+                                     kAudioFileAAC_ADTSType, &testStream);
+  if (err == 0) {
+      NSLog(@"AAC decoder pre-loaded successfully");
+      AudioFileStreamClose(testStream);
+  } else {
+      NSLog(@"AAC decoder pre-load failed: %d", (int)err);
+  }
+  
+
+
+  
+  NSLog(@"Modern audio system initialization complete");
+
+}
+
+	
 #pragma mark - NSApplicationDelegate
 
 - (BOOL) applicationShouldHandleReopen:(NSApplication *)theApplication
@@ -183,6 +251,10 @@
 #pragma mark - NSApplication notifications
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
+  
+  // Initialize modern audio system BEFORE anything else:
+  [self initializeModernAudioSystem];
+
   // Must do this before the app is activated, or the menu bar doesn't draw.
   // <http://stackoverflow.com/questions/7596643/>
   [self updateStatusItemVisibility:nil];

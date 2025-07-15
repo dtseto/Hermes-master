@@ -303,7 +303,7 @@
         <window title="Hermes" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hasShadow="NO" releasedWhenClosed="NO" appearanceType="aqua" frameAutosaveName="Preferences" animationBehavior="default" tabbingMode="disallowed" toolbarStyle="expanded" id="371" userLabel="Main Window" customClass="HermesMainWindow">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <rect key="contentRect" x="300" y="434" width="240" height="294"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="775"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1366" height="768"/>
             <view key="contentView" wantsLayer="YES" id="372" userLabel="View">
                 <rect key="frame" x="0.0" y="0.0" width="240" height="294"/>
                 <autoresizingMask key="autoresizingMask"/>
@@ -406,7 +406,7 @@ MgA3AEkATABRAFMAXQBjAGwAcwB4AIAAlQCXAJkAmwCdAKcArACxALwAvwDBAMMAxQDKANUA3gDmAOkA
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <buttonCell key="cell" type="square" title="Edit" bezelStyle="shadowlessSquare" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="1755">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                     </buttonCell>
                     <connections>
                         <action selector="editSelected:" target="537" id="1759"/>
@@ -417,7 +417,7 @@ MgA3AEkATABRAFMAXQBjAGwAcwB4AIAAlQCXAJkAmwCdAKcArACxALwAvwDBAMMAxQDKANUA3gDmAOkA
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <buttonCell key="cell" type="square" title="Remove Station" bezelStyle="shadowlessSquare" image="NSRemoveTemplate" imagePosition="only" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="943">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                     </buttonCell>
                     <connections>
                         <action selector="deleteSelected:" target="537" id="944"/>
@@ -428,7 +428,7 @@ MgA3AEkATABRAFMAXQBjAGwAcwB4AIAAlQCXAJkAmwCdAKcArACxALwAvwDBAMMAxQDKANUA3gDmAOkA
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <buttonCell key="cell" type="square" title="Play Station" bezelStyle="shadowlessSquare" image="play" imagePosition="only" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="940">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <string key="keyEquivalent" base64-UTF8="YES">
 DQ
 </string>
@@ -516,7 +516,7 @@ DQ
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <buttonCell key="cell" type="square" title="Add Station" bezelStyle="shadowlessSquare" image="NSAddTemplate" imagePosition="only" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="899">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                     </buttonCell>
                     <connections>
                         <action selector="addStation:" target="537" id="920"/>
@@ -662,7 +662,7 @@ DQ
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="157" y="162" width="480" height="313"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="775"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1366" height="768"/>
             <value key="minSize" type="size" width="350" height="200"/>
             <view key="contentView" id="903">
                 <rect key="frame" x="0.0" y="0.0" width="480" height="313"/>
@@ -862,7 +862,7 @@ Gw
         <window title="Preferences" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hasShadow="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" appearanceType="aqua" frameAutosaveName="Hermes Preferences" animationBehavior="default" toolbarStyle="expanded" id="1112" userLabel="Preferences Window">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <rect key="contentRect" x="0.0" y="0.0" width="362" height="451"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="775"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1366" height="768"/>
             <view key="contentView" misplaced="YES" id="1113">
                 <rect key="frame" x="0.0" y="0.0" width="362" height="451"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1196,7 +1196,7 @@ DQ
                     <rect key="frame" x="18" y="337" width="204" height="14"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                     <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingTail" selectable="YES" allowsUndo="NO" sendsActionOnEndEditing="YES" alignment="center" placeholderString="Artist" id="1174" customClass="LabelHoverShowFieldCell">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1208,7 +1208,7 @@ DQ
                     <rect key="frame" x="18" y="321" width="204" height="14"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                     <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingTail" selectable="YES" allowsUndo="NO" sendsActionOnEndEditing="YES" alignment="center" placeholderString="Album" id="1177" customClass="LabelHoverShowFieldCell">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1265,7 +1265,7 @@ DQ
                     <rect key="frame" x="7" y="28" width="227" height="64"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                     <textFieldCell key="cell" selectable="YES" identifier="explanationLabel" title="explanationLabel" id="3la-yr-nao">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1343,7 +1343,7 @@ DQ
                     <rect key="frame" x="41" y="7" width="182" height="14"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Label" id="1465">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1396,7 +1396,7 @@ DQ
                     <rect key="frame" x="36" y="314" width="308" height="28"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Use play/pause and next track keys to control Hermes from any application." id="1551">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1417,7 +1417,7 @@ DQ
                     <rect key="frame" x="36" y="251" width="308" height="28"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="When checked, control Hermes with the keyboard or its menu on the right side of the menu bar." id="2355">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1794,7 +1794,7 @@ DQ
                     <rect key="frame" x="36" y="205" width="307" height="14"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" enabled="NO" sendsActionOnEndEditing="YES" title="Can’t access proxy server. Please verify settings." id="ygT-al-bjM">
-                        <font key="font" metaFont="smallSystemBold"/>
+                        <font key="font" metaFont="systemBold" size="11"/>
                         <color key="textColor" red="0.69411766529999996" green="0.0" blue="0.1098039225" alpha="1" colorSpace="calibratedRGB"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1835,7 +1835,7 @@ DQ
                     <rect key="frame" x="74" y="163" width="186" height="19"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="" drawsBackground="YES" id="1942">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1849,7 +1849,7 @@ DQ
                     <rect key="frame" x="299" y="163" width="43" height="19"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="" drawsBackground="YES" id="1944">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1864,7 +1864,7 @@ DQ
                     <rect key="frame" x="36" y="221" width="307" height="14"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Use proxies configured in Network System Preferences." id="2113">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1873,7 +1873,7 @@ DQ
                     <rect key="frame" x="36" y="165" width="33" height="14"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Host:" id="2121">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1882,7 +1882,7 @@ DQ
                     <rect key="frame" x="36" y="113" width="33" height="14"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Host:" id="2133">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1891,7 +1891,7 @@ DQ
                     <rect key="frame" x="265" y="165" width="29" height="14"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Port:" id="2123">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1900,7 +1900,7 @@ DQ
                     <rect key="frame" x="74" y="111" width="186" height="19"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="" drawsBackground="YES" id="2129">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1914,7 +1914,7 @@ DQ
                     <rect key="frame" x="299" y="111" width="43" height="19"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="" drawsBackground="YES" id="2128">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1929,7 +1929,7 @@ DQ
                     <rect key="frame" x="265" y="113" width="29" height="14"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Port:" id="2127">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -1949,7 +1949,7 @@ DQ
                     <rect key="frame" x="36" y="20" width="307" height="42"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" id="2147">
-                        <font key="font" metaFont="smallSystem"/>
+                        <font key="font" metaFont="system" size="11"/>
                         <string key="title">Pandora only blocks international access to its API, not its audio streams. Not using a proxy for audio can be faster in some situtations.</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -1966,7 +1966,7 @@ DQ
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="131" y="159" width="611" height="286"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="775"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1366" height="768"/>
             <value key="minSize" type="size" width="611" height="286"/>
             <view key="contentView" id="1642">
                 <rect key="frame" x="0.0" y="0.0" width="611" height="286"/>
@@ -2390,14 +2390,14 @@ DQ
         </numberFormatter>
     </objects>
     <resources>
-        <image name="NSAddTemplate" width="18" height="17"/>
+        <image name="NSAddTemplate" width="20" height="18"/>
         <image name="NSDescendingSortIndicator" width="9" height="9"/>
-        <image name="NSFollowLinkFreestandingTemplate" width="20" height="20"/>
+        <image name="NSFollowLinkFreestandingTemplate" width="21" height="21"/>
         <image name="NSFontPanel" width="32" height="32"/>
         <image name="NSNetwork" width="32" height="32"/>
         <image name="NSPreferencesGeneral" width="32" height="32"/>
-        <image name="NSRefreshTemplate" width="18" height="21"/>
-        <image name="NSRemoveTemplate" width="18" height="5"/>
+        <image name="NSRefreshTemplate" width="19" height="22"/>
+        <image name="NSRemoveTemplate" width="20" height="5"/>
         <image name="NSUser" width="32" height="32"/>
         <image name="cd" width="512" height="512"/>
         <image name="error_icon" width="128" height="128"/>
