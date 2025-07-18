@@ -31,10 +31,10 @@
   }
   if (selected) {
     if ([[self window] firstResponder] != [self superview]) {
-      [[NSColor secondarySelectedControlColor] set];
+      [[NSColor unemphasizedSelectedContentBackgroundColor] set];
       [self setTextColor:[NSColor controlTextColor]];
     } else {
-      [[NSColor alternateSelectedControlColor] set];
+      [[NSColor selectedContentBackgroundColor] set];
       [self setTextColor:[NSColor alternateSelectedControlTextColor]];
     }
     NSRectFill([self bounds]);

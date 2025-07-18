@@ -21,7 +21,7 @@
 
 - (void) awakeFromNib {
   [super awakeFromNib];
-  drawer.contentView.window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+ // drawersTable.contentView.window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
 }
 
 - (void) loadSavedSongs {
@@ -33,7 +33,22 @@
     if (err) return;
     assert(data != nil);
 
-    NSArray *s = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+    // Fix: Use modern unarchiving method with proper error handling
+    NSError *unarchiveError = nil;
+    NSArray *s = [NSKeyedUnarchiver unarchivedObjectOfClass:[NSArray class]
+                                                   fromData:data
+                                                      error:&unarchiveError];
+    
+    if (unarchiveError) {
+      NSLog(@"Error unarchiving saved songs: %@", unarchiveError);
+      return;
+    }
+    
+    if (s == nil) {
+      NSLog(@"Failed to unarchive saved songs - data may be corrupted");
+      return;
+    }
+    
     for (Song *song in s) {
       if ([self->songs indexOfObject:song] == NSNotFound)
         [self->controller addObject:song];
@@ -76,7 +91,30 @@
     return NO;
   }
 
-  return [NSKeyedArchiver archiveRootObject:songs toFile:path];
+  // Fix: Use modern archiving method
+  NSError *archiveError = nil;
+  NSData *archivedData = [NSKeyedArchiver archivedDataWithRootObject:songs
+                                              requiringSecureCoding:NO
+                                                              error:&archiveError];
+  
+  if (archiveError || archivedData == nil) {
+    NSLog(@"Error archiving songs: %@", archiveError);
+    return NO;
+  }
+  
+  // Write the archived data to file
+  NSError *writeError = nil;
+  NSURL *fileURL = [NSURL fileURLWithPath:path];
+  BOOL success = [archivedData writeToURL:fileURL
+                                  options:NSDataWritingAtomic
+                                    error:&writeError];
+  
+  if (!success) {
+    NSLog(@"Error writing archived songs to file: %@", writeError);
+    return NO;
+  }
+  
+  return YES;
 }
 
 - (Song*) selectedItem {
@@ -115,16 +153,16 @@
   }
 
   if (rating == -1) {
-    [like setState:NSOffState];
-    [dislike setState:NSOnState];
+    [like setState:NSControlStateValueOff];
+    [dislike setState:NSControlStateValueOn];
   }
   else if (rating == 0) {
-    [like setState:NSOffState];
-    [dislike setState:NSOffState];
+    [like setState:NSControlStateValueOff];
+    [dislike setState:NSControlStateValueOff];
   }
   else if (rating == 1) {
-    [like setState:NSOnState];
-    [dislike setState:NSOffState];
+    [like setState:NSControlStateValueOn];
+    [dislike setState:NSControlStateValueOff];
   }
 }
 
@@ -161,6 +199,7 @@
   [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
+/*
 - (NSSize) drawerWillResizeContents:(NSDrawer*) drawer toSize:(NSSize) size {
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
   [defaults setInteger:size.width forKey:HIST_DRAWER_WIDTH];
@@ -171,26 +210,30 @@
   PREF_KEY_SET_INT(OPEN_DRAWER, DRAWER_NONE_HIST);
 }
 
+ */
+
+/*
 - (void) showDrawer {
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
   NSSize s;
   s.height = 100;
   s.width = [defaults integerForKey:HIST_DRAWER_WIDTH];
 
-  [drawer open];
-  [drawer setContentSize:s];
+  [drawersTable open];
+  [drawersTable setContentSize:s];
   [collection setMaxItemSize:NSMakeSize(227, 41)];
   [collection setMinItemSize:NSMakeSize(40, 41)];
   [self focus];
 }
 
 - (void) hideDrawer {
-  [drawer close];
+  [drawersTable close];
 }
 
 - (void) focus {
-  [[drawer parentWindow] makeFirstResponder:collection];
+  [[drawersTable parentWindow] makeFirstResponder:collection];
 }
+*/
 
 - (IBAction) showLyrics:(id)sender {
   Song* s = [self selectedItem];

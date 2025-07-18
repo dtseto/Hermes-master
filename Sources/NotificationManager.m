@@ -1,14 +1,13 @@
 #import "NotificationManager.h"
-#import "Song.h"  // Make sure to import your Song class header
+#import "Song.h"
 #import "PreferencesController.h"
-
+#import <UserNotifications/UserNotifications.h>
 
 // Use existing preference keys
 #define PLEASE_GROWL @"pleaseGrowl"
 #define PLEASE_GROWL_NEW @"pleaseGrowlNew"
 #define PLEASE_GROWL_PLAY @"pleaseGrowlPlay"
 #define NOTIFICATION_TYPE @"notificationType"
-
 
 @implementation NotificationManager
 
@@ -24,10 +23,28 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
-        NSUserNotificationCenter *center = [NSUserNotificationCenter defaultUserNotificationCenter];
+        UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
         center.delegate = self;
+        
+        // Request notification permissions
+        [self requestNotificationPermissions];
     }
     return self;
+}
+
+- (void)requestNotificationPermissions {
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    UNAuthorizationOptions options = UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge;
+    
+    [center requestAuthorizationWithOptions:options
+                           completionHandler:^(BOOL granted, NSError * _Nullable error) {
+        if (error) {
+            NSLog(@"Notification permission error: %@", error);
+        }
+        if (!granted) {
+            NSLog(@"Notification permission denied");
+        }
+    }];
 }
 
 - (void)notifySongPlaying:(Song *)song withImageData:(NSData *)imageData isNew:(BOOL)isNew {
@@ -47,27 +64,72 @@
         return;
     }
     
-    NSUserNotification *notification = [[NSUserNotification alloc] init];
-    notification.title = [song title];
-    notification.subtitle = [song artist];
-    notification.informativeText = [song album];
+    // Create notification content
+    UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+    content.title = [song title];
+    content.subtitle = [song artist];
+    content.body = [song album];
     
+    // Add image attachment if available
     if (imageData) {
-        notification.contentImage = [[NSImage alloc] initWithData:imageData];
+        NSError *error;
+        NSString *tempDir = NSTemporaryDirectory();
+        NSString *imagePath = [tempDir stringByAppendingPathComponent:@"notification_image.jpg"];
+        
+        if ([imageData writeToFile:imagePath atomically:YES]) {
+            UNNotificationAttachment *attachment = [UNNotificationAttachment attachmentWithIdentifier:@"songImage"
+                                                                                                  URL:[NSURL fileURLWithPath:imagePath]
+                                                                                              options:nil
+                                                                                                error:&error];
+            if (attachment && !error) {
+                content.attachments = @[attachment];
+            }
+        }
     }
     
     // Only play sound for new songs, not resumed playback
     if (isNew) {
-        notification.soundName = NSUserNotificationDefaultSoundName;
+        content.sound = [UNNotificationSound defaultSound];
     }
     
-    [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
+    // Create notification request
+    NSString *identifier = [NSString stringWithFormat:@"song_notification_%@", [[NSUUID UUID] UUIDString]];
+    UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:identifier
+                                                                          content:content
+                                                                          trigger:nil]; // nil trigger means deliver immediately
+    
+    // Schedule the notification
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    [center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
+        if (error) {
+            NSLog(@"Error delivering notification: %@", error);
+        }
+    }];
 }
-#pragma mark - NSUserNotificationCenterDelegate
 
-- (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center
-        shouldPresentNotification:(NSUserNotification *)notification {
-    // Always show notifications, even when app is active
-    return YES;
+#pragma mark - UNUserNotificationCenterDelegate
+
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+       willPresentNotification:(UNNotification *)notification
+         withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
+    // Show notifications even when app is in foreground
+  UNNotificationPresentationOptions options = UNNotificationPresentationOptionList | UNNotificationPresentationOptionBanner |
+                                               UNNotificationPresentationOptionSound;
+    
+    // On macOS 11+ you can also use UNNotificationPresentationOptionBanner
+    if (@available(macOS 11.0, *)) {
+        options = UNNotificationPresentationOptionBanner | UNNotificationPresentationOptionSound;
+    }
+    
+    completionHandler(options);
 }
+
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+didReceiveNotificationResponse:(UNNotificationResponse *)response
+         withCompletionHandler:(void (^)(void))completionHandler {
+    // Handle notification tap/interaction if needed
+    NSLog(@"User interacted with notification: %@", response.notification.request.identifier);
+    completionHandler();
+}
+
 @end

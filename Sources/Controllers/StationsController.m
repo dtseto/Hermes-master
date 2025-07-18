@@ -57,15 +57,16 @@
 
 - (void) awakeFromNib {
   [super awakeFromNib];
-  stations.contentView.window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+  stationsScrollView.contentView.window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
 }
 
-- (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+// Replace the deprecated validateMenuItem: with validateUserInterfaceItem:
+- (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item {
   if (![[self pandora] isAuthenticated]) {
     return NO;
   }
   
-  SEL action = [menuItem action];
+  SEL action = [item action];
   if (action == @selector(editSelected:) || action == @selector(deleteSelected:)) {
     Station *s = [self selectedStation];
     if (s == nil || s.isQuickMix) return NO;
@@ -95,17 +96,20 @@
 }
 
 - (void) showDrawer {
-  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-  NSSize s;
-  s.height = 100;
-  s.width = [defaults integerForKey:DRAWER_WIDTH];
-  [stations open];
-  [stations setContentSize:s];
+  [stationsScrollView setHidden:NO];
   [self focus];
+  //NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  //NSSize s;
+  //s.height = 100;
+  //s.width = [defaults integerForKey:DRAWER_WIDTH];
+  //[stations open];
+  //[stations setContentSize:s];
+  //[self focus];
 }
 
 - (void) hideDrawer {
-  [stations close];
+  [stationsScrollView setHidden:YES];
+//  [stations close];
 }
 
 - (void) reset {
@@ -115,7 +119,8 @@
 }
 
 - (void) focus {
-  [[stations parentWindow] makeFirstResponder:stationsTable];
+  [[stationsScrollView window] makeFirstResponder:stationsTable];
+//  [[stations parentWindow] makeFirstResponder:stationsTable];
 }
 
 - (int) stationIndex:(Station *)station {
@@ -173,12 +178,16 @@
       reader = [FileReader readerForFile:saved_state
                        completionHandler:^(NSData *data, NSError *err) {
         if (err == nil) {
-          Station *s = [NSKeyedUnarchiver unarchiveObjectWithFile:saved_state];
-          if ([last isEqual:s]) {
-            last = s;
-            [last setRadio:[self pandora]];
-          }
+      // Fix: Use modern unarchiving method instead of deprecated one
+        NSError *unarchiveError = nil;
+        Station *s = [NSKeyedUnarchiver unarchivedObjectOfClass:[Station class]
+                                                       fromData:data
+                                                          error:&unarchiveError];
+        if (unarchiveError == nil && s != nil && [last isEqual:s]) {
+          last = s;
+          [last setRadio:[self pandora]];
         }
+      }
         [self selectStation: last];
         [[HMSAppDelegate playback] playStation:last];
         return;
@@ -194,15 +203,15 @@
 
 #pragma mark - NSDrawerDelegate
 
-- (NSSize) drawerWillResizeContents:(NSDrawer*) drawer toSize:(NSSize) size {
-  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-  [defaults setInteger:size.width forKey:DRAWER_WIDTH];
-  return size;
-}
+//- (NSSize) drawerWillResizeContents:(NSDrawer*) drawer toSize:(NSSize) size {
+//  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//  [defaults setInteger:size.width forKey:DRAWER_WIDTH];
+//  return size;
+//}
 
-- (void)drawerWillClose:(NSNotification *)notification {
-  PREF_KEY_SET_INT(OPEN_DRAWER, DRAWER_NONE_STA);
-}
+//- (void)drawerWillClose:(NSNotification *)notification {
+//  PREF_KEY_SET_INT(OPEN_DRAWER, DRAWER_NONE_STA);
+//}
 
 #pragma mark - NSTableViewDataSource protocol
 
@@ -371,9 +380,9 @@
 
   if ([self playingStation] == nil && ![self playSavedStation]) {
     [HMSAppDelegate setCurrentView:chooseStationView];
-    [HMSAppDelegate showStationsDrawer:nil];
+  //  [HMSAppDelegate showStationsDrawer:nil];
   }
-  [HMSAppDelegate handleDrawer];
+ // [HMSAppDelegate handleDrawer];
 
   BOOL isAscending = YES;
   NSInteger otherSegment = SORT_DATE;

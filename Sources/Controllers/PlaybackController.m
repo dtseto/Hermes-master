@@ -39,6 +39,25 @@ BOOL playOnStart = YES;
   return playOnStart;
 }
 
+- (void)handleSongExplanation:(NSNotification *)notification {
+    NSLog(@"🎵 EXPLANATION RECEIVED: %@", notification.userInfo);
+    
+    Song *song = (Song *)notification.object;
+    NSString *explanation = notification.userInfo[@"explanation"];
+    
+    if (song && explanation) {
+        // Update the existing explanation label
+        [explanationLabel setStringValue:explanation];
+        [explanationLabel setToolTip:explanation]; // Optional: also set as tooltip
+        
+        NSLog(@"🎵 Updated explanationLabel with: %@", explanation);
+    } else {
+        NSLog(@"❌ Missing song or explanation data");
+        // Clear the label if no explanation
+        [explanationLabel setStringValue:@""];
+    }
+}
+
 - (void) awakeFromNib {
   NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
 
@@ -86,9 +105,15 @@ BOOL playOnStart = YES;
 
   [center
     addObserver:self
-    selector:@selector(playbackStateChanged:)
-    name:ASStatusChangedNotification
+    selector:@selector(handleSongExplanation:)
+    name:PandoraDidExplainSongNotification
     object:nil];
+
+ // [center
+ //   addObserver:self
+ //   selector:@selector(playbackStateChanged:)
+ //   name:ASStatusChangedNotification
+ //   object:nil];
 
   [center
      addObserver:self
@@ -256,24 +281,31 @@ BOOL playOnStart = YES;
     return NO;
   }
 
-  return [NSKeyedArchiver archiveRootObject:[self playing] toFile:path];
-}
-
-/* Called whenever the playing stream changes state */
-- (void)playbackStateChanged: (NSNotification *)aNotification {
-  if ([playing isPlaying]) {
-    NSLogd(@"Stream playing: %@", playing.playingSong);
-    [playpause setImage:[NSImage imageNamed:@"pause"]];
-    [playpause setLabel:@"Pause"];
-    [self startUpdatingProgress];
-  } else if ([playing isPaused]) {
-    NSLogd(@"Stream paused.");
-    [playpause setImage:[NSImage imageNamed:@"play"]];
-    [playpause setLabel:@"Play"];
-    [self stopUpdatingProgress];
+  // Fix: Use modern archiving method
+  NSError *archiveError = nil;
+  NSData *archivedData = [NSKeyedArchiver archivedDataWithRootObject:[self playing]
+                                              requiringSecureCoding:NO
+                                                              error:&archiveError];
+  
+  if (archiveError || archivedData == nil) {
+    NSLog(@"Error archiving playing station: %@", archiveError);
+    return NO;
   }
+  
+  // Write the archived data to file
+  NSError *writeError = nil;
+  NSURL *fileURL = [NSURL fileURLWithPath:path];
+  BOOL success = [archivedData writeToURL:fileURL
+                                  options:NSDataWritingAtomic
+                                    error:&writeError];
+  
+  if (!success) {
+    NSLog(@"Error writing playing station to file: %@", writeError);
+    return NO;
+  }
+  
+  return YES;
 }
-
 /* Re-draws the timer counting up the time of the played song */
 - (void)updateProgress: (NSTimer *)updatedTimer {
   double prog, dur;
@@ -392,6 +424,10 @@ BOOL playOnStart = YES;
 
   [[HMSAppDelegate history] addSong:song];
   [self hideSpinner];
+  // ADD THIS: Automatically request explanation for the new song
+  NSLog(@"🎵 Auto-requesting explanation for: %@", [song title]);
+  [[self pandora] explainSong:song];
+
 }
 
 /* Plays a new station, or nil to play no station (e.g., if station deleted) */
@@ -654,6 +690,9 @@ BOOL playOnStart = YES;
     [previewPanel makeKeyAndOrderFront:nil];
 }
 
+/*
+ 
+
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
   if (![[self pandora] isAuthenticated]) {
     return NO;
@@ -697,6 +736,8 @@ BOOL playOnStart = YES;
   }
   return YES;
 }
+
+ */
 
 #pragma mark QLPreviewPanelDataSource
 

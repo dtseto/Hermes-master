@@ -170,7 +170,7 @@ static NSString *hierrs[] = {
   [req setRequest:d];
   [req setTls:FALSE];
   [req setCallback:^(NSDictionary* dict) {
-   // longest log NSLog(@"Got explanation response: %@", dict);
+   // NSLog(@"Got explanation response: %@", dict);
     NSDictionary *result = dict[@"result"];
     NSArray *explanations = result[@"explanations"];
     
@@ -192,22 +192,18 @@ static NSString *hierrs[] = {
         }
         [explanation appendString:@"."];
         
-        [[NSNotificationCenter defaultCenter]
-            postNotificationName:PandoraDidExplainSongNotification
-            object:song
-            userInfo:@{@"explanation": explanation}];
-    } else {
-      // Instead of an error, send a neutral message
-      NSString *message = @"No explanation available for this song";
-      [[NSNotificationCenter defaultCenter]
-          postNotificationName:PandoraDidExplainSongNotification
-          object:song
-          userInfo:@{@"explanation": message}];
-    }
-  }];
+      // USE YOUR EXISTING postNotification METHOD INSTEAD
+      [self postNotification:PandoraDidExplainSongNotification
+                     request:song
+                      result:@{@"explanation": explanation}];
+  } else {
+      [self postNotification:PandoraDidExplainSongNotification
+                     request:song
+                      result:@{@"explanation": @"No explanation available for this song"}];
+  }
+}];
 
-
-  [self sendRequest:req];
+[self sendRequest:req];
 }
 
 @synthesize stations = _stations;

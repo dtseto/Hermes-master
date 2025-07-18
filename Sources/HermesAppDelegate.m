@@ -38,7 +38,7 @@
 @implementation HermesAppDelegate
 
 @synthesize stations, auth, playback, pandora, window, history, station,
-            growler, scrobbler, networkManager, preferences;
+             scrobbler, networkManager, preferences;
 
 - (id) init {
   if ((self = [super init])) {
@@ -155,7 +155,7 @@ static void DummyPacketsProc(void *inClientData,
                       keyEquivalent:@""];
   [menuItem setTarget:playback];
   if ([[song nrating] intValue] == 1) {
-    menuItem.state = NSOnState;
+    menuItem.state = NSControlStateValueOn;
   }
   menuItem = [menu addItemWithTitle:@"Dislike"
                              action:@selector(dislike:)
@@ -489,11 +489,11 @@ static void DummyPacketsProc(void *inClientData,
 }
 
 - (IBAction) hermesOnGitHub:(id)sender {
-  [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/HermesApp/Hermes"]];
+  [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/dtseto/Hermes-master"]];
 }
 
 - (IBAction) reportAnIssue:(id)sender {
-  [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/HermesApp/Hermes/issues"]];
+  [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/dtseto/Hermes-master/issues"]];
 }
 
 - (IBAction)hermesHomepage:(id)sender {
@@ -502,6 +502,7 @@ static void DummyPacketsProc(void *inClientData,
 
 #pragma mark - Drawer management
 
+/*
 - (void) historyShow {
   [history showDrawer];
   [drawerToggle setImage:[NSImage imageNamed:@"radio"]];
@@ -592,6 +593,8 @@ static void DummyPacketsProc(void *inClientData,
   }
 }
 
+ */
+
 #pragma mark - Status item display
 
 - (IBAction) updateStatusItemVisibility:(id)sender {
@@ -606,10 +609,24 @@ static void DummyPacketsProc(void *inClientData,
     if (sender != nil) {
       /* If we're not executing at process launch, then the menu bar will be shown
          but be unusable until we switch to another application and back to Hermes */
-      [[NSWorkspace sharedWorkspace] launchAppWithBundleIdentifier:@"com.apple.dock"
-                                                           options:NSWorkspaceLaunchDefault
-                                    additionalEventParamDescriptor:nil
-                                                  launchIdentifier:nil];
+      
+      // Fix: Use modern NSWorkspace API instead of deprecated method
+      NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
+      NSURL *dockURL = [workspace URLForApplicationWithBundleIdentifier:@"com.apple.dock"];
+      
+      if (dockURL) {
+        NSWorkspaceOpenConfiguration *configuration = [NSWorkspaceOpenConfiguration configuration];
+        [workspace openApplicationAtURL:dockURL
+                          configuration:configuration
+                      completionHandler:^(NSRunningApplication * _Nullable app, NSError * _Nullable error) {
+          if (error) {
+            NSLog(@"Failed to launch Dock: %@", error);
+          }
+        }];
+      } else {
+        NSLog(@"Could not find Dock application");
+      }
+      
       [NSApp activateIgnoringOtherApps:YES];
     }
     [self updateDockIcon:sender];
@@ -646,7 +663,6 @@ static void DummyPacketsProc(void *inClientData,
 
   [self updateStatusItem:sender];
 }
-
 - (NSImage *) buildPlayPauseAlbumArtImage:(NSSize)size {
     
   NSImage *icon;
@@ -929,8 +945,8 @@ static void DummyPacketsProc(void *inClientData,
 - (void) handlePandoraLoggedOut: (NSNotification*) notification {
   [stations reset];
   [playback reset];
-  [stations hideDrawer];
-  [history hideDrawer];
+ // [stations hideDrawer];
+ // [history hideDrawer];
   [station editStation:nil];
 
   /* Remove our credentials */
@@ -940,6 +956,7 @@ static void DummyPacketsProc(void *inClientData,
 
 #pragma mark - User interface validation
 
+/*
 - (BOOL)validateToolbarItem:(NSToolbarItem *)toolbarItem {
   if (![[self pandora] isAuthenticated]) {
     return NO;
@@ -947,6 +964,9 @@ static void DummyPacketsProc(void *inClientData,
   return YES;
 }
 
+ */
+
+/*
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
   SEL action = [menuItem action];
 
@@ -977,6 +997,8 @@ static void DummyPacketsProc(void *inClientData,
 
   return YES;
 }
+
+ */
 
 - (void)updateWindowTitle {
   NSString *debugTitlePrefix = self.debugMode ? DEBUG_MODE_TITLE_PREFIX : @"";

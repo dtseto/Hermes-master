@@ -8,8 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		0F828EA42CD93B7200C35281 /* NotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F828EA32CD93A5900C35281 /* NotificationManager.m */; };
-		0FA6A7F22CD2F6A100961AD0 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAD42F8713678F7500E935CA /* Sparkle.framework */; };
-		0FA6A7F32CD2F6A100961AD0 /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FAD42F8713678F7500E935CA /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0F9B74682E2AE8A300AFFD8B /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F9B74672E2AE8A300AFFD8B /* UserNotifications.framework */; };
+		0F9B74692E2AF51C00AFFD8B /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAD42F8713678F7500E935CA /* Sparkle.framework */; };
+		0F9B746A2E2AF51C00AFFD8B /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FAD42F8713678F7500E935CA /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD58140DA1D0A300B32029 /* MainMenu.xib */; };
 		441C9F0D1CC80635000A0302 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9728D8A5158C3E7C00C078A4 /* AudioToolbox.framework */; };
 		441C9F0E1CC80AA0000A0302 /* ASPlaylist.m in Sources */ = {isa = PBXBuildFile; fileRef = FA99E25A15E4B7EA005AB6E6 /* ASPlaylist.m */; };
@@ -83,13 +84,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		0FA6A7F12CD2F69E00961AD0 /* Embed Frameworks */ = {
+		0F9B746B2E2AF51C00AFFD8B /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				0FA6A7F32CD2F6A100961AD0 /* Sparkle.framework in Embed Frameworks */,
+				0F9B746A2E2AF51C00AFFD8B /* Sparkle.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -100,6 +101,7 @@
 		0F6DE6172E257EB80025AB31 /* Hermes.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hermes.entitlements; sourceTree = "<group>"; };
 		0F828EA12CD9388F00C35281 /* NotificationManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NotificationManager.h; path = ../../../NotificationManager.h; sourceTree = "<group>"; };
 		0F828EA32CD93A5900C35281 /* NotificationManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NotificationManager.m; sourceTree = "<group>"; };
+		0F9B74672E2AE8A300AFFD8B /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		0FE7696E2C8EB09A00E3189E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		0FE769702C8EB09F00E3189E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
@@ -225,11 +227,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0F9B74682E2AE8A300AFFD8B /* UserNotifications.framework in Frameworks */,
 				441C9F131CC81A82000A0302 /* Carbon.framework in Frameworks */,
 				441C9F0D1CC80635000A0302 /* AudioToolbox.framework in Frameworks */,
 				E195ABA917D4636B00FE518C /* Quartz.framework in Frameworks */,
+				0F9B74692E2AF51C00AFFD8B /* Sparkle.framework in Frameworks */,
 				971CC3A11585DBD7004D75BA /* SystemConfiguration.framework in Frameworks */,
-				0FA6A7F22CD2F6A100961AD0 /* Sparkle.framework in Frameworks */,
 				FA228ECB137045F40070141A /* Security.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				E1D68B0A1E295DB50074ED7F /* MediaPlayer.framework in Frameworks */,
@@ -334,6 +337,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0F9B74672E2AE8A300AFFD8B /* UserNotifications.framework */,
 				E1D68B091E295DB50074ED7F /* MediaPlayer.framework */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
@@ -515,7 +519,7 @@
 				8D1107290486CEB800E47090 /* Resources */,
 				8D11072C0486CEB800E47090 /* Sources */,
 				8D11072E0486CEB800E47090 /* Frameworks */,
-				0FA6A7F12CD2F69E00961AD0 /* Embed Frameworks */,
+				0F9B746B2E2AF51C00AFFD8B /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -694,9 +698,9 @@
 					"@executable_path/../Frameworks",
 				);
 				LLVM_LTO = YES_THIN;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.3.2b10;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.alexcrichton.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Hermes;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -747,9 +751,9 @@
 					"@executable_path/../Frameworks",
 				);
 				LLVM_LTO = YES_THIN;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.3.2b10;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.alexcrichton.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Hermes;
 				PROVISIONING_PROFILE_SPECIFIER = "";

@@ -7,7 +7,9 @@
 
   IBOutlet NSView *chooseStationView;
 
-  IBOutlet NSDrawer *stations;
+  IBOutlet NSScrollView *stationsScrollView;
+
+//  IBOutlet NSDrawer *stations;
   IBOutlet NSTableView *stationsTable;
   IBOutlet NSProgressIndicator *stationsRefreshing;
 

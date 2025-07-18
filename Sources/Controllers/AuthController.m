@@ -8,44 +8,62 @@
 @implementation AuthController
 
 - (id) init {
-  NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+  self = [super init]; // Fix: Call super init
+  if (self) {
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
 
-  [notificationCenter
-    addObserver:self
-    selector:@selector(authenticationSucceeded:)
-    name:PandoraDidAuthenticateNotification
-    object:nil];
+    [notificationCenter
+      addObserver:self
+      selector:@selector(authenticationSucceeded:)
+      name:PandoraDidAuthenticateNotification
+      object:nil];
 
-  [notificationCenter
-   addObserver:self
-   selector:@selector(controlTextDidChange:)
-   name:NSControlTextDidChangeNotification
-   object:username];
+    [notificationCenter
+     addObserver:self
+     selector:@selector(controlTextDidChange:)
+     name:NSControlTextDidChangeNotification
+     object:username];
 
-  [notificationCenter
-   addObserver:self
-   selector:@selector(controlTextDidChange:)
-   name:NSControlTextDidChangeNotification
-   object:password];
-
+    [notificationCenter
+     addObserver:self
+     selector:@selector(controlTextDidChange:)
+     name:NSControlTextDidChangeNotification
+     object:password];
+  }
   return self;
 }
 
-- (void) authenticationFailed: (NSNotification*) notification
-                        error: (NSString*) err {
+// Fix: Add dealloc to remove observers
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+// Fix: Extract login validation logic to separate method
+- (void)updateLoginButtonState {
+  NSPredicate *emailTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", ROUGH_EMAIL_REGEX];
+  
+  [login setEnabled:
+   [spinner isHidden] &&
+   [emailTest evaluateWithObject:[username stringValue]] &&
+   ![[password stringValue] isEqualToString:@""]];
+}
+
+- (void)authenticationFailed:(NSNotification*)notification error:(NSString*)err {
   [spinner setHidden:YES];
   [spinner stopAnimation:nil];
   [self show];
   [error setHidden:NO];
   [errorText setHidden:NO];
   [errorText setStringValue:err];
+  
   if ([username stringValue] == nil || [[username stringValue] isEqual:@""]) {
     [username becomeFirstResponder];
   } else {
     [password becomeFirstResponder];
   }
-  NSNotification *emptyNotification;
-  [self controlTextDidChange:emptyNotification];
+  
+  // Fix: Use extracted method instead of manually calling controlTextDidChange
+  [self updateLoginButtonState];
 }
 
 - (void) authenticationSucceeded: (NSNotification*) notification {
@@ -79,8 +97,8 @@
   [HMSAppDelegate setCurrentView:view];
   [username becomeFirstResponder];
   
-  NSNotification *emptyNotification;
-  [self controlTextDidChange:emptyNotification];
+  // Fix: Use extracted method instead of manually calling controlTextDidChange
+  [self updateLoginButtonState];
 }
 
 /* Log out the current session */
@@ -90,16 +108,12 @@
   [[delegate pandora] logout];
 }
 
-- (void)controlTextDidChange:(NSNotification *)obj {
-  NSPredicate *emailTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", ROUGH_EMAIL_REGEX];
-  
-  [login setEnabled:
-   [spinner isHidden] &&
-   [emailTest evaluateWithObject:[username stringValue]] &&
-   ![[password stringValue] isEqualToString:@""]];
-}
+//- (void)controlTextDidChange:(NSNotification *)obj {
+//  [self updateLoginButtonState];
+//}
 
-- (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+// Fix: Replace deprecated validateMenuItem with validateUserInterfaceItem
+- (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item {
   HermesAppDelegate *delegate = HMSAppDelegate;
 
   if (![[delegate pandora] isAuthenticated]) {

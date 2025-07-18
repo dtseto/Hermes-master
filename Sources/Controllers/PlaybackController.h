@@ -18,8 +18,6 @@
   //new explanation
   IBOutlet NSTextField *explanationLabel;
   
-  
-  
   IBOutlet NSMenu *songContextMenu;  // Add this
 
   

@@ -1,4 +1,7 @@
-@interface AuthController : NSObject {
+#import <Foundation/Foundation.h>
+#import <Cocoa/Cocoa.h>
+
+@interface AuthController : NSObject <NSUserInterfaceValidations> {
   IBOutlet NSView *view;
 
   // Fields of the authentication view
@@ -15,5 +18,6 @@
 - (void) authenticationFailed:(NSNotification*) notification
                         error:(NSString*)err;
 - (void) show;
+- (void) updateLoginButtonState;
 
 @end

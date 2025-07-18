@@ -17,7 +17,7 @@
 @class HistoryController;
 @class StationController;
 @class PandoraRequest;
-@class Growler;
+//@class Growler;
 @class Scrobbler;
 @class SPMediaKeyTap;
 @class NetworkConnection;
@@ -57,7 +57,7 @@
 @property (readonly) IBOutlet AuthController *auth;
 @property (readonly) IBOutlet PlaybackController *playback;
 @property (readonly) IBOutlet StationController *station;
-@property (readonly) IBOutlet Growler *growler;
+//@property (readonly) IBOutlet Growler *growler;
 @property (readonly) IBOutlet Scrobbler *scrobbler;
 @property (readonly) IBOutlet NetworkConnection *networkManager;
 @property (readonly) IBOutlet PreferencesController *preferences;
@@ -75,17 +75,17 @@
 - (NSImage*) buildPlayPauseAlbumArtImage:(NSSize)size;
 
 - (void) tryRetry;
-- (void) handleDrawer;
+//- (void) handleDrawer;
 
 - (IBAction) changelog:(id)sender;
 - (IBAction) hermesOnGitHub:(id)sender;
 - (IBAction) reportAnIssue:(id)sender;
 - (IBAction) hermesHomepage:(id)sender;
 - (IBAction) retry:(id)sender;
-- (IBAction) toggleDrawerContent:(id)sender;
-- (IBAction) toggleDrawerVisible:(id)sender;
-- (IBAction) showStationsDrawer:(id)sender;
-- (IBAction) showHistoryDrawer:(id)sender;
+//- (IBAction) toggleDrawerContent:(id)sender;
+//- (IBAction) toggleDrawerVisible:(id)sender;
+//- (IBAction) showStationsDrawer:(id)sender;
+//- (IBAction) showHistoryDrawer:(id)sender;
 - (IBAction) activate:(id)sender;
 - (IBAction) updateStatusItemVisibility:(id)sender;
 - (IBAction) updateStatusItem:(id)sender;

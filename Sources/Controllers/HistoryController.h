@@ -18,16 +18,19 @@
   IBOutlet NSButton *lyrics;
   IBOutlet NSButton *like;
   IBOutlet NSButton *dislike;
-  IBOutlet NSDrawer *drawer;
+  //IBOutlet NSDrawer *drawer;  
+    IBOutlet NSTableView *drawersTable;
+
+  
   IBOutlet NSProgressIndicator *spinner;
 }
 
 @property IBOutlet NSMutableArray *songs;
 @property IBOutlet NSArrayController *controller;
 
-- (void) showDrawer;
-- (void) hideDrawer;
-- (void) focus;
+//- (void) showDrawer;
+//- (void) hideDrawer;
+//- (void) focus;
 
 - (void) addSong: (Song*) song;
 - (BOOL) saveSongs;
