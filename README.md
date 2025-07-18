@@ -8,7 +8,7 @@ Forked from Hermes built in XCode 16 on MacOS 15 Apple Silicon as Apple Silicon 
 
 Includes music genome project data when playing song information. Station modes not stable so were removed.
 
-UI redesigned due to deprecation of drawers. Now with more modern flat layout.
+UI redesigned due to deprecation of drawers. Now with more modern flat layout. A lot of the UI bugs are from old UI in interface builder using constraints rather than modern programatic swift UI.
 
 A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 
@@ -34,9 +34,11 @@ If you would like to compile Hermes, continue reading.
   
 - Possible features fixing proxy bugs better error message display
 
-- Improve support for later MacOS currently written for 10.10+ rewrite for 11+, setup app sandboxing, app notarization, use new keychain code, 
+- Improve support for later MacOS currently written for 10.10+ rewrite for 11+ (implemented now), setup app sandboxing (not yet but hardened runtime enabled), app notarization(done), use new keychain code(done), 
 
-- Hard redesign for swift instead of interface builder (probably not since Hermes is forked from pianobar written in C)
+- Hard redesign for UI in swift instead of interface builder (probably not since Hermes is forked from pianobar written in C)(still pending to rewrite to use swift instead of interface builder)
+
+- Need to split large files like audiostreamer to make it easier to maintain.
 
 Below for Hermes
 Thanks to the suggestions by [blalor](https://github.com/blalor), there's a few
