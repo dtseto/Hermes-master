@@ -1,3 +1,11 @@
+<<<<<<< Updated upstream
+# Version 1.3.2 (dtseto fork)
+*[edits by @dtseto] change localizations for mac os 11 xcode , depracated code
+=======
+#Version 1.32b10
+minimum deployment target raised to 10.12, remove nskeydown nsdeviceindependentmodifier, nsalternatekeymask, nscompositesourceover, 
+double playing fixes, automatic station restart caused some double playing, in future manually refresh, added extra state locking, state transition recovery, state warnings, extra logging for audio, logging for when playstation is called, 
+increase buffering for newer computers
 #Version 1.32b9
 Audiostreamer changed to force newer mac os coreaudio and less legacy audio carbon componenet manager fixing refresh error
 forced aac decoder to run in appdelegate to fix refresh cfbunflr error
@@ -31,8 +39,8 @@ fixes to notifications to use macos instead of growler, notifications should wor
 # Version 1.3.2b2 (dtseto fork)
 *[edits by @dtseto] change localizations for mac os 11 xcode , depracated code, merge unreleased pull requests from 1.32 etc
 removed growler and notifications
+>>>>>>> Stashed changes
 *[bug toolbar buttons no longer appear are in >>> as text only ]
-universal app
 
 # Version 1.3.2 (unreleased)
 [Full changelog](https://github.com/HermesApp/Hermes/compare/v1.3.1...HEAD)

@@ -70,56 +70,55 @@ static void DummyPacketsProc(void *inClientData,
     // Empty dummy callback
 }
 
-
 #pragma mark - Audio System Initialization
 - (void)initializeModernAudioSystem {
     NSLog(@"Initializing modern audio system at app startup...");
     
-  AudioComponentDescription descriptions[] = {
-      {
-          .componentType = kAudioUnitType_Output,
-          .componentSubType = kAudioUnitSubType_DefaultOutput,
-          .componentManufacturer = kAudioUnitManufacturer_Apple
-      },
-      {
-          .componentType = kAudioUnitType_Output,
-          .componentSubType = kAudioUnitSubType_HALOutput,
-          .componentManufacturer = kAudioUnitManufacturer_Apple
-      },
-      {
-          .componentType = kAudioUnitType_FormatConverter,
-          .componentSubType = kAudioUnitSubType_AUConverter,
-          .componentManufacturer = kAudioUnitManufacturer_Apple
-      }
-  };
-  
-  int componentCount = sizeof(descriptions) / sizeof(descriptions[0]);
-  for (int i = 0; i < componentCount; i++) {
-      AudioComponent component = AudioComponentFindNext(NULL, &descriptions[i]);
-      if (component) {
-          NSLog(@"Modern audio component %d initialized successfully", i);
-      }
-  }
-  
-  // Pre-load AAC decoder via AudioFileStream (this is the key part):
-  AudioFileStreamID testStream;
-  OSStatus err = AudioFileStreamOpen(NULL, DummyPropertyListenerProc, DummyPacketsProc,
-                                     kAudioFileAAC_ADTSType, &testStream);
-  if (err == 0) {
-      NSLog(@"AAC decoder pre-loaded successfully");
-      AudioFileStreamClose(testStream);
-  } else {
-      NSLog(@"AAC decoder pre-load failed: %d", (int)err);
-  }
-  
-
-
-  
-  NSLog(@"Modern audio system initialization complete");
-
+    // Simplified macOS audio setup without CoreAudio framework dependencies
+    AudioComponentDescription descriptions[] = {
+        {
+            .componentType = kAudioUnitType_Output,
+            .componentSubType = kAudioUnitSubType_DefaultOutput,
+            .componentManufacturer = kAudioUnitManufacturer_Apple
+        },
+        {
+            .componentType = kAudioUnitType_Output,
+            .componentSubType = kAudioUnitSubType_HALOutput,
+            .componentManufacturer = kAudioUnitManufacturer_Apple
+        },
+        {
+            .componentType = kAudioUnitType_FormatConverter,
+            .componentSubType = kAudioUnitSubType_AUConverter,
+            .componentManufacturer = kAudioUnitManufacturer_Apple
+        }
+    };
+    
+    int componentCount = sizeof(descriptions) / sizeof(descriptions[0]);
+    for (int i = 0; i < componentCount; i++) {
+        AudioComponent component = AudioComponentFindNext(NULL, &descriptions[i]);
+        if (component) {
+            NSLog(@"Modern audio component %d initialized successfully", i);
+        } else {
+            NSLog(@"Failed to find audio component %d", i);
+        }
+    }
+    
+    // Pre-load AAC decoder - use dispatch to avoid blocking main thread
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        AudioFileStreamID testStream;
+        OSStatus err = AudioFileStreamOpen(NULL, DummyPropertyListenerProc, DummyPacketsProc,
+                                          kAudioFileAAC_ADTSType, &testStream);
+        if (err == 0) {
+            NSLog(@"AAC decoder pre-loaded successfully");
+            AudioFileStreamClose(testStream);
+        } else {
+            NSLog(@"AAC decoder pre-load failed: %d", (int)err);
+        }
+    });
+    
+    NSLog(@"Modern audio system initialization complete");
 }
 
-	
 #pragma mark - NSApplicationDelegate
 
 - (BOOL) applicationShouldHandleReopen:(NSApplication *)theApplication
@@ -270,9 +269,8 @@ static void DummyPacketsProc(void *inClientData,
   // Enable restoration for the window
   [self.window setRestorable:YES];
   
-  
-  NSUInteger flags = ([NSEvent modifierFlags] & NSDeviceIndependentModifierFlagsMask);
-  BOOL isOptionPressed = (flags == NSAlternateKeyMask);
+  NSUInteger flags = ([NSEvent modifierFlags] & NSEventModifierFlagDeviceIndependentFlagsMask);
+  BOOL isOptionPressed = (flags == NSEventModifierFlagOption);
   
   if (isOptionPressed && [self configureLogFile]) {
     _debugMode = YES;
@@ -351,7 +349,6 @@ static void DummyPacketsProc(void *inClientData,
     return YES;
 }
 
-
 - (void)applicationWillResignActive:(NSNotification *)aNotification {
   [playback saveState];
   [history saveSongs];
@@ -365,13 +362,17 @@ static void DummyPacketsProc(void *inClientData,
     // Save it to user defaults or other persistent storage if needed
     [[NSUserDefaults standardUserDefaults] setObject:NSStringFromRect(frame)
                                             forKey:@"MainWindowFrame"];
+    
+    // Ensure proper cleanup
+    [playback saveState];
+    [playback stop];
+    [history saveSongs];
 }
 
 // Optional: Handle window closing
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
     return YES;  // App will quit when last window is closed
 }
-
 
 #pragma mark - NSWindow notification
 
@@ -673,7 +674,7 @@ static void DummyPacketsProc(void *inClientData,
     [overlay drawInRect:NSMakeRect(playPauseOffset, playPauseOffset,
                                    [overlay size].width, [overlay size].height)
                fromRect:NSZeroRect
-              operation:NSCompositeSourceOver
+              operation:NSCompositingOperationSourceOver
                fraction:1.0];
     [icon unlockFocus];
   }
