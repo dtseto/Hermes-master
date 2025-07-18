@@ -1,12 +1,14 @@
 ApolloGenome a Hermes fork Pandora MacOS client for Intel and Apple Silicon
 ======
-![image](https://github.com/user-attachments/assets/9e8fdbfe-ff6c-4558-9993-4403acd2368b)
+<img width="828" height="734" alt="Screenshot 2025-07-18 at 3 08 02 PM" src="https://github.com/user-attachments/assets/b8fce636-3fb7-40de-b570-22a2865d5f0c" />
 
-Picture ApolloGenome/Hermes 1.32b4 running on Macbook Air M1 Apple Silicon Sequoia 15.1
+Picture ApolloGenome/Hermes 1.32b11 running on Macbook Air M1 Apple Silicon Sequoia 15.5
 
-Forked from Hermes built in XCode 16 on MacOS 15 Apple Silicon as Apple Silicon app for the universal app for intel use older 1.32b4 with ui fixes
+Forked from Hermes built in XCode 16 on MacOS 15 Apple Silicon as Apple Silicon app for the universal notarized app
 
 Includes music genome project data when playing song information. Station modes not stable so were removed.
+
+UI redesigned due to deprecation of drawers. Now with more modern flat layout.
 
 A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 
