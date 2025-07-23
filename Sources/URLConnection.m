@@ -6,8 +6,11 @@ NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnection
 @implementation URLConnection
 
 - (void)dealloc {
-    [timeout invalidate];
-    [dataTask cancel];
+//    [timeout invalidate];
+//    [dataTask cancel];
+  [self->dataTask cancel];
+  [self->timeout invalidate];
+
 }
 
 + (URLConnection*)connectionForRequest:(NSURLRequest*)request
@@ -20,20 +23,35 @@ NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnection
     NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
     [URLConnection setHermesProxy:config];  // Use the class method to set proxy
     
+  // Add Create weak reference to avoid retain cycle and crashes
+  __weak URLConnection *weakSelf = c;
+
     // Create session and data task
     NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
     c->dataTask = [session dataTaskWithRequest:request
                             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
       
+      // Strong reference inside block - safe to use
+      __strong URLConnection *strongSelf = weakSelf;
+      if (!strongSelf) {
+          // Object was deallocated, safely exit
+          return;
+      }
+      
+      // First, invalidate the timeout timer
+      [strongSelf->timeout invalidate];
+      strongSelf->timeout = nil;
+
       // First, invalidate the timeout timer to prevent it from firing after we've received a response
-      [c->timeout invalidate];
-      c->timeout = nil;
+//      [c->timeout invalidate];
+//      c->timeout = nil;
 
       
       // Dispatch callback to main thread to avoid UI thread issues
         dispatch_async(dispatch_get_main_queue(), ^{
             if (error) {
-                c->cb(nil, error);
+              strongSelf->cb(nil, error); //strong
+              //  c->cb(nil, error);
                 return;
             }
             
@@ -45,12 +63,16 @@ NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnection
                 NSError *httpError = [NSError errorWithDomain:@"HTTPError"
                                                        code:httpResponse.statusCode
                                                    userInfo:userInfo];
-                c->cb(nil, httpError);
+              strongSelf->cb(nil, httpError);
+              //c->cb(nil, httpError);
                 return;
             }
             
-            [c->bytes appendData:data];
-            c->cb(c->bytes, nil);
+          [strongSelf->bytes appendData:data];
+          strongSelf->cb(strongSelf->bytes, nil);
+
+           // [c->bytes appendData:data];
+          //  c->cb(c->bytes, nil);
         });
     }];
     

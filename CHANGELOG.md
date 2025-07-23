@@ -2,6 +2,9 @@
 # Version 1.3.2 (dtseto fork)
 *[edits by @dtseto] change localizations for mac os 11 xcode , depracated code
 =======
+#Version 1.32b11
+min deployment 11.0, BIG change in UI flatter UI now that drawers are removed in High Sierra replaced with views in main view that mimic web layout.
+
 #Version 1.32b10
 minimum deployment target raised to 10.12, remove nskeydown nsdeviceindependentmodifier, nsalternatekeymask, nscompositesourceover, 
 double playing fixes, automatic station restart caused some double playing, in future manually refresh, added extra state locking, state transition recovery, state warnings, extra logging for audio, logging for when playstation is called, 
