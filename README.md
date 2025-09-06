@@ -12,9 +12,10 @@ UI redesigned due to deprecation of drawers. Now with more modern flat layout. A
 
 A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 
-Bug workarounds
+**Bug workarounds:**
 B10 and B11 have heightened security permissions. B11 has hardened runtime. Try downloading b9 and running it before be b10 and b11.
 Media keys require heightened permissions accessibility enabled.
+If installing B11 and the scroll views are not centered expand the window to fit them and restart they recenter on restart.
 
 ### THIS PROJECT IS MAINTAINED BUT VOLUNTEERS TO TEST ARE WELCOME
 
