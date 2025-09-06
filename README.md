@@ -16,9 +16,14 @@ A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 
 B10 and B11 have heightened security permissions. B11 has hardened runtime. Try downloading b9 and running it before be b10 and b11.
 
-Media keys require heightened permissions accessibility enabled.
+Media keys in b11 and probably b10 will require heightened permissions accessibility enabled.
 
 If installing B11 and the scroll views for stations and history are not centered expand the window to fit them and restart they recenter on restart.
+
+For b11 adding a station has to be done manually from toolbar. Removing a station will have to be done from pandora in web browser.
+https://private-user-images.githubusercontent.com/67933197/481324560-78a7d790-b0bd-4cf1-9943-fa10ed7cefae.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NTcxNzQzNjgsIm5iZiI6MTc1NzE3NDA2OCwicGF0aCI6Ii82NzkzMzE5Ny80ODEzMjQ1NjAtNzhhN2Q3OTAtYjBiZC00Y2YxLTk5NDMtZmExMGVkN2NlZmFlLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTA5MDYlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwOTA2VDE1NTQyOFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWVjNzA3YmQ3MWQ0OTIzNmNmMDliZjI4NDNhNjQyMjE4MGU4N2FlYjBkYWQzZjZjNzYzNjc2ZDVmYzg0ZThkYzMmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.DizZHoSnT79bj92AonZYWRgTwtObRE26iqgFEJeZB5w
+
+The play / pause button now says play. It still pauses when pressed.
 
 ### THIS PROJECT IS MAINTAINED BUT VOLUNTEERS TO TEST ARE WELCOME
 
