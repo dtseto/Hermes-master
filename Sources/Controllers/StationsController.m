@@ -548,7 +548,6 @@
     if ([selected isEqual:[self playingStation]]) {
       HermesAppDelegate *delegate = HMSAppDelegate;
       [[delegate playback] playStation:nil];
-      [delegate setCurrentView:self->chooseStationView];
     }
     
     [self->stationsRefreshing setHidden:NO];
