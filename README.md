@@ -27,6 +27,8 @@ For b11 adding a station has to be done manually from toolbar. At top menu click
 
 The play / pause button now says play. It still pauses when pressed.
 
+New delete station menu button causes UI glitch. Double click a station to play and restart.
+
 ### THIS PROJECT IS MAINTAINED BUT VOLUNTEERS TO TEST ARE WELCOME
 
 This means that bugs are documented and workarounds can be attempted.
