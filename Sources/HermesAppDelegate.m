@@ -341,7 +341,41 @@ static void DummyPacketsProc(void *inClientData,
   [self migrateDefaults:defaults];
   [playback prepareFirst];
 
+  [self addDeleteStationMenuItemIfNeeded];
+
   [self updateAlwaysOnTop:nil];
+}
+
+/**
+ * Ensure the Pandora menu exposes a "Delete Station…" option alongside Add/Edit.
+ * Inserted at runtime so we avoid nib edits and duplicate entries.
+ */
+- (void)addDeleteStationMenuItemIfNeeded {
+  NSMenu *mainMenu = [NSApp mainMenu];
+  if (!mainMenu) return;
+
+  NSMenuItem *pandoraMenuItem = [mainMenu itemWithTitle:@"Pandora"];
+  if (!pandoraMenuItem) return;
+
+  NSMenu *pandoraMenu = pandoraMenuItem.submenu;
+  if (!pandoraMenu) return;
+
+  if ([pandoraMenu itemWithTitle:@"Delete Station…"] != nil) return;
+
+  NSInteger editIndex = [pandoraMenu indexOfItemWithTarget:self.stations
+                                                andAction:@selector(editSelected:)];
+
+  NSMenuItem *deleteItem =
+      [[NSMenuItem alloc] initWithTitle:@"Delete Station…"
+                                 action:@selector(deleteSelected:)
+                          keyEquivalent:@""];
+  deleteItem.target = self.stations;
+
+  if (editIndex != -1 && editIndex + 1 <= pandoraMenu.numberOfItems) {
+    [pandoraMenu insertItem:deleteItem atIndex:editIndex + 1];
+  } else {
+    [pandoraMenu addItem:deleteItem];
+  }
 }
 
 // Required for macOS 10.15+ (Catalina and later)
@@ -644,8 +678,10 @@ static void DummyPacketsProc(void *inClientData,
     [NSApp hide:nil];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
       TransformProcessType(&psn, kProcessTransformToUIElementApplication);
-      [NSApp activateIgnoringOtherApps:YES];
-      [[NSApp mainWindow] makeKeyAndOrderFront:nil]; // restores mouse cursor
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [NSApp activateIgnoringOtherApps:YES];
+        [[NSApp mainWindow] makeKeyAndOrderFront:nil]; // restores mouse cursor
+      });
     });
   }
 

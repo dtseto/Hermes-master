@@ -10,6 +10,7 @@
 
 #import <SPMediaKeyTap/SPMediaKeyTap.h>
 #import <MediaPlayer/MediaPlayer.h>
+#import <ApplicationServices/ApplicationServices.h>
 
 //#import "Integration/Growler.h"
 #import "HistoryController.h"
@@ -183,7 +184,23 @@ BOOL playOnStart = YES;
 #endif
    mediaKeyTap = [[SPMediaKeyTap alloc] initWithDelegate:self];
     if (PREF_KEY_BOOL(PLEASE_BIND_MEDIA)) {
-      [mediaKeyTap startWatchingMediaKeys];
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 1090
+      BOOL canTapMediaKeys = YES;
+      if (@available(macOS 10.9, *)) {
+        if (!AXIsProcessTrusted()) {
+          NSDictionary *options = @{(__bridge id)kAXTrustedCheckOptionPrompt: @YES};
+          AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
+          canTapMediaKeys = AXIsProcessTrusted();
+        }
+      }
+#else
+      BOOL canTapMediaKeys = YES;
+#endif
+      if (canTapMediaKeys) {
+        [mediaKeyTap startWatchingMediaKeys];
+      } else {
+        NSLog(@"Hermes: Input Monitoring permission missing; media keys disabled until granted.");
+      }
     }
 #ifndef MPREMOTECOMMANDCENTER_MEDIA_KEYS_BROKEN
   }
@@ -690,54 +707,59 @@ BOOL playOnStart = YES;
     [previewPanel makeKeyAndOrderFront:nil];
 }
 
-/*
- 
-
-- (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+- (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item {
   if (![[self pandora] isAuthenticated]) {
     return NO;
   }
 
-  SEL action = [menuItem action];
+  SEL action = [item action];
+
+  NSObject *validatedObject = (NSObject *)item;
 
   if (action == @selector(playpause:)) {
-    [menuItem setTitle:[playing isPaused] ? @"Play" : @"Pause"];
+    BOOL hasPlayableStation = (playing != nil);
+    NSString *title = [playing isPaused] ? @"Play" : @"Pause";
+
+    if ([validatedObject isKindOfClass:[NSMenuItem class]]) {
+      NSMenuItem *menuItem = (NSMenuItem *)validatedObject;
+      [menuItem setTitle:title];
+    } else if ([validatedObject isKindOfClass:[NSToolbarItem class]]) {
+      NSToolbarItem *toolbarItem = (NSToolbarItem *)validatedObject;
+      toolbarItem.label = title;
+      toolbarItem.paletteLabel = title;
+      toolbarItem.toolTip = title;
+    }
+
+    return hasPlayableStation;
+  }
+
+  if (action == @selector(next:) || action == @selector(tired:)) {
+    return playing != nil;
   }
 
   if (action == @selector(like:) || action == @selector(dislike:)) {
     Song *song = [playing playingSong];
-    if (song && ![playing shared]) {
-      NSInteger rating = [[song nrating] integerValue];
-      if (action == @selector(like:)) {
-        [menuItem setState:rating == 1 ? NSOnState : NSOffState];
+    BOOL canRate = song && ![playing shared];
+
+    if ([validatedObject isKindOfClass:[NSMenuItem class]]) {
+      NSMenuItem *menuItem = (NSMenuItem *)validatedObject;
+      if (canRate) {
+        NSInteger rating = [[song nrating] integerValue];
+        if (action == @selector(like:)) {
+          menuItem.state = (rating == 1) ? NSControlStateValueOn : NSControlStateValueOff;
+        } else {
+          menuItem.state = (rating == -1) ? NSControlStateValueOn : NSControlStateValueOff;
+        }
       } else {
-        [menuItem setState:rating == -1 ? NSOnState : NSOffState];
+        menuItem.state = NSControlStateValueOff;
       }
-      return YES;
-    } else {
-      [menuItem setState:NSOffState];
-      return NO;
     }
+
+    return canRate;
   }
 
   return YES;
 }
-
-- (BOOL)validateToolbarItem:(NSToolbarItem *)toolbarItem {
-  if (![[self pandora] isAuthenticated]) {
-    return NO;
-  }
-
-  if (toolbarItem == playpause || toolbarItem == nextSong || toolbarItem == tiredOfSong)
-    return (playing != nil);
-
-  if (toolbarItem == like || toolbarItem == dislike) {
-    return [playing playingSong] && ![playing shared];
-  }
-  return YES;
-}
-
- */
 
 #pragma mark QLPreviewPanelDataSource
 
