@@ -16,7 +16,10 @@ A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 
 B10 and B11 have heightened security permissions. B11 has hardened runtime. Try downloading b9 and running it before be b10 and b11.
 
-Media keys in b11 and probably b10 will require heightened permissions accessibility enabled.
+Media keys in b11 and probably b10 will require heightened permissions accessibility and input monitoring enabled manually for Hermes after starting for the first time.
+
+System Settings → Privacy & Security → Accessibility
+System Settings → Privacy & Security → Input Monitoring
 
 If installing B11 and the scroll views for stations and history are not centered expand the window to fit them and restart they recenter on restart.
 
