@@ -93,4 +93,8 @@
 - (IBAction)quickLookArt:(id)sender;
 - (BOOL)hasInputMonitoringAccess;
 
+typedef BOOL (*HMSInputMonitoringAccessFunction)(void);
+void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction preflight,
+                                             HMSInputMonitoringAccessFunction request);
+
 @end

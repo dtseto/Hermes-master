@@ -21,6 +21,15 @@
 
 BOOL playOnStart = YES;
 
+static HMSInputMonitoringAccessFunction HermesPreflightListenEventAccess = NULL;
+static HMSInputMonitoringAccessFunction HermesRequestListenEventAccess = NULL;
+
+void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction preflight,
+                                             HMSInputMonitoringAccessFunction request) {
+  HermesPreflightListenEventAccess = preflight;
+  HermesRequestListenEventAccess = request;
+}
+
 @interface NSToolbarItem ()
 - (void)_setAllPossibleLabelsToFit:(NSArray *)toolbarItemLabels;
 @end
@@ -41,21 +50,35 @@ BOOL playOnStart = YES;
 
 - (BOOL)hasInputMonitoringAccess {
   if (@available(macOS 10.15, *)) {
-    return CGPreflightListenEventAccess();
+    if (HermesPreflightListenEventAccess == NULL) {
+      HermesPreflightListenEventAccess = CGPreflightListenEventAccess;
+    }
+    if (HermesPreflightListenEventAccess != NULL) {
+      return HermesPreflightListenEventAccess();
+    }
   }
   return YES;
 }
 
 - (BOOL)requestInputMonitoringAccessIfNeeded {
   if (@available(macOS 10.15, *)) {
-    if (CGPreflightListenEventAccess()) {
+    if (HermesPreflightListenEventAccess == NULL) {
+      HermesPreflightListenEventAccess = CGPreflightListenEventAccess;
+    }
+    if (HermesRequestListenEventAccess == NULL) {
+      HermesRequestListenEventAccess = CGRequestListenEventAccess;
+    }
+    if (HermesPreflightListenEventAccess && HermesPreflightListenEventAccess()) {
       return YES;
     }
-    BOOL granted = CGRequestListenEventAccess();
+    BOOL granted = HermesRequestListenEventAccess ? HermesRequestListenEventAccess() : YES;
     if (!granted) {
       [self presentInputMonitoringInstructions];
     }
-    return CGPreflightListenEventAccess();
+    if (HermesPreflightListenEventAccess) {
+      return HermesPreflightListenEventAccess();
+    }
+    return granted;
   }
   return YES;
 }
