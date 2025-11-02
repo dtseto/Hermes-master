@@ -1,4 +1,5 @@
 #import <XCTest/XCTest.h>
+#import <objc/runtime.h>
 
 @class Song;
 @class Station;
@@ -10,6 +11,7 @@
 - (void)like:(id)sender;
 - (void)dislike:(id)sender;
 - (void)tired:(id)sender;
+- (void)next:(id)sender;
 - (void)startUpdatingProgress;
 - (void)stopUpdatingProgress;
 @end
@@ -23,6 +25,16 @@ extern void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunc
 
 @interface Song : NSObject
 @property(nonatomic, retain) NSNumber *nrating;
+@property(nonatomic, copy) NSString *art;
+@end
+
+static NSMutableArray<NSString *> *gCancelledArt = nil;
+static id gStubImageLoader = nil;
+static id StubImageLoaderLoader(id self, SEL _cmd);
+
+@interface ImageLoader : NSObject
++ (instancetype)loader;
+- (void)cancel:(NSString *)url;
 @end
 
 @interface StubStation : NSObject
@@ -102,10 +114,62 @@ extern void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunc
 }
 @end
 
+@interface StubImageLoader : NSObject
+@end
+
+@implementation StubImageLoader
+- (void)loadImageURL:(NSString *)url callback:(void (^)(NSData *))callback {
+  if (callback) {
+    callback(nil);
+  }
+}
+- (void)cancel:(NSString *)url {
+  if (url != nil) {
+    if (gCancelledArt != nil) {
+      [gCancelledArt addObject:url];
+    }
+  }
+}
+@end
+
+static id StubImageLoaderLoader(id self, SEL _cmd) {
+  if (gStubImageLoader == nil) {
+    gStubImageLoader = [[StubImageLoader alloc] init];
+  }
+  return gStubImageLoader;
+}
+
 @interface PlaybackControllerTests : XCTestCase
+@property(nonatomic, assign) IMP originalImageLoaderLoaderIMP;
+@property(nonatomic, strong) StubImageLoader *stubLoader;
 @end
 
 @implementation PlaybackControllerTests
+
+- (void)setUp {
+  [super setUp];
+  gCancelledArt = [NSMutableArray array];
+  self.stubLoader = [[StubImageLoader alloc] init];
+  gStubImageLoader = self.stubLoader;
+  Class loaderClass = NSClassFromString(@"ImageLoader");
+  Method loaderMethod = class_getClassMethod(loaderClass, @selector(loader));
+  self.originalImageLoaderLoaderIMP = method_getImplementation(loaderMethod);
+  if (self.originalImageLoaderLoaderIMP != NULL) {
+    method_setImplementation(loaderMethod, (IMP)StubImageLoaderLoader);
+  }
+}
+
+- (void)tearDown {
+  Class loaderClass = NSClassFromString(@"ImageLoader");
+  Method loaderMethod = class_getClassMethod(loaderClass, @selector(loader));
+  if (self.originalImageLoaderLoaderIMP != NULL) {
+    method_setImplementation(loaderMethod, self.originalImageLoaderLoaderIMP);
+  }
+  gStubImageLoader = nil;
+  gCancelledArt = nil;
+  self.stubLoader = nil;
+  [super tearDown];
+}
 
 - (TestPlaybackController *)controllerWithPlaying:(StubPlaying *)playing pandora:(StubPandora *)pandora {
   TestPlaybackController *controller = [[TestPlaybackController alloc] init];
@@ -209,6 +273,21 @@ extern void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunc
   XCTAssertTrue(playing.nextInvoked);
 }
 
+- (void)testNextCancelsArtAndAdvancesPlaying {
+  StubPlaying *playing = [[StubPlaying alloc] init];
+  TestSong *song = [self testSongWithRating:0 shared:NO];
+  song.art = @"http://example.com/art.png";
+  playing.currentSong = song;
+  StubPandora *pandora = [[StubPandora alloc] init];
+  TestPlaybackController *controller = [self controllerWithPlaying:playing pandora:pandora];
+
+  [controller next:nil];
+
+  XCTAssertTrue(playing.nextInvoked);
+  XCTAssertNotNil(gCancelledArt);
+  XCTAssertTrue([gCancelledArt containsObject:song.art]);
+}
+
 - (void)testProgressTimerInvalidatesOnDealloc {
   __weak NSTimer *weakTimer = nil;
   @autoreleasepool {
@@ -219,10 +298,11 @@ extern void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunc
     weakTimer = timer;
     controller = nil;
   }
-  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
-  if (weakTimer != nil) {
-    XCTAssertFalse([weakTimer isValid]);
+  if (weakTimer == nil) {
+    return; // Timer already torn down with the controller.
   }
+  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+  XCTAssertFalse([weakTimer isValid]);
 }
 
 @end
