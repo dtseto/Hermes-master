@@ -25,6 +25,8 @@
    Alex Crichton for the Hermes project */
 
 #import "AudioStreamer.h"
+#import "AudioStreamerMetadata.h"
+#import "AudioStreamerStateController.h"
 
 #define BitRateEstimationMinPackets 50
 
@@ -61,6 +63,10 @@ NSString * const ASDidChangeStateDistributedNotification = @"hermes.state";
 @property (nonatomic, assign) BOOL isStateChanging;
 @property (nonatomic, assign) NSTimeInterval lastPlayCall;
 @property (nonatomic, assign) NSTimeInterval lastPauseCall;
+@property (nonatomic, strong) AudioStreamerStateController *stateController;
+
+- (void)legacyTransitionToState:(AudioStreamerState)newState;
+- (void)handleFailureSynchronouslyWithCode:(AudioStreamerErrorCode)anErrorCode;
 
 - (void)handlePropertyChangeForFileStream:(AudioFileStreamID)inAudioFileStream
                      fileStreamPropertyID:(AudioFileStreamPropertyID)inPropertyID
@@ -146,6 +152,12 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
         self.lastPlayCall = 0;
         self.lastPauseCall = 0;
         state_ = AS_INITIALIZED;
+        _stateController = [[AudioStreamerStateController alloc]
+                             initWithOwner:self
+                             statePointer:&state_
+                             notificationCenter:[NSNotificationCenter defaultCenter]
+                             distributedNotificationCenter:[NSDistributedNotificationCenter defaultCenter]
+                             targetQueue:dispatch_get_main_queue()];
     }
     return self;
 }
@@ -529,97 +541,110 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
 }
 
 - (BOOL) calculatedBitRate:(double*)rate {
-  double sampleRate     = asbd.mSampleRate;
-  double packetDuration = asbd.mFramesPerPacket / sampleRate;
-
-  if (packetDuration && processedPacketsCount > BitRateEstimationMinPackets) {
-    double averagePacketByteSize = processedPacketsSizeTotal /
-                                    processedPacketsCount;
-    /* bits/byte x bytes/packet x packets/sec = bits/sec */
-    *rate = 8 * averagePacketByteSize / packetDuration;
-    return YES;
-  }
-
-  return NO;
+  return [AudioStreamerMetadata
+            calculateBitRateWithProcessedPacketSizeTotal:processedPacketsSizeTotal
+                                    processedPacketCount:processedPacketsCount
+                                              sampleRate:asbd.mSampleRate
+                                         framesPerPacket:asbd.mFramesPerPacket
+                                           minimumPackets:BitRateEstimationMinPackets
+                                                  outRate:rate];
 }
 
 - (BOOL) duration:(double*)ret {
   double calculatedBitRate;
   if (![self calculatedBitRate:&calculatedBitRate]) return NO;
-  if (calculatedBitRate == 0 || fileLength == 0) {
-    return NO;
-  }
-
-  *ret = (fileLength - dataOffset) / (calculatedBitRate * 0.125);
-  return YES;
+  return [AudioStreamerMetadata
+           calculateDurationWithFileLength:fileLength
+                                  dataOffset:dataOffset
+                                     bitRate:calculatedBitRate
+                                  outDuration:ret];
 }
 
 #pragma mark - Private
 
 - (void)failWithErrorCode:(AudioStreamerErrorCode)anErrorCode {
-    if (![NSThread isMainThread]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self failWithErrorCode:anErrorCode];
-        });
-        return;
-    }
-
-    // Only set error once
-    if (errorCode != AS_NO_ERROR) {
-        NSLog(@"Already has error, ignoring new error: %d", anErrorCode);
-        return;
-    }
-    
-    NSLog(@"Audio error: %d", anErrorCode);
-    errorCode = anErrorCode;
-    
-    // Save progress before stopping
-    [self progress:&lastProgress];
-    
-    [self stop];
+  AudioStreamerStateController *controller = self.stateController;
+  if (controller) {
+      if (![controller performBlockOnTargetQueue:^{
+              [self handleFailureSynchronouslyWithCode:anErrorCode];
+            }]) {
+          return;
+      }
+      return;
+  }
+  if (![NSThread isMainThread]) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self failWithErrorCode:anErrorCode];
+    });
+    return;
+  }
+  [self handleFailureSynchronouslyWithCode:anErrorCode];
 }
 
 - (void)setState:(AudioStreamerState)aStatus {
-    if (state_ == aStatus) {
-        return; // No change needed
-    }
-    
-    // Ensure we're on main thread
-    if (![NSThread isMainThread]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self setState:aStatus];
-        });
+    AudioStreamerStateController *controller = self.stateController;
+    if (controller) {
+        [controller transitionToState:aStatus];
         return;
     }
-    
-    NSLog(@"State transition: %d -> %d", state_, aStatus);
-    state_ = aStatus;
-    
-    [[NSNotificationCenter defaultCenter]
+    [self legacyTransitionToState:aStatus];
+}
+
+- (void)legacyTransitionToState:(AudioStreamerState)aStatus {
+  if (state_ == aStatus) {
+    return;
+  }
+
+  if (![NSThread isMainThread]) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self legacyTransitionToState:aStatus];
+    });
+    return;
+  }
+
+  NSLog(@"State transition: %d -> %d", state_, aStatus);
+  state_ = aStatus;
+
+  [[NSNotificationCenter defaultCenter]
      postNotificationName:ASStatusChangedNotification
-     object:self];
-     
-    NSString *statusString = nil;
-    switch (aStatus) {
-        case AS_PLAYING:
-            statusString = @"playing";
-            break;
-        case AS_PAUSED:
-            statusString = @"paused";
-            break;
-        case AS_STOPPED:
-            statusString = @"stopped";
-            break;
-        default:
-            break;
-    }
-    if (statusString) {
-        [[NSDistributedNotificationCenter defaultCenter]
-         postNotificationName:ASDidChangeStateDistributedNotification
-         object:@"hermes"
-         userInfo:@{@"state":statusString}
-         deliverImmediately: YES];
-    }
+                   object:self];
+
+  NSString *statusString = nil;
+  switch (aStatus) {
+    case AS_PLAYING:
+      statusString = @"playing";
+      break;
+    case AS_PAUSED:
+      statusString = @"paused";
+      break;
+    case AS_STOPPED:
+      statusString = @"stopped";
+      break;
+    default:
+      break;
+  }
+
+  if (statusString) {
+    [[NSDistributedNotificationCenter defaultCenter]
+       postNotificationName:ASDidChangeStateDistributedNotification
+                     object:@"hermes"
+                   userInfo:@{ @"state" : statusString }
+        deliverImmediately:YES];
+  }
+}
+
+- (void)handleFailureSynchronouslyWithCode:(AudioStreamerErrorCode)anErrorCode {
+  if (errorCode != AS_NO_ERROR) {
+    NSLog(@"Already has error, ignoring new error: %d", anErrorCode);
+    return;
+  }
+
+  NSLog(@"Audio error: %d", anErrorCode);
+  errorCode = anErrorCode;
+
+  [self progress:&lastProgress];
+
+  [self stop];
 }
 
 - (void) checkTimeout {
@@ -648,44 +673,11 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
 }
 
 + (AudioFileTypeID)hintForFileExtension:(NSString *)fileExtension {
-  if ([fileExtension isEqual:@"mp3"]) {
-    return kAudioFileMP3Type;
-  } else if ([fileExtension isEqual:@"wav"]) {
-    return kAudioFileWAVEType;
-  } else if ([fileExtension isEqual:@"aifc"]) {
-    return kAudioFileAIFCType;
-  } else if ([fileExtension isEqual:@"aiff"]) {
-    return kAudioFileAIFFType;
-  } else if ([fileExtension isEqual:@"mp4"] || [fileExtension isEqual:@"m4a"]) {
-    NSLog(@"MP4/M4A detected, using auto-detection");
-    return 0;
-  } else if ([fileExtension isEqual:@"caf"]) {
-    return kAudioFileCAFType;
-  } else if ([fileExtension isEqual:@"aac"]) {
-    return kAudioFileAAC_ADTSType;
-  }
-  return 0;
+  return [AudioStreamerMetadata hintForFileExtension:fileExtension];
 }
 
 + (AudioFileTypeID) hintForMIMEType:(NSString*)mimeType {
-  if ([mimeType isEqual:@"audio/mpeg"]) {
-    return kAudioFileMP3Type;
-  } else if ([mimeType isEqual:@"audio/x-wav"]) {
-    return kAudioFileWAVEType;
-  } else if ([mimeType isEqual:@"audio/x-aiff"]) {
-    return kAudioFileAIFFType;
-  } else if ([mimeType isEqual:@"audio/x-m4a"]) {
-    return kAudioFileM4AType;
-  } else if ([mimeType isEqual:@"audio/mp4"]) {
-    NSLog(@"MP4 MIME detected, using auto-detection");
-    return 0;
-  } else if ([mimeType isEqual:@"audio/x-caf"]) {
-    return kAudioFileCAFType;
-  } else if ([mimeType isEqual:@"audio/aac"] ||
-             [mimeType isEqual:@"audio/aacp"]) {
-    return kAudioFileAAC_ADTSType;
-  }
-  return 0;
+  return [AudioStreamerMetadata hintForMIMEType:mimeType];
 }
 
 - (BOOL)openURLSession {

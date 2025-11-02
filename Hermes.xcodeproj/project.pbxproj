@@ -3,10 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F795D2D2EB6F2860009B05D /* AudioStreamerMetadataTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F795D2B2EB6F2860009B05D /* AudioStreamerMetadataTests.m */; };
+		0F795D2E2EB6F2860009B05D /* AudioStreamerStateControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F795D2C2EB6F2860009B05D /* AudioStreamerStateControllerTests.m */; };
+		0F795D332EB6FAD50009B05D /* AudioStreamerDoubleStreamTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F795D322EB6FAD50009B05D /* AudioStreamerDoubleStreamTests.m */; };
 		0F828EA42CD93B7200C35281 /* NotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F828EA32CD93A5900C35281 /* NotificationManager.m */; };
 		0F9B74682E2AE8A300AFFD8B /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F9B74672E2AE8A300AFFD8B /* UserNotifications.framework */; };
 		0F9B74692E2AF51C00AFFD8B /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAD42F8713678F7500E935CA /* Sparkle.framework */; };
@@ -22,6 +25,8 @@
 		44411DA7190166FB00EC4E05 /* PandoraDevice.m in Sources */ = {isa = PBXBuildFile; fileRef = 44411DA6190166FB00EC4E05 /* PandoraDevice.m */; };
 		44619493187407A300482DC4 /* HistoryCollectionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 44619492187407A300482DC4 /* HistoryCollectionView.m */; };
 		44DFC8E018FDFCBC007422DC /* Notifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 44DFC8DF18FDFCBC007422DC /* Notifications.m */; };
+		4A5B5B6D2F9C3CEC00B1F7A3 /* AudioStreamerMetadata.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A5B5B6C2F9C3CEC00B1F7A3 /* AudioStreamerMetadata.m */; };
+		4A88BD712FA22D77007A8C9F /* AudioStreamerStateController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A88BD702FA22D77007A8C9F /* AudioStreamerStateController.m */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -83,6 +88,16 @@
 		FAFF50D1132EFDD800F02CE0 /* delete.png in Resources */ = {isa = PBXBuildFile; fileRef = FAFF50D0132EFDD800F02CE0 /* delete.png */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		0F795D262EB6F1870009B05D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D1107260486CEB800E47090;
+			remoteInfo = Hermes;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		0F9B746B2E2AF51C00AFFD8B /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -99,6 +114,11 @@
 
 /* Begin PBXFileReference section */
 		0F6DE6172E257EB80025AB31 /* Hermes.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hermes.entitlements; sourceTree = "<group>"; };
+		0F795D222EB6F1870009B05D /* HermesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HermesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0F795D2B2EB6F2860009B05D /* AudioStreamerMetadataTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioStreamerMetadataTests.m; sourceTree = "<group>"; };
+		0F795D2C2EB6F2860009B05D /* AudioStreamerStateControllerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioStreamerStateControllerTests.m; sourceTree = "<group>"; };
+		0F795D2F2EB6F2B00009B05D /* HermesTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "HermesTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		0F795D322EB6FAD50009B05D /* AudioStreamerDoubleStreamTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioStreamerDoubleStreamTests.m; sourceTree = "<group>"; };
 		0F828EA12CD9388F00C35281 /* NotificationManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NotificationManager.h; path = ../../../NotificationManager.h; sourceTree = "<group>"; };
 		0F828EA32CD93A5900C35281 /* NotificationManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NotificationManager.m; sourceTree = "<group>"; };
 		0F9B74672E2AE8A300AFFD8B /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
@@ -119,6 +139,11 @@
 		44619492187407A300482DC4 /* HistoryCollectionView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = HistoryCollectionView.m; path = Views/HistoryCollectionView.m; sourceTree = "<group>"; };
 		44DFC8DE18FDFCBC007422DC /* Notifications.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Notifications.h; sourceTree = "<group>"; };
 		44DFC8DF18FDFCBC007422DC /* Notifications.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Notifications.m; sourceTree = "<group>"; };
+		4A5B5B6B2F9C3CEC00B1F7A3 /* AudioStreamerMetadata.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioStreamerMetadata.h; sourceTree = "<group>"; };
+		4A5B5B6C2F9C3CEC00B1F7A3 /* AudioStreamerMetadata.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioStreamerMetadata.m; sourceTree = "<group>"; };
+		4A88BD6F2FA22D76007A8C9F /* AudioStreamerStateController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioStreamerStateController.h; sourceTree = "<group>"; };
+		4A88BD702FA22D77007A8C9F /* AudioStreamerStateController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioStreamerStateController.m; sourceTree = "<group>"; };
+		4ADB04B02FA383BF007182AF /* AudioStreamerDoubleStreamTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioStreamerDoubleStreamTests.m; sourceTree = "<group>"; };
 		843B578919660680000898F2 /* NSObject+SPInvocationGrabbing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+SPInvocationGrabbing.h"; sourceTree = "<group>"; };
 		843B578A19660680000898F2 /* NSObject+SPInvocationGrabbing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+SPInvocationGrabbing.m"; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Hermes-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Hermes-Info.plist"; sourceTree = "<group>"; };
@@ -222,7 +247,18 @@
 		FAFF50D0132EFDD800F02CE0 /* delete.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = delete.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		0F795D232EB6F1870009B05D /* HermesTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HermesTests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		0F795D1F2EB6F1870009B05D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D11072E0486CEB800E47090 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -297,6 +333,7 @@
 			isa = PBXGroup;
 			children = (
 				8D1107320486CEB800E47090 /* Hermes.app */,
+				0F795D222EB6F1870009B05D /* HermesTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -308,6 +345,7 @@
 				4436BF6B18F4DBE600DDD578 /* ImportedSources */,
 				080E96DDFE201D6D7F000001 /* Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
+				0F795D232EB6F1870009B05D /* HermesTests */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
@@ -479,8 +517,17 @@
 			children = (
 				FACF0183149A713700D1FB73 /* AudioStreamer.h */,
 				FACF0184149A713700D1FB73 /* AudioStreamer.m */,
+				4A5B5B6B2F9C3CEC00B1F7A3 /* AudioStreamerMetadata.h */,
+				4A5B5B6C2F9C3CEC00B1F7A3 /* AudioStreamerMetadata.m */,
+				4A88BD6F2FA22D76007A8C9F /* AudioStreamerStateController.h */,
+				4A88BD702FA22D77007A8C9F /* AudioStreamerStateController.m */,
+				4ADB04B02FA383BF007182AF /* AudioStreamerDoubleStreamTests.m */,
 				FA99E25915E4B7EA005AB6E6 /* ASPlaylist.h */,
 				FA99E25A15E4B7EA005AB6E6 /* ASPlaylist.m */,
+				0F795D322EB6FAD50009B05D /* AudioStreamerDoubleStreamTests.m */,
+				0F795D2B2EB6F2860009B05D /* AudioStreamerMetadataTests.m */,
+				0F795D2C2EB6F2860009B05D /* AudioStreamerStateControllerTests.m */,
+				0F795D2F2EB6F2B00009B05D /* HermesTests-Bridging-Header.h */,
 			);
 			path = AudioStreamer;
 			sourceTree = "<group>";
@@ -512,6 +559,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0F795D212EB6F1870009B05D /* HermesTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0F795D2A2EB6F1870009B05D /* Build configuration list for PBXNativeTarget "HermesTests" */;
+			buildPhases = (
+				0F795D1E2EB6F1870009B05D /* Sources */,
+				0F795D1F2EB6F1870009B05D /* Frameworks */,
+				0F795D202EB6F1870009B05D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0F795D272EB6F1870009B05D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0F795D232EB6F1870009B05D /* HermesTests */,
+			);
+			name = HermesTests;
+			packageProductDependencies = (
+			);
+			productName = HermesTests;
+			productReference = 0F795D222EB6F1870009B05D /* HermesTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		8D1107260486CEB800E47090 /* Hermes */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "Hermes" */;
@@ -538,7 +608,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1610;
+				TargetAttributes = {
+					0F795D212EB6F1870009B05D = {
+						CreatedOnToolsVersion = 16.4;
+						LastSwiftMigration = 1640;
+						TestTargetID = 8D1107260486CEB800E47090;
+					};
+				};
 			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "Hermes" */;
 			compatibilityVersion = "Xcode 6.3";
@@ -556,11 +634,19 @@
 			projectRoot = "";
 			targets = (
 				8D1107260486CEB800E47090 /* Hermes */,
+				0F795D212EB6F1870009B05D /* HermesTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0F795D202EB6F1870009B05D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D1107290486CEB800E47090 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -594,6 +680,16 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0F795D1E2EB6F1870009B05D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0F795D332EB6FAD50009B05D /* AudioStreamerDoubleStreamTests.m in Sources */,
+				0F795D2D2EB6F2860009B05D /* AudioStreamerMetadataTests.m in Sources */,
+				0F795D2E2EB6F2860009B05D /* AudioStreamerStateControllerTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D11072C0486CEB800E47090 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -626,6 +722,8 @@
 				44DFC8E018FDFCBC007422DC /* Notifications.m in Sources */,
 				E124109A18EBAF6F007AF091 /* HermesApp.m in Sources */,
 				441C9F161CC86A74000A0302 /* AudioStreamer.m in Sources */,
+				4A88BD712FA22D77007A8C9F /* AudioStreamerStateController.m in Sources */,
+				4A5B5B6D2F9C3CEC00B1F7A3 /* AudioStreamerMetadata.m in Sources */,
 				E14709D91E2AEEE400758888 /* NSDrawerWindow-HermesFirstResponderWorkaround.m in Sources */,
 				E1301AFB1D828FC100FF557D /* HermesVolumeSliderCell.m in Sources */,
 				FA229D6814429F69008AB9FE /* HistoryController.m in Sources */,
@@ -643,6 +741,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0F795D272EB6F1870009B05D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8D1107260486CEB800E47090 /* Hermes */;
+			targetProxy = 0F795D262EB6F1870009B05D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		089C165CFE840E0CC02AAC07 /* InfoPlist.strings */ = {
@@ -664,6 +770,87 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		0F795D282EB6F1870009B05D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = GHTQCRGWTR;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GENERATE_INFOPLIST_FILE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = watchtest.HermesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/AudioStreamer/HermesTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hermes.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hermes";
+			};
+			name = Debug;
+		};
+		0F795D292EB6F1870009B05D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = GHTQCRGWTR;
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GENERATE_INFOPLIST_FILE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = watchtest.HermesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/AudioStreamer/HermesTests-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hermes.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hermes";
+			};
+			name = Release;
+		};
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -872,6 +1059,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0F795D2A2EB6F1870009B05D /* Build configuration list for PBXNativeTarget "HermesTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0F795D282EB6F1870009B05D /* Debug */,
+				0F795D292EB6F1870009B05D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "Hermes" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
