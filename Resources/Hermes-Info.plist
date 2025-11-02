@@ -35,6 +35,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSInputMonitoringUsageDescription</key>
+	<string>Hermes needs access to media keys so play, pause, and skip continue working while you use other apps.</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>

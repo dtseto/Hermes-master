@@ -39,6 +39,48 @@ BOOL playOnStart = YES;
   return playOnStart;
 }
 
+- (BOOL)hasInputMonitoringAccess {
+  if (@available(macOS 10.15, *)) {
+    return CGPreflightListenEventAccess();
+  }
+  return YES;
+}
+
+- (BOOL)requestInputMonitoringAccessIfNeeded {
+  if (@available(macOS 10.15, *)) {
+    if (CGPreflightListenEventAccess()) {
+      return YES;
+    }
+    BOOL granted = CGRequestListenEventAccess();
+    if (!granted) {
+      [self presentInputMonitoringInstructions];
+    }
+    return CGPreflightListenEventAccess();
+  }
+  return YES;
+}
+
+- (void)presentInputMonitoringInstructions {
+  if (presentedInputMonitoringAlert) {
+    return;
+  }
+  presentedInputMonitoringAlert = YES;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSAlert *alert = [[NSAlert alloc] init];
+    alert.messageText = @"Enable Media Keys";
+    alert.informativeText = @"Hermes needs permission in System Settings → Privacy & Security → Input Monitoring to react to media keys. Enable Hermes in Input Monitoring so Play/Pause continues working.";
+    [alert addButtonWithTitle:@"Open System Settings"];
+    [alert addButtonWithTitle:@"Not Now"];
+    NSModalResponse response = [alert runModal];
+    if (response == NSAlertFirstButtonReturn) {
+      NSURL *settingsURL = [NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"];
+      if (settingsURL != nil) {
+        [[NSWorkspace sharedWorkspace] openURL:settingsURL];
+      }
+    }
+  });
+}
+
 - (void)handleSongExplanation:(NSNotification *)notification {
     NSLog(@"🎵 EXPLANATION RECEIVED: %@", notification.userInfo);
     
@@ -183,22 +225,27 @@ BOOL playOnStart = YES;
 #endif
    mediaKeyTap = [[SPMediaKeyTap alloc] initWithDelegate:self];
     if (PREF_KEY_BOOL(PLEASE_BIND_MEDIA)) {
+      BOOL canTapMediaKeys = [self requestInputMonitoringAccessIfNeeded];
 #if __MAC_OS_X_VERSION_MAX_ALLOWED >= 1090
-      BOOL canTapMediaKeys = YES;
-      if (@available(macOS 10.9, *)) {
+      BOOL hasAccessibilityTrust = YES;
+      if (@available(macOS 10.15, *)) {
+        hasAccessibilityTrust = YES;
+      } else if (@available(macOS 10.9, *)) {
         if (!AXIsProcessTrusted()) {
           NSDictionary *options = @{(__bridge id)kAXTrustedCheckOptionPrompt: @YES};
           AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
-          canTapMediaKeys = AXIsProcessTrusted();
+          hasAccessibilityTrust = AXIsProcessTrusted();
         }
       }
-#else
-      BOOL canTapMediaKeys = YES;
+      canTapMediaKeys = canTapMediaKeys && hasAccessibilityTrust;
 #endif
       if (canTapMediaKeys) {
         [mediaKeyTap startWatchingMediaKeys];
       } else {
         NSLog(@"Hermes: Input Monitoring permission missing; media keys disabled until granted.");
+        if ([self hasInputMonitoringAccess] == NO) {
+          [self presentInputMonitoringInstructions];
+        }
       }
     }
 #ifndef MPREMOTECOMMANDCENTER_MEDIA_KEYS_BROKEN

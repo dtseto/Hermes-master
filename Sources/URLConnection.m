@@ -2,26 +2,71 @@
 #import "URLConnection.h"
 
 NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnectionProxyValidityChangedNotification";
+static const NSTimeInterval kURLConnectionTimeoutSeconds = 15.0;
 
 @implementation URLConnection
 
 - (void)dealloc {
-//    [timeout invalidate];
-//    [dataTask cancel];
   [self->dataTask cancel];
-  [self->timeout invalidate];
+  [self->timeoutTimer invalidate];
+  self->timeoutTimer = nil;
+}
 
++ (NSURLSessionConfiguration *)sessionConfiguration {
+    NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+    config.timeoutIntervalForRequest = kURLConnectionTimeoutSeconds;
+    config.timeoutIntervalForResource = 45.0;
+    return config;
+}
+
+- (void)beginTimeout {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self->timeoutTimer invalidate];
+        if (!self->started || self->cb == nil) {
+            return;
+        }
+        self->timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:kURLConnectionTimeoutSeconds
+                                                              target:self
+                                                            selector:@selector(connectionTimedOut)
+                                                            userInfo:nil
+                                                             repeats:NO];
+        [[NSRunLoop mainRunLoop] addTimer:self->timeoutTimer forMode:NSRunLoopCommonModes];
+    });
+}
+
+- (void)invalidateTimeout {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self->timeoutTimer invalidate];
+        self->timeoutTimer = nil;
+    });
+}
+
+- (void)connectionTimedOut {
+    if (!self->started) {
+        return;
+    }
+    self->started = NO;
+    [self->dataTask cancel];
+    URLConnectionCallback callback = self->cb;
+    self->cb = nil;
+    [self invalidateTimeout];
+    if (callback) {
+        NSError *timeoutError = [NSError errorWithDomain:NSURLErrorDomain
+                                                    code:NSURLErrorTimedOut
+                                                userInfo:@{ NSLocalizedDescriptionKey: @"Connection timed out." }];
+        callback(nil, timeoutError);
+    }
 }
 
 + (URLConnection*)connectionForRequest:(NSURLRequest*)request
                     completionHandler:(URLConnectionCallback)cb {
-    URLConnection *c = [[URLConnection alloc] init];
+    URLConnection *c = [[self alloc] init];
     c->cb = [cb copy];
     c->bytes = [NSMutableData dataWithCapacity:100];
     
     // Create session configuration
-    NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
-    [URLConnection setHermesProxy:config];  // Use the class method to set proxy
+    NSURLSessionConfiguration *config = [self sessionConfiguration];
+    [self setHermesProxy:config];  // Use the class method to set proxy
     
   // Add Create weak reference to avoid retain cycle and crashes
   __weak URLConnection *weakSelf = c;
@@ -37,24 +82,20 @@ NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnection
           // Object was deallocated, safely exit
           return;
       }
-      
-      // First, invalidate the timeout timer
-      [strongSelf->timeout invalidate];
-      strongSelf->timeout = nil;
-
-      // First, invalidate the timeout timer to prevent it from firing after we've received a response
-//      [c->timeout invalidate];
-//      c->timeout = nil;
-
-      
       // Dispatch callback to main thread to avoid UI thread issues
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (error) {
-              strongSelf->cb(nil, error); //strong
-              //  c->cb(nil, error);
+            strongSelf->started = NO;
+            [strongSelf invalidateTimeout];
+            URLConnectionCallback callback = strongSelf->cb;
+            strongSelf->cb = nil;
+            if (!callback) {
                 return;
             }
-            
+            if (error) {
+                callback(nil, error);
+                return;
+            }
+
             NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
             if (httpResponse.statusCode >= 400) {
                 NSDictionary *userInfo = @{
@@ -63,16 +104,14 @@ NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnection
                 NSError *httpError = [NSError errorWithDomain:@"HTTPError"
                                                        code:httpResponse.statusCode
                                                    userInfo:userInfo];
-              strongSelf->cb(nil, httpError);
-              //c->cb(nil, httpError);
+                callback(nil, httpError);
                 return;
             }
-            
-          [strongSelf->bytes appendData:data];
-          strongSelf->cb(strongSelf->bytes, nil);
 
-           // [c->bytes appendData:data];
-          //  c->cb(c->bytes, nil);
+            if (data != nil) {
+                [strongSelf->bytes appendData:data];
+            }
+            callback(strongSelf->bytes, nil);
         });
     }];
     
@@ -80,28 +119,9 @@ NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnection
 }
 
 - (void)start {
-    events = 0;
+    started = YES;
+    [self beginTimeout];
     [dataTask resume];
-    
-    timeout = [NSTimer scheduledTimerWithTimeInterval:10
-                                             target:self
-                                           selector:@selector(checkTimeout)
-                                           userInfo:nil
-                                            repeats:YES];
-}
-
-- (void)checkTimeout {
-    if (events > 0 || cb == nil || dataTask == nil) {
-        events = 0;
-        return;
-    }
-    
-    [dataTask cancel];
-    NSError *error = [NSError errorWithDomain:@"Connection timeout."
-                                       code:NSURLErrorTimedOut
-                                   userInfo:nil];
-    cb(nil, error);
-    cb = nil;
 }
 
 - (void)setHermesProxy {
@@ -116,37 +136,50 @@ NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnection
     [dataTask cancel]; // Cancel existing task
     
     // Create new configuration and session
-    NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
-    [URLConnection setHermesProxy:config];
+    NSURLSessionConfiguration *config = [[self class] sessionConfiguration];
+    [[self class] setHermesProxy:config];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
     
     // Create new data task with the same request
     dataTask = [session dataTaskWithRequest:currentRequest
                          completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        if (error) {
-            self->cb(nil, error);
-            return;
-        }
-        
-        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-        if (httpResponse.statusCode >= 400) {
-            NSDictionary *userInfo = @{
-                NSLocalizedDescriptionKey: [NSString stringWithFormat:@"HTTP Error: %ld", (long)httpResponse.statusCode]
-            };
-            NSError *httpError = [NSError errorWithDomain:@"HTTPError"
-                                                   code:httpResponse.statusCode
-                                               userInfo:userInfo];
-            self->cb(nil, httpError);
-            return;
-        }
-        
-        [self->bytes appendData:data];
-        self->cb(self->bytes, nil);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self invalidateTimeout];
+            URLConnectionCallback callback = self->cb;
+            self->cb = nil;
+            self->started = NO;
+            if (!callback) {
+                return;
+            }
+
+            if (error) {
+                callback(nil, error);
+                return;
+            }
+
+            NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+            if (httpResponse.statusCode >= 400) {
+                NSDictionary *userInfo = @{
+                    NSLocalizedDescriptionKey: [NSString stringWithFormat:@"HTTP Error: %ld", (long)httpResponse.statusCode]
+                };
+                NSError *httpError = [NSError errorWithDomain:@"HTTPError"
+                                                       code:httpResponse.statusCode
+                                                   userInfo:userInfo];
+                callback(nil, httpError);
+                return;
+            }
+
+            if (data != nil) {
+                [self->bytes appendData:data];
+            }
+            callback(self->bytes, nil);
+        });
     }];
     
     // Resume the new task if we were already started
-    if (self->events > 0) {
+    if (self->started) {
         [dataTask resume];
+        [self beginTimeout];
     }
 }
 

@@ -1,16 +1,33 @@
-//
-//  HermesTests.swift
-//  HermesTests
-//
-//  Created by User2 on 11/1/25.
-//
-
+import Foundation
 import Testing
 
-struct HermesTests {
+struct HermesInfoPlistTests {
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    @Test func inputMonitoringUsageDescriptionPresent() async throws {
+        let fileManager = FileManager.default
+        let environment = ProcessInfo.processInfo.environment
+
+        var candidateURLs: [URL] = []
+        if let productsDir = environment["BUILT_PRODUCTS_DIR"],
+           let bundleName = environment["FULL_PRODUCT_NAME"] {
+            let url = URL(fileURLWithPath: productsDir, isDirectory: true)
+                .appendingPathComponent(bundleName)
+            candidateURLs.append(url)
+        }
+
+        let siblingAppURL = Bundle.main.bundleURL
+            .deletingLastPathComponent()
+            .appendingPathComponent("Hermes.app")
+        candidateURLs.append(siblingAppURL)
+
+        guard let bundleURL = candidateURLs.first(where: { fileManager.fileExists(atPath: $0.path) }),
+              let bundle = Bundle(url: bundleURL) else {
+            Issue.record("Unable to locate Hermes.app to inspect Info.plist for Input Monitoring usage description.")
+            return
+        }
+
+        let description = bundle.object(forInfoDictionaryKey: "NSInputMonitoringUsageDescription") as? String
+        #expect(description?.isEmpty == false, "Info.plist must define NSInputMonitoringUsageDescription.")
     }
 
 }

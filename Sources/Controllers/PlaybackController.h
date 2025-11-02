@@ -43,6 +43,7 @@
   BOOL scrobbleSent;
   NSString *lastImgSrc;
   NSData *lastImg;
+  BOOL presentedInputMonitoringAlert;
 }
 
 @property (readonly) Station *playing;
@@ -90,5 +91,6 @@
 - (IBAction)increaseVolume:(id)sender;
 - (IBAction)decreaseVolume:(id)sender;
 - (IBAction)quickLookArt:(id)sender;
+- (BOOL)hasInputMonitoringAccess;
 
 @end

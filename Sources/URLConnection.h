@@ -6,12 +6,13 @@ extern NSString * const URLConnectionProxyValidityChangedNotification;
     NSURLSessionDataTask *dataTask;
     URLConnectionCallback cb;
     NSMutableData *bytes;
-    NSTimer *timeout;
-    int events;
+    BOOL started;
+    NSTimer *timeoutTimer;
 }
 
 + (URLConnection*)connectionForRequest:(NSURLRequest*)request
                     completionHandler:(URLConnectionCallback)cb;
++ (NSURLSessionConfiguration *)sessionConfiguration;
 + (void)setHermesProxy:(NSURLSessionConfiguration*)config;
 + (BOOL)validProxyHost:(NSString **)host port:(NSInteger)port;
 

@@ -92,6 +92,12 @@
 #ifndef MPREMOTECOMMANDCENTER_MEDIA_KEYS_BROKEN
     }
 #endif
+  } else if (@available(macOS 10.15, *)) {
+    if (![[HMSAppDelegate playback] hasInputMonitoringAccess]) {
+      mediaKeysLabel.stringValue = @"Grant Hermes access in System Settings → Privacy & Security → Input Monitoring to enable media keys.";
+    } else {
+      mediaKeysLabel.stringValue = @"";
+    }
   }
 
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];

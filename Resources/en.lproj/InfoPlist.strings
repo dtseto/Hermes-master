@@ -1,2 +1,2 @@
 /* Localized versions of Info.plist keys */
-
+"NSInputMonitoringUsageDescription" = "Hermes uses your keyboard’s media keys for play, pause, and skip.";
