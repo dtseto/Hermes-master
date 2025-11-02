@@ -10,6 +10,8 @@
 - (void)like:(id)sender;
 - (void)dislike:(id)sender;
 - (void)tired:(id)sender;
+- (void)startUpdatingProgress;
+- (void)stopUpdatingProgress;
 @end
 
 @interface Pandora : NSObject
@@ -205,6 +207,22 @@ extern void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunc
 
   XCTAssertEqualObjects(pandora.tiredSong, playing.currentSong);
   XCTAssertTrue(playing.nextInvoked);
+}
+
+- (void)testProgressTimerInvalidatesOnDealloc {
+  __weak NSTimer *weakTimer = nil;
+  @autoreleasepool {
+    TestPlaybackController *controller = [[TestPlaybackController alloc] init];
+    [controller startUpdatingProgress];
+    NSTimer *timer = [controller valueForKey:@"progressUpdateTimer"];
+    XCTAssertNotNil(timer);
+    weakTimer = timer;
+    controller = nil;
+  }
+  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+  if (weakTimer != nil) {
+    XCTAssertFalse([weakTimer isValid]);
+  }
 }
 
 @end

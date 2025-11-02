@@ -7,6 +7,7 @@ extern void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunc
 @interface PlaybackController : NSObject
 - (BOOL)requestInputMonitoringAccessIfNeeded;
 - (void)presentInputMonitoringInstructions;
+- (void)presentInputMonitoringInstructionsAlert;
 @end
 
 static BOOL gPreflightGranted = NO;
@@ -26,11 +27,17 @@ static BOOL TestRequestDeny(void) {
 
 @interface PermissionTestPlaybackController : PlaybackController
 @property(nonatomic, assign) NSUInteger instructionsCount;
+@property(nonatomic, assign) BOOL lastInstructionOnMainThread;
+@property(nonatomic, copy) dispatch_block_t instructionCallback;
 @end
 
 @implementation PermissionTestPlaybackController
-- (void)presentInputMonitoringInstructions {
+- (void)presentInputMonitoringInstructionsAlert {
+  self.lastInstructionOnMainThread = [NSThread isMainThread];
   self.instructionsCount += 1;
+  if (self.instructionCallback) {
+    self.instructionCallback();
+  }
 }
 @end
 
@@ -80,6 +87,28 @@ static BOOL TestRequestDeny(void) {
     BOOL granted = [controller requestInputMonitoringAccessIfNeeded];
 
     XCTAssertFalse(granted);
+    XCTAssertEqual(controller.instructionsCount, 1U);
+    XCTAssertTrue(controller.lastInstructionOnMainThread);
+  }
+}
+
+- (void)testInstructionsPresentedOnMainThreadFromBackgroundRequest {
+  if (@available(macOS 10.15, *)) {
+    gPreflightGranted = NO;
+    HMSSetListenEventAccessFunctionPointers(TestPreflight, TestRequestDeny);
+    PermissionTestPlaybackController *controller = [[PermissionTestPlaybackController alloc] init];
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Instructions shown"];
+    controller.instructionCallback = ^{
+      XCTAssertTrue([NSThread isMainThread]);
+      [expectation fulfill];
+    };
+
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
+      BOOL granted = [controller requestInputMonitoringAccessIfNeeded];
+      XCTAssertFalse(granted);
+    });
+
+    [self waitForExpectations:@[expectation] timeout:2.0];
     XCTAssertEqual(controller.instructionsCount, 1U);
   }
 }

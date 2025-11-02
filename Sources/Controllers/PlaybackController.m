@@ -88,20 +88,34 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
     return;
   }
   presentedInputMonitoringAlert = YES;
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NSAlert *alert = [[NSAlert alloc] init];
-    alert.messageText = @"Enable Media Keys";
-    alert.informativeText = @"Hermes needs permission in System Settings → Privacy & Security → Input Monitoring to react to media keys. Enable Hermes in Input Monitoring so Play/Pause continues working.";
-    [alert addButtonWithTitle:@"Open System Settings"];
-    [alert addButtonWithTitle:@"Not Now"];
-    NSModalResponse response = [alert runModal];
-    if (response == NSAlertFirstButtonReturn) {
-      NSURL *settingsURL = [NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"];
-      if (settingsURL != nil) {
-        [[NSWorkspace sharedWorkspace] openURL:settingsURL];
-      }
+  __weak typeof(self) weakSelf = self;
+  dispatch_block_t presentBlock = ^{
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (!strongSelf) {
+      return;
     }
-  });
+    [strongSelf presentInputMonitoringInstructionsAlert];
+  };
+  if ([NSThread isMainThread]) {
+    presentBlock();
+  } else {
+    dispatch_async(dispatch_get_main_queue(), presentBlock);
+  }
+}
+
+- (void)presentInputMonitoringInstructionsAlert {
+  NSAlert *alert = [[NSAlert alloc] init];
+  alert.messageText = @"Enable Media Keys";
+  alert.informativeText = @"Hermes needs permission in System Settings → Privacy & Security → Input Monitoring to react to media keys. Enable Hermes in Input Monitoring so Play/Pause continues working.";
+  [alert addButtonWithTitle:@"Open System Settings"];
+  [alert addButtonWithTitle:@"Not Now"];
+  NSModalResponse response = [alert runModal];
+  if (response == NSAlertFirstButtonReturn) {
+    NSURL *settingsURL = [NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"];
+    if (settingsURL != nil) {
+      [[NSWorkspace sharedWorkspace] openURL:settingsURL];
+    }
+  }
 }
 
 - (void)handleSongExplanation:(NSNotification *)notification {
@@ -289,13 +303,19 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 
 - (void) startUpdatingProgress {
   if (progressUpdateTimer != nil) return;
-  progressUpdateTimer = [NSTimer
+  __weak typeof(self) weakSelf = self;
+  NSTimer *timer = [NSTimer
     timerWithTimeInterval:1
-    target:self
-    selector:@selector(updateProgress:)
-    userInfo:nil
-    repeats:YES];
-  [[NSRunLoop currentRunLoop] addTimer:progressUpdateTimer forMode:NSRunLoopCommonModes];
+                 repeats:YES
+                   block:^(NSTimer * _Nonnull t) {
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      if (!strongSelf) {
+        return;
+      }
+      [strongSelf updateProgress:t];
+    }];
+  [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+  progressUpdateTimer = timer;
 }
 
 /* see https://github.com/nevyn/SPMediaKeyTap */
@@ -354,6 +374,11 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 - (void) showSpinner {
   [songLoadingProgress setHidden:NO];
   [songLoadingProgress startAnimation:nil];
+}
+
+- (void)dealloc {
+  [progressUpdateTimer invalidate];
+  progressUpdateTimer = nil;
 }
 
 - (void) hideSpinner {

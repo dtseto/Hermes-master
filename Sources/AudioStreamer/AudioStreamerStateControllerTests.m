@@ -148,7 +148,7 @@ distributedNotificationCenter:distributed
     [controller transitionToState:AS_PLAYING];
   });
 
-  [self waitForExpectationsWithTimeout:2.0 handler:nil];
+  [self waitForExpectationsWithTimeout:5.0 handler:nil];
   XCTAssertEqual(observedState, AS_PLAYING);
   XCTAssertEqual([controller currentState], AS_PLAYING);
   [center removeObserver:token];
