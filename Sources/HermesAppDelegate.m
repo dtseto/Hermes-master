@@ -536,6 +536,28 @@ static void DummyPacketsProc(void *inClientData,
 
 #pragma mark - Drawer management
 
+- (IBAction)toggleDrawerContent:(id)sender {
+  NSLog(@"toggleDrawerContent: ignored (drawer UI deprecated on macOS 11+).");
+}
+
+- (IBAction)toggleDrawerVisible:(id)sender {
+  NSLog(@"toggleDrawerVisible: ignored (drawer UI deprecated on macOS 11+).");
+}
+
+- (IBAction)showStationsDrawer:(id)sender {
+  NSLog(@"showStationsDrawer: redirecting to stations list (drawer UI deprecated).");
+  [self activate:nil];
+  if ([stations respondsToSelector:@selector(focus)]) {
+    [stations focus];
+  }
+}
+
+- (IBAction)showHistoryDrawer:(id)sender {
+  NSLog(@"showHistoryDrawer: redirecting to history list (drawer UI deprecated).");
+  [self activate:nil];
+  [[self history] updateUI];
+}
+
 /*
 - (void) historyShow {
   [history showDrawer];

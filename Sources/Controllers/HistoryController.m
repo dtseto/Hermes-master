@@ -12,16 +12,26 @@
 #import "PreferencesController.h"
 #import "URLConnection.h"
 #import "Notifications.h"
+#import "Song.h"
 
 #define HISTORY_LIMIT 20
+
+@interface HistoryController ()
+- (nullable NSArray<Song *> *)decodeSavedSongsFromData:(NSData *)data path:(NSString *)path;
+- (nullable NSArray<Song *> *)migrateLegacySongsFromData:(NSData *)data error:(NSError * __autoreleasing *)errorOut;
+- (void)rewriteSongsArray:(NSArray<Song *> *)songsArray toPath:(NSString *)path;
+@end
 
 @implementation HistoryController
 
 @synthesize songs, controller;
+@synthesize drawer;
 
 - (void) awakeFromNib {
   [super awakeFromNib];
  // drawersTable.contentView.window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+  // Legacy NSDrawer objects were removed; clear any dangling connections.
+  drawer = nil;
 }
 
 - (void) loadSavedSongs {
@@ -33,23 +43,13 @@
     if (err) return;
     assert(data != nil);
 
-    // Fix: Use modern unarchiving method with proper error handling
-    NSError *unarchiveError = nil;
-    NSArray *s = [NSKeyedUnarchiver unarchivedObjectOfClass:[NSArray class]
-                                                   fromData:data
-                                                      error:&unarchiveError];
-    
-    if (unarchiveError) {
-      NSLog(@"Error unarchiving saved songs: %@", unarchiveError);
+    NSArray<Song *> *decodedSongs = [self decodeSavedSongsFromData:data path:historySaveStatePath];
+    if (decodedSongs == nil) {
+      self->reader = nil;
       return;
     }
     
-    if (s == nil) {
-      NSLog(@"Failed to unarchive saved songs - data may be corrupted");
-      return;
-    }
-    
-    for (Song *song in s) {
+    for (Song *song in decodedSongs) {
       if ([self->songs indexOfObject:song] == NSNotFound)
         [self->controller addObject:song];
     }
@@ -265,6 +265,111 @@
   [conn setHermesProxy];
   [conn start];
   [spinner setHidden:NO];
+}
+
+- (nullable NSArray<Song *> *)decodeSavedSongsFromData:(NSData *)data path:(NSString *)path {
+  NSError *unarchiveError = nil;
+  NSArray<Song *> *songsArray = [NSKeyedUnarchiver unarchivedObjectOfClass:[NSArray class]
+                                                                  fromData:data
+                                                                     error:&unarchiveError];
+  if (songsArray != nil) {
+    return songsArray;
+  }
+
+  if (unarchiveError) {
+    NSLog(@"Error unarchiving saved songs with secure coder: %@", unarchiveError);
+  }
+
+  NSError *migrationError = nil;
+  NSArray<Song *> *legacySongs = [self migrateLegacySongsFromData:data error:&migrationError];
+  if (legacySongs != nil) {
+    NSLog(@"Migrated legacy saved songs archive containing %lu entries", (unsigned long)legacySongs.count);
+    [self rewriteSongsArray:legacySongs toPath:path];
+    return legacySongs;
+  }
+
+    if (migrationError) {
+    NSLog(@"Failed to migrate saved songs archive: %@", migrationError);
+  } else {
+    NSLog(@"Failed to unarchive saved songs - data may be corrupted");
+  }
+
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  if ([fileManager fileExistsAtPath:path]) {
+    NSError *removeError = nil;
+    if (![fileManager removeItemAtPath:path error:&removeError]) {
+      NSLog(@"Unable to delete corrupted history archive at %@: %@", path, removeError);
+    } else {
+      NSLog(@"Deleted corrupted history archive at %@; will rebuild.", path);
+    }
+  }
+
+  [self rewriteSongsArray:@[] toPath:path];
+  return @[];
+}
+
+- (nullable NSArray<Song *> *)migrateLegacySongsFromData:(NSData *)data error:(NSError * __autoreleasing *)errorOut {
+  NSError *legacyError = nil;
+  NSKeyedUnarchiver *legacyUnarchiver = [[NSKeyedUnarchiver alloc] initForReadingFromData:data
+                                                                                    error:&legacyError];
+  if (legacyUnarchiver == nil) {
+    if (errorOut) {
+      *errorOut = legacyError;
+    }
+    return nil;
+  }
+
+  legacyUnarchiver.requiresSecureCoding = NO;
+  id rootObject = [legacyUnarchiver decodeObjectForKey:NSKeyedArchiveRootObjectKey];
+  if (rootObject == nil) {
+    rootObject = [legacyUnarchiver decodeObjectForKey:@"root"];
+  }
+  if (rootObject == nil) {
+    rootObject = [legacyUnarchiver decodeObjectForKey:@"songs"];
+  }
+  [legacyUnarchiver finishDecoding];
+
+  if ([rootObject isKindOfClass:[NSDictionary class]]) {
+    NSDictionary *dictionary = (NSDictionary *)rootObject;
+    id candidate = dictionary[@"root"] ?: dictionary[@"songs"];
+    if ([candidate isKindOfClass:[NSArray class]]) {
+      rootObject = candidate;
+    }
+  }
+
+  if ([rootObject isKindOfClass:[NSArray class]]) {
+    return rootObject;
+  }
+
+  if (errorOut) {
+    *errorOut = [NSError errorWithDomain:@"HistoryControllerLegacy"
+                                    code:-1
+                                userInfo:@{NSLocalizedDescriptionKey: @"Legacy archive missing song array."}];
+  }
+  return nil;
+}
+
+- (void)rewriteSongsArray:(NSArray<Song *> *)songsArray toPath:(NSString *)path {
+  if (path.length == 0 || songsArray == nil) {
+    return;
+  }
+
+  NSError *archiveError = nil;
+  NSData *archivedData = [NSKeyedArchiver archivedDataWithRootObject:songsArray
+                                             requiringSecureCoding:NO
+                                                             error:&archiveError];
+  if (archivedData == nil) {
+    NSLog(@"Failed to rewrite migrated songs archive: %@", archiveError);
+    return;
+  }
+
+  NSError *writeError = nil;
+  BOOL success = [archivedData writeToURL:[NSURL fileURLWithPath:path]
+                                   options:NSDataWritingAtomic
+                                     error:&writeError];
+  if (!success) {
+    NSLog(@"Failed to persist migrated songs archive: %@", writeError);
+  }
 }
 
 @end

@@ -25,6 +25,7 @@
    Alex Crichton for the Hermes project */
 
 #import "AudioStreamer.h"
+#import "AudioBufferManager.h"
 #import "AudioStreamerMetadata.h"
 #import "AudioStreamerStateController.h"
 
@@ -48,17 +49,11 @@
 #define LOG(...)
 #endif
 
-typedef struct queued_packet {
-  AudioStreamPacketDescription desc;
-  struct queued_packet *next;
-  char data[];
-} queued_packet_t;
-
 NSString * const ASBitrateReadyNotification = @"ASBitrateReadyNotification";
 NSString * const ASStatusChangedNotification = @"ASStatusChangedNotification";
 NSString * const ASDidChangeStateDistributedNotification = @"hermes.state";
 
-@interface AudioStreamer ()
+@interface AudioStreamer () <AudioBufferManagerDelegate>
 @property (nonatomic, strong) NSLock *stateLock;
 @property (nonatomic, assign) BOOL isStateChanging;
 @property (nonatomic, assign) NSTimeInterval lastPlayCall;
@@ -164,11 +159,9 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
 
 - (void)dealloc {
   [self stop];
-  assert(queued_head == NULL);
-  assert(queued_tail == NULL);
   assert(timeout == nil);
   assert(buffers == NULL);
-  assert(inuse == NULL);
+  assert(bufferManager == nil);
 }
 
 - (void)setupOptimizedSettings {
@@ -197,6 +190,13 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
   proxyHost = host;
   proxyPort = port;
   proxyType = PROXY_SOCKS;
+}
+
+- (void)setBufferInfinite:(BOOL)newBufferInfinite {
+  bufferInfinite = newBufferInfinite;
+  if (bufferManager != nil) {
+    [bufferManager updateBufferInfinite:newBufferInfinite];
+  }
 }
 
 - (BOOL)setVolume: (double) volume {
@@ -315,6 +315,11 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
   if (state_ != AS_INITIALIZED) {
     NSLog(@"AudioStreamer not in initialized state (current: %d) - returning NO", state_);
     return NO;
+  }
+
+  AudioStreamerStateController *controller = self.stateController;
+  if (controller) {
+    [controller disableStopEnforcement];
   }
   
   // Check if timeout already exists
@@ -439,14 +444,12 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
     free(buffers);
     buffers = NULL;
   }
-  if (inuse != NULL) {
-    free(inuse);
-    inuse = NULL;
+  if (bufferManager != nil) {
+    [bufferManager reset];
+    bufferManager = nil;
   }
 
   httpHeaders      = nil;
-  bytesFilled      = 0;
-  packetsFilled    = 0;
   seekByteOffset   = 0;
   packetBufferSize = 0;
 }
@@ -563,6 +566,9 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
 #pragma mark - Private
 
 - (void)failWithErrorCode:(AudioStreamerErrorCode)anErrorCode {
+  if (bufferManager != nil) {
+    [bufferManager abortPendingData];
+  }
   AudioStreamerStateController *controller = self.stateController;
   if (controller) {
       if (![controller performBlockOnTargetQueue:^{
@@ -749,16 +755,9 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
 }
 
 - (void)closeURLSession {
-  if (waitingOnBuffer) waitingOnBuffer = FALSE;
-  
-  // Free any queued packets
-  queued_packet_t *cur = queued_head;
-  while (cur != NULL) {
-    queued_packet_t *tmp = cur->next;
-    free(cur);
-    cur = tmp;
+  if (bufferManager != nil) {
+    [bufferManager clearQueuedPackets];
   }
-  queued_head = queued_tail = NULL;
   
   // Cancel data task if it exists
   if (dataTask) {
@@ -861,6 +860,9 @@ didCompleteWithError:(NSError *)error {
   
   if (error) {
     networkError = error;
+    if (bufferManager != nil) {
+      [bufferManager abortPendingData];
+    }
     [self failWithErrorCode:AS_NETWORK_CONNECTION_FAILED];
     return;
   }
@@ -870,9 +872,12 @@ didCompleteWithError:(NSError *)error {
   timeout = nil;
   
   // Flush out extra data if necessary
-  if (bytesFilled) {
-    // Disregard return value because we're at the end of the stream anyway
-    [self enqueueBuffer];
+  if (bufferManager != nil && bufferManager.bytesFilled > 0) {
+    AudioBufferManagerEnqueueResult flushResult = [bufferManager flushCurrentBuffer];
+    if (flushResult == AudioBufferManagerEnqueueResultFailed) {
+      [self failWithErrorCode:AS_AUDIO_QUEUE_ENQUEUE_FAILED];
+      return;
+    }
   }
   
   // If we never received any packets, then we're done now
@@ -881,7 +886,7 @@ didCompleteWithError:(NSError *)error {
   }
   
   // If we have no more queued data, and the stream has reached its end, flush the audio queue
-  if (queued_head == NULL) {
+  if (bufferManager == nil || ![bufferManager hasQueuedPackets]) {
     err = AudioQueueFlush(audioQueue);
     if (err) {
       [self failWithErrorCode:AS_AUDIO_QUEUE_FLUSH_FAILED];
@@ -909,55 +914,6 @@ didCompleteWithError:(NSError *)error {
 }
 
 #pragma mark - Audio Queue and Buffer Management
-
-- (int) enqueueBuffer {
-  assert(session != NULL);
-  
-  assert(!inuse[fillBufferIndex]);
-  inuse[fillBufferIndex] = true;    // set in use flag
-  buffersUsed++;
-  
-  // enqueue buffer
-  AudioQueueBufferRef fillBuf = buffers[fillBufferIndex];
-  fillBuf->mAudioDataByteSize = bytesFilled;
-  
-  assert(packetsFilled > 0);
-  err = AudioQueueEnqueueBuffer(audioQueue, fillBuf, packetsFilled,
-                                packetDescs);
-  if (err) {
-    [self failWithErrorCode:AS_AUDIO_QUEUE_ENQUEUE_FAILED];
-    return -1;
-  }
-  LOG(@"committed buffer %d", fillBufferIndex);
-  
-  if (state_ == AS_WAITING_FOR_DATA) {
-    /* Once we have a small amount of queued data, then we can go ahead and
-     * start the audio queue and the file stream should remain ahead of it */
-    if (bufferCnt < 3 || buffersUsed > 2) {
-      err = AudioQueueStart(audioQueue, NULL);
-      if (err) {
-        [self failWithErrorCode:AS_AUDIO_QUEUE_START_FAILED];
-        return -1;
-      }
-      [self setState:AS_WAITING_FOR_QUEUE_TO_START];
-    }
-  }
-  
-  /* move on to the next buffer and reset counters */
-  if (++fillBufferIndex >= bufferCnt) fillBufferIndex = 0;
-  bytesFilled   = 0;    // reset bytes filled
-  packetsFilled = 0;    // reset packets filled
-  
-  if (inuse[fillBufferIndex]) {
-    LOG(@"waiting for buffer %d", fillBufferIndex);
-    if (!bufferInfinite) {
-      [self suspendDataTask];
-    }
-    waitingOnBuffer = true;
-    return 0;
-  }
-  return 1;
-}
 
 - (void)createQueue {
     [self.stateLock lock];
@@ -1026,14 +982,19 @@ didCompleteWithError:(NSError *)error {
     // Allocate audio queue buffers
     buffers = malloc(bufferCnt * sizeof(buffers[0]));
     CHECK_ERR(buffers == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED);
-    inuse = calloc(bufferCnt, sizeof(inuse[0]));
-    CHECK_ERR(inuse == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED);
     
     for (unsigned int i = 0; i < bufferCnt; ++i) {
         err = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
                                        &buffers[i]);
         CHECK_ERR(err, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED);
     }
+    
+    bufferManager = [[AudioBufferManager alloc] initWithBufferCount:bufferCnt
+                                                   packetBufferSize:packetBufferSize
+                                                    maxPacketDescs:kAQMaxPacketDescs
+                                                     bufferInfinite:bufferInfinite
+                                                           delegate:self];
+    CHECK_ERR(bufferManager == nil, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED);
     
     // Handle magic cookie
     UInt32 cookieSize;
@@ -1125,119 +1086,44 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
   }
   
   if (!audioQueue) {
-    assert(!waitingOnBuffer);
     [self createQueue];
   }
+  if (!bufferManager) return;
+
   assert(inPacketDescriptions != NULL);
-  
-  /* Place each packet into a buffer and then send each buffer into the audio
-   queue */
+
+  const uint8_t *inputBytes = (const uint8_t *)inInputData;
   UInt32 i;
-  for (i = 0; i < inNumberPackets && !waitingOnBuffer && queued_head == NULL; i++) {
-    AudioStreamPacketDescription *desc = &inPacketDescriptions[i];
-    int ret = [self handlePacket:(inInputData + desc->mStartOffset)
-                            desc:desc];
-    CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
-    if (!ret) break;
+  for (i = 0; i < inNumberPackets; i++) {
+    AudioStreamPacketDescription desc = inPacketDescriptions[i];
+    const void *packetData = inputBytes + desc.mStartOffset;
+
+    AudioBufferManagerEnqueueResult result =
+      [bufferManager handlePacketData:packetData description:desc];
+    CHECK_ERR(result == AudioBufferManagerEnqueueResultFailed, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
+
+    if (result == AudioBufferManagerEnqueueResultBlocked) {
+      break;
+    }
+
+    UInt64 packetSize = desc.mDataByteSize;
+    processedPacketsSizeTotal += packetSize;
+    processedPacketsCount++;
+    if (processedPacketsCount > BitRateEstimationMinPackets &&
+        !bitrateNotification) {
+      bitrateNotification = true;
+      [[NSNotificationCenter defaultCenter]
+       postNotificationName:ASBitrateReadyNotification
+       object:self];
+    }
   }
   if (i == inNumberPackets) return;
-  
+
   for (; i < inNumberPackets; i++) {
-    /* Allocate the packet */
-    UInt32 size = inPacketDescriptions[i].mDataByteSize;
-    queued_packet_t *packet = malloc(sizeof(queued_packet_t) + size);
-    CHECK_ERR(packet == NULL, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
-    
-    /* Prepare the packet */
-    packet->next = NULL;
-    packet->desc = inPacketDescriptions[i];
-    packet->desc.mStartOffset = 0;
-    memcpy(packet->data, inInputData + inPacketDescriptions[i].mStartOffset,
-           size);
-    
-    if (queued_head == NULL) {
-      queued_head = queued_tail = packet;
-    } else {
-      queued_tail->next = packet;
-      queued_tail = packet;
-    }
-  }
-}
-
-- (int) handlePacket:(const void*)data
-desc:(AudioStreamPacketDescription*)desc{
-  assert(audioQueue != NULL);
-  UInt64 packetSize = desc->mDataByteSize;
-  
-  /* This shouldn't happen because most of the time we read the packet buffer
-   size from the file stream, but if we restored to guessing it we could
-   come up too small here */
-  if (packetSize > packetBufferSize) return -1;
-  
-  // if the space remaining in the buffer is not enough for this packet, then
-  // enqueue the buffer and wait for another to become available.
-  if (packetBufferSize - bytesFilled < packetSize) {
-    int hasFreeBuffer = [self enqueueBuffer];
-    if (hasFreeBuffer <= 0) {
-      return hasFreeBuffer;
-    }
-    assert(bytesFilled == 0);
-    assert(packetBufferSize >= packetSize);
-  }
-  
-  /* global statistics */
-  processedPacketsSizeTotal += packetSize;
-  processedPacketsCount++;
-  if (processedPacketsCount > BitRateEstimationMinPackets &&
-      !bitrateNotification) {
-    bitrateNotification = true;
-    [[NSNotificationCenter defaultCenter]
-     postNotificationName:ASBitrateReadyNotification
-     object:self];
-  }
-  
-  // copy data to the audio queue buffer
-  AudioQueueBufferRef buf = buffers[fillBufferIndex];
-  memcpy(buf->mAudioData + bytesFilled, data, packetSize);
-  
-  // fill out packet description to pass to enqueue() later on
-  packetDescs[packetsFilled] = *desc;
-  // Make sure the offset is relative to the start of the audio buffer
-  packetDescs[packetsFilled].mStartOffset = bytesFilled;
-  // keep track of bytes filled and packets filled
-  bytesFilled += packetSize;
-  packetsFilled++;
-  
-  /* If filled our buffer with packets, then commit it to the system */
-  if (packetsFilled >= kAQMaxPacketDescs) return [self enqueueBuffer];
-  return 1;
-}
-
-- (void) enqueueCachedData {
-  if ([self isDone]) return;
-  assert(!waitingOnBuffer);
-  assert(!inuse[fillBufferIndex]);
-  assert(session != NULL);
-  LOG(@"processing some cached data");
-  
-  /* Queue up as many packets as possible into the buffers */
-  queued_packet_t *cur = queued_head;
-  while (cur != NULL) {
-    int ret = [self handlePacket:cur->data desc:&cur->desc];
-    CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
-    if (ret == 0) break;
-    queued_packet_t *next = cur->next;
-    free(cur);
-    cur = next;
-  }
-  queued_head = cur;
-  
-  /* If we finished queueing all our saved packets, we can resume the data task */
-  if (cur == NULL) {
-    queued_tail = NULL;
-    if (!bufferInfinite) {
-      [self resumeDataTask];
-    }
+    AudioStreamPacketDescription desc = inPacketDescriptions[i];
+    UInt32 size = desc.mDataByteSize;
+    const void *packetData = inputBytes + desc.mStartOffset;
+    [bufferManager cachePacketData:packetData packetSize:size description:desc];
   }
 }
 
@@ -1252,15 +1138,19 @@ desc:(AudioStreamPacketDescription*)desc{
         if (buffers[idx] == inBuffer) break;
     }
     assert(idx >= 0 && idx < bufferCnt);
-    assert(inuse[idx]);
     
     LOG(@"buffer %d finished", idx);
     
     [self.stateLock lock];
-    inuse[idx] = false;
-    buffersUsed--;
+    BOOL shouldProcessCachedData = NO;
+    UInt32 currentBuffersUsed = 0;
+    BOOL hasQueuedPackets = NO;
+    if (bufferManager != nil) {
+        shouldProcessCachedData = [bufferManager bufferCompletedAtIndex:idx];
+        currentBuffersUsed = bufferManager.buffersUsed;
+        hasQueuedPackets = [bufferManager hasQueuedPackets];
+    }
     AudioStreamerState currentState = state_;
-    BOOL currentWaitingOnBuffer = waitingOnBuffer;
     [self.stateLock unlock];
     
     if (currentState == AS_STOPPED) {
@@ -1268,18 +1158,15 @@ desc:(AudioStreamPacketDescription*)desc{
     }
     
     // Check if we're completely done
-    if (buffersUsed == 0 && queued_head == NULL &&
+    if (currentBuffersUsed == 0 && !hasQueuedPackets &&
         dataTask.state == NSURLSessionTaskStateCompleted) {
-        assert(!currentWaitingOnBuffer);
         AudioQueueStop(audioQueue, false);
-    } else if (currentWaitingOnBuffer) {
-        [self.stateLock lock];
-        waitingOnBuffer = false;
-        [self.stateLock unlock];
-        
-        // Dispatch buffer processing to main queue for thread safety
+    } else if (shouldProcessCachedData) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self enqueueCachedData];
+            if ([self isDone]) return;
+            if (self->bufferManager != nil) {
+                [self->bufferManager processQueuedPackets];
+            }
         });
     }
 }
@@ -1309,6 +1196,51 @@ desc:(AudioStreamPacketDescription*)desc{
             });
         }
     }
+}
+
+- (OSStatus)audioBufferManager:(AudioBufferManager *)manager
+        enqueueBufferAtIndex:(UInt32)bufferIndex
+                 bytesFilled:(UInt32)bytesFilledValue
+               packetsFilled:(UInt32)packetsFilledValue
+          packetDescriptions:(AudioStreamPacketDescription *)packetDescsValue {
+  AudioQueueBufferRef fillBuf = buffers[bufferIndex];
+  fillBuf->mAudioDataByteSize = bytesFilledValue;
+  return AudioQueueEnqueueBuffer(audioQueue, fillBuf, packetsFilledValue,
+                                 packetDescsValue);
+}
+
+- (void)audioBufferManager:(AudioBufferManager *)manager
+             copyPacketData:(const void *)packetData
+                 packetSize:(UInt32)packetSize
+              toBufferIndex:(UInt32)bufferIndex
+                     offset:(UInt32)offset {
+  if (packetSize == 0) return;
+  AudioQueueBufferRef bufferRef = buffers[bufferIndex];
+  memcpy(bufferRef->mAudioData + offset, packetData, packetSize);
+}
+
+- (void)audioBufferManagerSuspendData:(AudioBufferManager *)manager {
+  [self suspendDataTask];
+}
+
+- (void)audioBufferManagerResumeData:(AudioBufferManager *)manager {
+  [self resumeDataTask];
+}
+
+- (BOOL)audioBufferManagerShouldStartQueue:(AudioBufferManager *)manager {
+  if (state_ != AS_WAITING_FOR_DATA) {
+    return NO;
+  }
+  return (bufferCnt < 3 || manager.buffersUsed > 2);
+}
+
+- (void)audioBufferManagerStartQueue:(AudioBufferManager *)manager {
+  err = AudioQueueStart(audioQueue, NULL);
+  if (err) {
+    [self failWithErrorCode:AS_AUDIO_QUEUE_START_FAILED];
+    return;
+  }
+  [self setState:AS_WAITING_FOR_QUEUE_TO_START];
 }
 
 - (NSString *)description {

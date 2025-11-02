@@ -86,6 +86,10 @@
 //- (IBAction) toggleDrawerVisible:(id)sender;
 //- (IBAction) showStationsDrawer:(id)sender;
 //- (IBAction) showHistoryDrawer:(id)sender;
+- (IBAction) toggleDrawerContent:(id)sender;
+- (IBAction) toggleDrawerVisible:(id)sender;
+- (IBAction) showStationsDrawer:(id)sender;
+- (IBAction) showHistoryDrawer:(id)sender;
 - (IBAction) activate:(id)sender;
 - (IBAction) updateStatusItemVisibility:(id)sender;
 - (IBAction) updateStatusItem:(id)sender;

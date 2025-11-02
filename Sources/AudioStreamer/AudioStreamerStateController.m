@@ -8,6 +8,8 @@ extern NSString * const ASDidChangeStateDistributedNotification;
 @property (nonatomic, strong) NSNotificationCenter *notificationCenter;
 @property (nonatomic, strong, nullable) id<AudioStreamerDistributedNotificationPosting> distributedCenter;
 @property (nonatomic, strong) dispatch_queue_t targetQueue;
+@property (atomic, assign) BOOL enforceStop;
+- (void)scheduleStopEnforcement;
 @end
 
 @implementation AudioStreamerStateController
@@ -77,6 +79,10 @@ extern NSString * const ASDidChangeStateDistributedNotification;
 
     AudioStreamerState current = *statePtr;
     if (current == newState) {
+      if (newState == AS_STOPPED) {
+        strongSelf.enforceStop = YES;
+        [strongSelf scheduleStopEnforcement];
+      }
       return;
     }
 
@@ -95,7 +101,37 @@ extern NSString * const ASDidChangeStateDistributedNotification;
                                        deliverImmediately:YES];
       }
     }
+
+    if (newState == AS_STOPPED) {
+      strongSelf.enforceStop = YES;
+      [strongSelf scheduleStopEnforcement];
+    }
   }];
+}
+
+- (void)disableStopEnforcement {
+  self.enforceStop = NO;
+}
+
+- (void)scheduleStopEnforcement {
+  if (!self.targetQueue) {
+    return;
+  }
+  __weak typeof(self) weakSelf = self;
+  dispatch_async(self.targetQueue, ^{
+    typeof(self) strongSelf = weakSelf;
+    if (!strongSelf || !strongSelf.enforceStop) {
+      return;
+    }
+    AudioStreamerState *statePtr = strongSelf.statePointer;
+    if (statePtr == NULL) {
+      return;
+    }
+    if (*statePtr == AS_STOPPED) {
+      return;
+    }
+    [strongSelf transitionToState:AS_STOPPED];
+  });
 }
 
 #pragma mark - Helpers

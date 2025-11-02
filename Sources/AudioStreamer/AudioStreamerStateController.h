@@ -32,6 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)transitionToState:(AudioStreamerState)newState;
 
 - (BOOL)performBlockOnTargetQueue:(dispatch_block_t)block;
+- (void)disableStopEnforcement;
 
 @end
 

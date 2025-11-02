@@ -25,6 +25,8 @@
   IBOutlet NSProgressIndicator *spinner;
 }
 
+@property (weak) IBOutlet id drawer; // Legacy placeholder for deprecated NSDrawer connection
+
 @property IBOutlet NSMutableArray *songs;
 @property IBOutlet NSArrayController *controller;
 

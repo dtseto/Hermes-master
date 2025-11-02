@@ -11,7 +11,6 @@
 #import <SPMediaKeyTap/SPMediaKeyTap.h>
 #import <MediaPlayer/MediaPlayer.h>
 #import <ApplicationServices/ApplicationServices.h>
-
 //#import "Integration/Growler.h"
 #import "HistoryController.h"
 #import "ImageLoader.h"

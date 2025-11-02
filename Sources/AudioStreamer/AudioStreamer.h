@@ -34,6 +34,8 @@
 /* Maximum number of packets which can be contained in one buffer */
 #define kAQMaxPacketDescs 512
 
+@class AudioBufferManager;
+
 extern NSString * const ASBitrateReadyNotification;
 extern NSString * const ASDidChangeStateDistributedNotification;
 
@@ -84,8 +86,6 @@ typedef enum {
 } AudioStreamerDoneReason;
 
 extern NSString * const ASStatusChangedNotification;
-
-struct queued_packet;
 
 /**
  * This class is implemented on top of Apple's AudioQueue framework. This
@@ -192,17 +192,7 @@ struct queued_packet;
    * data in the next pending buffer (used to enqueue data into the AudioQueue
    * structure */
   AudioQueueBufferRef *buffers;
-  AudioStreamPacketDescription packetDescs[kAQMaxPacketDescs];
-  UInt32 packetsFilled;         /* number of valid entries in packetDescs */
-  UInt32 bytesFilled;           /* bytes in use in the pending buffer */
-  unsigned int fillBufferIndex; /* index of the pending buffer */
-  BOOL *inuse;                  /* which buffers have yet to be processed */
-  UInt32 buffersUsed;           /* Number of buffers in use */
-
-  /* cache state (see above description) */
-  bool waitingOnBuffer;
-  struct queued_packet *queued_head;
-  struct queued_packet *queued_tail;
+  AudioBufferManager *bufferManager;
 
   /* Internal metadata about errors and state */
   AudioStreamerState state_;
@@ -244,7 +234,7 @@ struct queued_packet;
 
 @property (readwrite) AudioFileTypeID fileType;
 
-@property (readwrite) BOOL bufferInfinite;
+@property (nonatomic, readwrite) BOOL bufferInfinite;
 
 @property (readwrite) int timeoutInterval;
 
