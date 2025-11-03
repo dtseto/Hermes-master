@@ -268,14 +268,7 @@ static void PostProxyValidity(BOOL isValid) {
         return NO;
     }
     *host = trimmed;
-    NSHost *proxyHost = [NSHost hostWithName:*host];
-    BOOL isValid = (proxyHost.address != nil);
-    if (!isValid) {
-        NSLog(@"Cannot resolve proxy host: %@", *host);
-    } else {
-        NSLog(@"Proxy host resolved to: %@", proxyHost.address);
-    }
-    return isValid;
+    return YES;
 }
 
 + (void)validateProxyHostAsync:(NSString *)host port:(NSInteger)port {

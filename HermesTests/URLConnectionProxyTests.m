@@ -104,7 +104,7 @@ static MockProxySession *gCurrentMockProxySession = nil;
 - (void)testSetHermesProxyAppliesHTTPSettings {
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
   [defaults setInteger:kProxyHTTP forKey:kEnabledProxyKey];
-  [defaults setObject:@"example.com" forKey:kHTTPHostKey];
+  [defaults setObject:@" example.com " forKey:kHTTPHostKey];
   [defaults setInteger:8888 forKey:kHTTPPortKey];
 
   NSURLSessionConfiguration *config = [URLConnection sessionConfiguration];
@@ -115,6 +115,19 @@ static MockProxySession *gCurrentMockProxySession = nil;
   XCTAssertEqualObjects(proxy[@"HTTPSProxy"], @"example.com");
   XCTAssertEqualObjects(proxy[@"HTTPPort"], @8888);
   XCTAssertEqualObjects(proxy[@"HTTPSPort"], @8888);
+}
+
+- (void)testSetHermesProxyRejectsEmptyHost {
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  [defaults setInteger:kProxyHTTP forKey:kEnabledProxyKey];
+  [defaults setObject:@"   " forKey:kHTTPHostKey];
+  [defaults setInteger:1234 forKey:kHTTPPortKey];
+
+  NSURLSessionConfiguration *config = [URLConnection sessionConfiguration];
+  [URLConnection setHermesProxy:config];
+
+  XCTAssertNil(config.connectionProxyDictionary[@"HTTPProxy"]);
+  XCTAssertNil(config.connectionProxyDictionary[@"HTTPSProxy"]);
 }
 
 - (void)testValidateProxyHostAsyncImmediateInvalid {
