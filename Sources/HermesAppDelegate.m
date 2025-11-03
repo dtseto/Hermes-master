@@ -74,51 +74,57 @@ static void DummyPacketsProc(void *inClientData,
 
 #pragma mark - Audio System Initialization
 - (void)initializeModernAudioSystem {
-    NSLog(@"Initializing modern audio system at app startup...");
-    
-    // Simplified macOS audio setup without CoreAudio framework dependencies
-    AudioComponentDescription descriptions[] = {
-        {
-            .componentType = kAudioUnitType_Output,
-            .componentSubType = kAudioUnitSubType_DefaultOutput,
-            .componentManufacturer = kAudioUnitManufacturer_Apple
-        },
-        {
-            .componentType = kAudioUnitType_Output,
-            .componentSubType = kAudioUnitSubType_HALOutput,
-            .componentManufacturer = kAudioUnitManufacturer_Apple
-        },
-        {
-            .componentType = kAudioUnitType_FormatConverter,
-            .componentSubType = kAudioUnitSubType_AUConverter,
-            .componentManufacturer = kAudioUnitManufacturer_Apple
+    @autoreleasepool {
+        NSLog(@"Initializing modern audio system at app startup...");
+        
+        // Simplified macOS audio setup without CoreAudio framework dependencies
+        AudioComponentDescription descriptions[] = {
+            {
+                .componentType = kAudioUnitType_Output,
+                .componentSubType = kAudioUnitSubType_DefaultOutput,
+                .componentManufacturer = kAudioUnitManufacturer_Apple
+            },
+            {
+                .componentType = kAudioUnitType_Output,
+                .componentSubType = kAudioUnitSubType_HALOutput,
+                .componentManufacturer = kAudioUnitManufacturer_Apple
+            },
+            {
+                .componentType = kAudioUnitType_FormatConverter,
+                .componentSubType = kAudioUnitSubType_AUConverter,
+                .componentManufacturer = kAudioUnitManufacturer_Apple
+            }
+        };
+        
+        int componentCount = sizeof(descriptions) / sizeof(descriptions[0]);
+        for (int i = 0; i < componentCount; i++) {
+            @autoreleasepool {
+                AudioComponent component = AudioComponentFindNext(NULL, &descriptions[i]);
+                if (component) {
+                    NSLog(@"Modern audio component %d initialized successfully", i);
+                } else {
+                    NSLog(@"Failed to find audio component %d", i);
+                }
+            }
         }
-    };
-    
-    int componentCount = sizeof(descriptions) / sizeof(descriptions[0]);
-    for (int i = 0; i < componentCount; i++) {
-        AudioComponent component = AudioComponentFindNext(NULL, &descriptions[i]);
-        if (component) {
-            NSLog(@"Modern audio component %d initialized successfully", i);
-        } else {
-            NSLog(@"Failed to find audio component %d", i);
-        }
+        
+        // Pre-load AAC decoder - use dispatch to avoid blocking main thread
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            @autoreleasepool {
+                AudioFileStreamID testStream;
+                OSStatus err = AudioFileStreamOpen(NULL, DummyPropertyListenerProc, DummyPacketsProc,
+                                                  kAudioFileAAC_ADTSType, &testStream);
+                if (err == 0) {
+                    NSLog(@"AAC decoder pre-loaded successfully");
+                    AudioFileStreamClose(testStream);
+                } else {
+                    NSLog(@"AAC decoder pre-load failed: %d", (int)err);
+                }
+            }
+        });
+        
+        NSLog(@"Modern audio system initialization complete");
     }
-    
-    // Pre-load AAC decoder - use dispatch to avoid blocking main thread
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        AudioFileStreamID testStream;
-        OSStatus err = AudioFileStreamOpen(NULL, DummyPropertyListenerProc, DummyPacketsProc,
-                                          kAudioFileAAC_ADTSType, &testStream);
-        if (err == 0) {
-            NSLog(@"AAC decoder pre-loaded successfully");
-            AudioFileStreamClose(testStream);
-        } else {
-            NSLog(@"AAC decoder pre-load failed: %d", (int)err);
-        }
-    });
-    
-    NSLog(@"Modern audio system initialization complete");
 }
 
 #pragma mark - NSApplicationDelegate
