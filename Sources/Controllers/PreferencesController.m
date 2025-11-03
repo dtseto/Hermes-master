@@ -94,7 +94,7 @@
 #endif
   } else if (@available(macOS 10.15, *)) {
     if (![[HMSAppDelegate playback] hasInputMonitoringAccess]) {
-      mediaKeysLabel.stringValue = @"Grant Hermes access in System Settings → Privacy & Security → Input Monitoring to enable media keys.";
+      mediaKeysLabel.stringValue = @"Hermes still needs Input Monitoring permission for media keys. Open System Settings → Privacy & Security → Input Monitoring and enable Hermes.";
     } else {
       mediaKeysLabel.stringValue = @"";
     }
