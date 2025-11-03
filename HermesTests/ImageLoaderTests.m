@@ -92,4 +92,40 @@ static id StubConnectionFactory(id self, SEL _cmd, NSURLRequest *request, URLCon
   XCTAssertEqualObjects(secondConnection.requestURL, @"http://example.com/artB.png");
 }
 
+- (void)testCancelPendingRequestRemovesCallbackSafely {
+  ImageLoader *loader = [[ImageLoader alloc] init];
+  __block BOOL callbackInvoked = NO;
+
+  [loader loadImageURL:@"http://example.com/artA.png" callback:^(NSData *data) {
+    callbackInvoked = YES;
+  }];
+
+  StubImageLoaderConnection *connection = StubConnections.firstObject;
+  [loader cancel:@"http://example.com/artA.png"];
+
+  XCTAssertTrue(connection.cancelled);
+  XCTAssertFalse(callbackInvoked);
+
+  if (connection.callback) {
+    connection.callback([NSData data], nil);
+  }
+
+  XCTAssertFalse(callbackInvoked);
+  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+  XCTAssertFalse(callbackInvoked);
+}
+
+- (void)testNilURLInvokesCallbackWithoutStartingRequest {
+  ImageLoader *loader = [[ImageLoader alloc] init];
+  __block BOOL callbackInvoked = NO;
+
+  [loader loadImageURL:nil callback:^(NSData *data) {
+    callbackInvoked = YES;
+    XCTAssertNil(data);
+  }];
+
+  XCTAssertTrue(callbackInvoked);
+  XCTAssertEqual(StubConnections.count, (NSUInteger)0);
+}
+
 @end

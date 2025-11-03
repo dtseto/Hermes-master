@@ -16,6 +16,10 @@
 - (void)stopUpdatingProgress;
 @end
 
+@interface PlaybackController (Testing)
+- (void)setArtImage:(NSImage *)artImage;
+@end
+
 @interface Pandora : NSObject
 @end
 
@@ -26,6 +30,7 @@ extern void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunc
 @interface Song : NSObject
 @property(nonatomic, retain) NSNumber *nrating;
 @property(nonatomic, copy) NSString *art;
+@property(nonatomic, copy) NSString *title;
 @end
 
 static NSMutableArray<NSString *> *gCancelledArt = nil;
@@ -303,6 +308,28 @@ static id StubImageLoaderLoader(id self, SEL _cmd) {
   }
   [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
   XCTAssertFalse([weakTimer isValid]);
+}
+
+- (void)testArtAccessibilityDescriptionMatchesSongTitle {
+  StubPlaying *playing = [[StubPlaying alloc] init];
+  TestSong *song = [self testSongWithRating:0 shared:NO];
+  song.title = @"Test Title";
+  playing.currentSong = song;
+  StubPandora *pandora = [[StubPandora alloc] init];
+  TestPlaybackController *controller = [self controllerWithPlaying:playing pandora:pandora];
+
+  NSImageView *fakeArtView = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, 10, 10)];
+  [controller setValue:fakeArtView forKey:@"art"];
+
+  NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(10, 10)];
+  [controller performSelector:@selector(setArtImage:) withObject:image];
+
+  NSImageView *artView = [controller valueForKey:@"art"];
+  XCTAssertEqualObjects(artView.toolTip, song.title);
+  XCTAssertEqualObjects(image.accessibilityDescription, song.title);
+
+  [controller performSelector:@selector(setArtImage:) withObject:nil];
+  XCTAssertNil(artView.toolTip);
 }
 
 @end

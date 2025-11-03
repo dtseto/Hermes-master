@@ -444,6 +444,18 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 - (void)setArtImage:(NSImage *)artImage {
   self->_artImage = artImage;
   [art setImage:artImage ? artImage : [NSImage imageNamed:@"missing-album"]];
+  if (artImage != nil) {
+    artImage.accessibilityDescription = [[playing playingSong] title];
+    art.toolTip = [[playing playingSong] title];
+    if (@available(macOS 11.0, *)) {
+      art.accessibilityLabel = [[playing playingSong] title];
+    }
+  } else {
+    art.toolTip = nil;
+    if (@available(macOS 11.0, *)) {
+      art.accessibilityLabel = nil;
+    }
+  }
   [artLoading setHidden:YES];
   [artLoading stopAnimation:nil];
   [self updateQuickLookPreviewWithArt:artImage != nil];

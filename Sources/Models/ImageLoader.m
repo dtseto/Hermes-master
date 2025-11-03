@@ -20,6 +20,12 @@
 
 - (void) loadImageURL:(NSString*)url callback:(ImageCallback)cb {
   cb = [cb copy];
+  if (url == nil || [url length] == 0) {
+    if (cb != nil) {
+      cb(nil);
+    }
+    return;
+  }
   if (cur != nil) {
     [queue addObject:url];
     [cbqueue addObject:cb];
@@ -34,18 +40,32 @@
   cur = [URLConnection connectionForRequest:req
                           completionHandler:^(NSData *d, NSError *error) {
     NSLogd(@"fetching: %@", url);
-    cb(d);
+    ImageCallback callback = cb;
     self->cur = nil;
     self->curURL = nil;
 
     /* If any pending requests are to this url, also satisfy them */
     NSUInteger idx;
+    NSMutableArray<ImageCallback> *callbacks = [NSMutableArray array];
+    if (callback != nil) {
+      [callbacks addObject:callback];
+    }
     while ((idx = [self->queue indexOfObject:url]) != NSNotFound) {
       NSLogd(@"cached:   %@", url);
       [self->queue removeObjectAtIndex:idx];
       ImageCallback cb = self->cbqueue[idx];
-      cb(d);
+      if (cb != nil) {
+        [callbacks addObject:cb];
+      }
       [self->cbqueue removeObjectAtIndex:idx];
+    }
+
+    if (callbacks.count > 0) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        for (ImageCallback callback in callbacks) {
+          callback(d);
+        }
+      });
     }
 
     [self tryFetch];
