@@ -949,18 +949,27 @@ static NSString *hierrs[] = {
 
     /* Otherwise build the error dictionary. */
     NSMutableDictionary *info = [NSMutableDictionary dictionary];
-    info[@"request"] = request;
-    info[@"error"] = err;  // Use "error" as the key consistently
-    
+    info[@"error"] = err ?: @"Unknown error";
+    if (request.method != nil) {
+      info[@"method"] = request.method;
+    }
+    if (request.userId != nil) {
+      info[@"userId"] = request.userId;
+    }
+
     if (e) {
       NSInteger code = e.code;
       if (code != 0) {
-        info[@"nsErrorCode"] = @(code); /* This is a NSError code. */
-        NSLog(@"[DEBUG] NSError code: %ld", (long)code);
+        info[@"nsErrorCode"] = @(code);
+      }
+      if (e.domain) {
+        info[@"nsErrorDomain"] = e.domain;
       }
     } else if (dict) {
-      info[@"code"] = dict[@"code"]; /* This is a Pandora error code. */
-      NSLog(@"[DEBUG] Pandora error code: %@", dict[@"code"]);
+      id pandoraCode = dict[@"code"];
+      if (pandoraCode != nil) {
+        info[@"pandoraCode"] = pandoraCode;
+      }
     }
     
     NSLog(@"[DEBUG] Posting error notification with info: %@", info);
@@ -976,4 +985,3 @@ return TRUE;
 }
 
 @end
-

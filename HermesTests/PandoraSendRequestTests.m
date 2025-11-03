@@ -129,7 +129,9 @@ static id StubConnectionForRequest(id self, SEL _cmd, NSURLRequest *request, URL
                                                           usingBlock:^(NSNotification *note) {
     NSDictionary *info = note.userInfo;
     XCTAssertEqualObjects(info[@"error"], @"bad things");
-    XCTAssertEqualObjects(info[@"code"], @1234);
+    XCTAssertEqualObjects(info[@"pandoraCode"], @1234);
+    XCTAssertEqualObjects(info[@"method"], @"test.method");
+    XCTAssertNil(info[@"request"]);
     [expectation fulfill];
   }];
 
