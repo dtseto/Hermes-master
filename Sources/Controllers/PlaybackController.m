@@ -784,7 +784,7 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   if (!PREF_KEY_BOOL(PLAY_ON_SCREEN_UNLOCK)) {
     return;
   }
-  
+
   if (self.pausedByScreenLock) {
     [self play];
   }

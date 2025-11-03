@@ -1,5 +1,6 @@
 #import <XCTest/XCTest.h>
 #import <objc/runtime.h>
+#import <objc/message.h>
 
 @class Song;
 @class Station;
@@ -16,9 +17,6 @@
 - (void)stopUpdatingProgress;
 @end
 
-@interface PlaybackController (Testing)
-- (void)setArtImage:(NSImage *)artImage;
-@end
 
 @interface Pandora : NSObject
 @end
@@ -322,14 +320,43 @@ static id StubImageLoaderLoader(id self, SEL _cmd) {
   [controller setValue:fakeArtView forKey:@"art"];
 
   NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(10, 10)];
-  [controller performSelector:@selector(setArtImage:) withObject:image];
+  SEL setter = NSSelectorFromString(@"setArtImage:");
+  if ([controller respondsToSelector:setter]) {
+    ((void (*)(id, SEL, id))objc_msgSend)(controller, setter, image);
+  }
 
   NSImageView *artView = [controller valueForKey:@"art"];
   XCTAssertEqualObjects(artView.toolTip, song.title);
   XCTAssertEqualObjects(image.accessibilityDescription, song.title);
 
-  [controller performSelector:@selector(setArtImage:) withObject:nil];
+  if ([controller respondsToSelector:setter]) {
+    ((void (*)(id, SEL, id))objc_msgSend)(controller, setter, nil);
+  }
   XCTAssertNil(artView.toolTip);
+}
+
+- (void)testPauseAndResumeOnScreenLockNotifications {
+  StubPlaying *playing = [[StubPlaying alloc] init];
+  playing.currentlyPlaying = YES;
+  StubPandora *pandora = [[StubPandora alloc] init];
+  TestPlaybackController *controller = [self controllerWithPlaying:playing pandora:pandora];
+
+  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"pauseOnScreenLock"];
+  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"playOnScreenUnlock"];
+
+  SEL pauseSelector = NSSelectorFromString(@"pauseOnScreenLock:");
+  SEL unlockSelector = NSSelectorFromString(@"playOnScreenUnlock:");
+  if ([controller respondsToSelector:pauseSelector]) {
+    ((void (*)(id, SEL, id))objc_msgSend)(controller, pauseSelector, nil);
+  }
+  XCTAssertFalse(playing.currentlyPlaying);
+  XCTAssertTrue([[controller valueForKey:@"pausedByScreenLock"] boolValue]);
+
+  if ([controller respondsToSelector:unlockSelector]) {
+    ((void (*)(id, SEL, id))objc_msgSend)(controller, unlockSelector, nil);
+  }
+  XCTAssertTrue(playing.playInvoked);
+  XCTAssertFalse([[controller valueForKey:@"pausedByScreenLock"] boolValue]);
 }
 
 @end
