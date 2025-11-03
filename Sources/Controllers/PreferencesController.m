@@ -143,9 +143,17 @@
 
   if (PREF_KEY_BOOL(PLEASE_BIND_MEDIA)) {
     [mediaKeyTap startWatchingMediaKeys];
+    if (@available(macOS 10.15, *)) {
+      PlaybackController *playback = [HMSAppDelegate playback];
+      if (playback.mediaKeyTap != nil && ![playback hasInputMonitoringAccess]) {
+        [playback presentInputMonitoringInstructionsAllowingRepeat];
+      }
+    }
   } else {
     [mediaKeyTap stopWatchingMediaKeys];
   }
+
+  [HMSAppDelegate refreshInputMonitoringReminder];
 }
 
 - (IBAction) show: (id) sender {

@@ -69,16 +69,18 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
       HermesRequestListenEventAccess = CGRequestListenEventAccess;
     }
     if (HermesPreflightListenEventAccess && HermesPreflightListenEventAccess()) {
+      [self notifyInputMonitoringReminderUpdate];
       return YES;
     }
     BOOL granted = HermesRequestListenEventAccess ? HermesRequestListenEventAccess() : YES;
     if (!granted) {
       [self presentInputMonitoringInstructions];
+    } else {
+      presentedInputMonitoringAlert = NO;
     }
-    if (HermesPreflightListenEventAccess) {
-      return HermesPreflightListenEventAccess();
-    }
-    return granted;
+    BOOL hasAccess = HermesPreflightListenEventAccess ? HermesPreflightListenEventAccess() : granted;
+    [self notifyInputMonitoringReminderUpdate];
+    return hasAccess;
   }
   return YES;
 }
@@ -103,6 +105,53 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   }
 }
 
+- (void)presentInputMonitoringInstructionsAllowingRepeat {
+  __weak typeof(self) weakSelf = self;
+  dispatch_block_t presentBlock = ^{
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (!strongSelf) {
+      return;
+    }
+    [strongSelf presentInputMonitoringInstructionsAlert];
+  };
+  if ([NSThread isMainThread]) {
+    presentBlock();
+  } else {
+    dispatch_async(dispatch_get_main_queue(), presentBlock);
+  }
+}
+
+- (void)openInputMonitoringPreferences {
+  NSURL *settingsURL = [NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"];
+  if (settingsURL != nil) {
+    [[NSWorkspace sharedWorkspace] openURL:settingsURL];
+  } else {
+    NSLog(@"Hermes: Unable to construct Input Monitoring settings URL.");
+  }
+}
+
+- (BOOL)shouldSurfaceInputMonitoringReminder {
+  if (@available(macOS 10.15, *)) {
+    if (self.mediaKeyTap != nil && PREF_KEY_BOOL(PLEASE_BIND_MEDIA)) {
+      return ![self hasInputMonitoringAccess];
+    }
+  }
+  return NO;
+}
+
+- (void)notifyInputMonitoringReminderUpdate {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [HMSAppDelegate refreshInputMonitoringReminder];
+  });
+}
+
+- (void)requestInputMonitoringReminderIfNeeded {
+  if ([self shouldSurfaceInputMonitoringReminder]) {
+    [self presentInputMonitoringInstructions];
+  }
+  [self notifyInputMonitoringReminderUpdate];
+}
+
 - (void)presentInputMonitoringInstructionsAlert {
   NSAlert *alert = [[NSAlert alloc] init];
   alert.messageText = @"Enable Media Keys";
@@ -111,11 +160,9 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   [alert addButtonWithTitle:@"Not Now"];
   NSModalResponse response = [alert runModal];
   if (response == NSAlertFirstButtonReturn) {
-    NSURL *settingsURL = [NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"];
-    if (settingsURL != nil) {
-      [[NSWorkspace sharedWorkspace] openURL:settingsURL];
-    }
+    [self openInputMonitoringPreferences];
   }
+  [self notifyInputMonitoringReminderUpdate];
 }
 
 - (void)handleSongExplanation:(NSNotification *)notification {
@@ -289,6 +336,10 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   }
 #endif
 #endif
+
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self requestInputMonitoringReminderIfNeeded];
+  });
 }
 
 - (void)showToolbar {

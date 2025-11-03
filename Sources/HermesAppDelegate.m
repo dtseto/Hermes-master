@@ -32,6 +32,8 @@
 
 @property (readonly) NSString *hermesLogFile;
 @property (readonly, nonatomic) FILE *hermesLogFileHandle;
+@property (strong, nonatomic) NSMenuItem *inputMonitoringMenuItem;
+@property (strong, nonatomic) NSMenuItem *inputMonitoringSeparator;
 
 @end
 
@@ -257,6 +259,7 @@ static void DummyPacketsProc(void *inClientData,
   // Must do this before the app is activated, or the menu bar doesn't draw.
   // <http://stackoverflow.com/questions/7596643/>
   [self updateStatusItemVisibility:nil];
+  [self refreshInputMonitoringReminder];
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
@@ -344,6 +347,7 @@ static void DummyPacketsProc(void *inClientData,
   [self addDeleteStationMenuItemIfNeeded];
 
   [self updateAlwaysOnTop:nil];
+  [self refreshInputMonitoringReminder];
 }
 
 /**
@@ -649,7 +653,62 @@ static void DummyPacketsProc(void *inClientData,
   }
 }
 
- */
+*/
+
+#pragma mark - Input Monitoring Reminder
+
+- (BOOL)shouldShowInputMonitoringReminder {
+  if (@available(macOS 10.15, *)) {
+    PlaybackController *playbackController = self.playback;
+    if (playbackController == nil) {
+      return NO;
+    }
+    if (playbackController.mediaKeyTap == nil) {
+      return NO;
+    }
+    if (!PREF_KEY_BOOL(PLEASE_BIND_MEDIA)) {
+      return NO;
+    }
+    return ![playbackController hasInputMonitoringAccess];
+  }
+  return NO;
+}
+
+- (void)ensureInputMonitoringMenuItem {
+  if (statusBarMenu == nil || self.inputMonitoringMenuItem != nil) {
+    return;
+  }
+
+  NSMenuItem *separator = [NSMenuItem separatorItem];
+  self.inputMonitoringSeparator = separator;
+  [statusBarMenu addItem:separator];
+
+  NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Enable Media Keys (Input Monitoring)…"
+                                                    action:@selector(showInputMonitoringReminderFromStatusItem:)
+                                             keyEquivalent:@""];
+  menuItem.target = self;
+  menuItem.hidden = YES;
+  self.inputMonitoringMenuItem = menuItem;
+  [statusBarMenu addItem:menuItem];
+}
+
+- (void)refreshInputMonitoringReminder {
+  if (statusBarMenu == nil) {
+    return;
+  }
+  [self ensureInputMonitoringMenuItem];
+  BOOL shouldShow = [self shouldShowInputMonitoringReminder];
+  self.inputMonitoringMenuItem.hidden = !shouldShow;
+  self.inputMonitoringMenuItem.target = self;
+  self.inputMonitoringMenuItem.action = @selector(showInputMonitoringReminderFromStatusItem:);
+  if (self.inputMonitoringSeparator != nil) {
+    self.inputMonitoringSeparator.hidden = !shouldShow;
+  }
+}
+
+- (void)showInputMonitoringReminderFromStatusItem:(id)sender {
+  [[self playback] presentInputMonitoringInstructionsAllowingRepeat];
+}
 
 #pragma mark - Status item display
 
@@ -710,6 +769,7 @@ static void DummyPacketsProc(void *inClientData,
   statusItem = [[NSStatusBar systemStatusBar]
                     statusItemWithLength:NSVariableStatusItemLength];
   statusItem.menu = statusBarMenu;
+  [self refreshInputMonitoringReminder];
   [statusItem.button addConstraint:
    [NSLayoutConstraint constraintWithItem:statusItem.button
                                 attribute:NSLayoutAttributeWidth

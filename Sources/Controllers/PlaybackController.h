@@ -92,6 +92,10 @@
 - (IBAction)decreaseVolume:(id)sender;
 - (IBAction)quickLookArt:(id)sender;
 - (BOOL)hasInputMonitoringAccess;
+- (void)presentInputMonitoringInstructions;
+- (void)presentInputMonitoringInstructionsAllowingRepeat;
+- (void)openInputMonitoringPreferences;
+- (void)requestInputMonitoringReminderIfNeeded;
 
 typedef BOOL (*HMSInputMonitoringAccessFunction)(void);
 void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction preflight,

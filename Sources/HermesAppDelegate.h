@@ -94,6 +94,7 @@
 - (IBAction) updateStatusItemVisibility:(id)sender;
 - (IBAction) updateStatusItem:(id)sender;
 - (IBAction) updateAlwaysOnTop:(id)sender;
+- (void)refreshInputMonitoringReminder;
 
 /**
  * Log message to Hermes-specific logging facility.
