@@ -209,13 +209,18 @@ distributedNotificationCenter:nil
 
   NSMutableArray<NSNumber *> *observedStates = [NSMutableArray array];
 
+  __block NSInteger fulfillCount = 0;
+
   id token = [center addObserverForName:ASStatusChangedNotification
                                  object:nil
                                   queue:nil
                              usingBlock:^(__unused NSNotification *note) {
     AudioStreamerState current = [controller currentState];
     [observedStates addObject:@(current)];
-    [notificationExpectation fulfill];
+    if (fulfillCount < states.count) {
+      fulfillCount += 1;
+      [notificationExpectation fulfill];
+    }
   }];
 
   for (NSNumber *stateNumber in states) {

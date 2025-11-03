@@ -15,6 +15,7 @@ extern NSString * const URLConnectionProxyValidityChangedNotification;
 + (NSURLSessionConfiguration *)sessionConfiguration;
 + (void)setHermesProxy:(NSURLSessionConfiguration*)config;
 + (BOOL)validProxyHost:(NSString **)host port:(NSInteger)port;
++ (void)validateProxyHostAsync:(NSString *)host port:(NSInteger)port;
 
 - (void)start;
 - (void)cancel;

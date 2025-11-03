@@ -165,9 +165,11 @@
       proxyPort = PREF_KEY_INT(PROXY_SOCKS_PORT);
   }
   if (!proxyValid) {
-    proxyValid = [URLConnection validProxyHost:&proxyHost port:proxyPort];
+    proxyServerErrorMessage.hidden = YES;
+    [URLConnection validateProxyHostAsync:proxyHost port:proxyPort];
+  } else {
+    proxyServerErrorMessage.hidden = YES;
   }
-  proxyServerErrorMessage.hidden = proxyValid;
 }
 
 - (void)proxyServerValidityChanged:(NSNotification *)notification {

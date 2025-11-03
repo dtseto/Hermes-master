@@ -4,6 +4,15 @@
 NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnectionProxyValidityChangedNotification";
 static const NSTimeInterval kURLConnectionTimeoutSeconds = 15.0;
 
+static void PostProxyValidity(BOOL isValid) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName:URLConnectionProxyValidityChangedNotification
+                          object:nil
+                        userInfo:@{ @"isValid": @(isValid) }];
+    });
+}
+
 @implementation URLConnection
 
 - (void)dealloc {
@@ -209,38 +218,47 @@ static const NSTimeInterval kURLConnectionTimeoutSeconds = 15.0;
 }
 
 + (BOOL)validProxyHost:(NSString **)host port:(NSInteger)port {
-    static BOOL wasValid = YES;
-    
-    if (!host || !*host || [*host length] == 0) {
+    NSString *trimmed = nil;
+    if (host || *host) {
+        trimmed = [*host stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+    }
+    if (trimmed.length == 0) {
         NSLog(@"Invalid proxy host: null or empty");
         return NO;
     }
-    
-    *host = [*host stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
-    
     if (port <= 0 || port > 65535) {
         NSLog(@"Invalid proxy port: %ld", (long)port);
         return NO;
     }
-    
+    *host = trimmed;
     NSHost *proxyHost = [NSHost hostWithName:*host];
     BOOL isValid = (proxyHost.address != nil);
-    
     if (!isValid) {
         NSLog(@"Cannot resolve proxy host: %@", *host);
     } else {
         NSLog(@"Proxy host resolved to: %@", proxyHost.address);
     }
-    
-    if (isValid != wasValid) {
-        [[NSNotificationCenter defaultCenter]
-            postNotificationName:URLConnectionProxyValidityChangedNotification
-            object:nil
-            userInfo:@{@"isValid": @(isValid)}];
-        wasValid = isValid;
-    }
-    
     return isValid;
+}
+
++ (void)validateProxyHostAsync:(NSString *)host port:(NSInteger)port {
+    NSString *trimmedHost = [host stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+    if (trimmedHost.length == 0 || port <= 0 || port > 65535) {
+        NSLog(@"Invalid proxy settings provided for async validation");
+        PostProxyValidity(NO);
+        return;
+    }
+
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
+        NSHost *proxyHost = [NSHost hostWithName:trimmedHost];
+        BOOL isValid = (proxyHost.address != nil);
+        if (!isValid) {
+            NSLog(@"Cannot resolve proxy host: %@", trimmedHost);
+        } else {
+            NSLog(@"Proxy host resolved to: %@", proxyHost.address);
+        }
+        PostProxyValidity(isValid);
+    });
 }
 
 + (BOOL)setHTTPProxy:(NSURLSessionConfiguration*)config host:(NSString*)host port:(NSInteger)port {
