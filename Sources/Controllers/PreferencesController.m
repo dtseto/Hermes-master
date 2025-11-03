@@ -4,10 +4,16 @@
 #import "PreferencesController.h"
 #import "URLConnection.h"
 
+@interface PreferencesController () {
+  NSInteger lastEnabledProxy;
+}
+@end
+
 @implementation PreferencesController
 
 - (void)awakeFromNib {
   [super awakeFromNib];
+  lastEnabledProxy = PREF_KEY_INT(ENABLED_PROXY);
 
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(proxyServerValidityChanged:) name:URLConnectionProxyValidityChangedNotification object:nil];
 }
@@ -151,8 +157,9 @@
   BOOL proxyValid = NO;
   NSString *proxyHost;
   NSInteger proxyPort;
+  NSInteger enabledProxy = PREF_KEY_INT(ENABLED_PROXY);
 
-  switch (PREF_KEY_INT(ENABLED_PROXY)) {
+  switch (enabledProxy) {
     case PROXY_SYSTEM:
       proxyValid = YES;
       break;
@@ -170,6 +177,11 @@
   } else {
     proxyServerErrorMessage.hidden = YES;
   }
+
+  if (enabledProxy == PROXY_SYSTEM && lastEnabledProxy != PROXY_SYSTEM) {
+    [URLConnection resetCachedProxySessions];
+  }
+  lastEnabledProxy = enabledProxy;
 }
 
 - (void)proxyServerValidityChanged:(NSNotification *)notification {

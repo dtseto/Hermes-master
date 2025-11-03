@@ -4,6 +4,47 @@
 NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnectionProxyValidityChangedNotification";
 static const NSTimeInterval kURLConnectionTimeoutSeconds = 15.0;
 
+static NSHashTable *URLConnectionActiveSessions;
+static dispatch_queue_t URLConnectionActiveSessionsQueue;
+
+static void URLConnectionEnsureSessionStorage(void) {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        URLConnectionActiveSessionsQueue = dispatch_queue_create("com.hermes.URLConnection.sessions", DISPATCH_QUEUE_SERIAL);
+        URLConnectionActiveSessions = [NSHashTable weakObjectsHashTable];
+    });
+}
+
+static void URLConnectionRegisterSession(id session) {
+    if (!session) {
+        return;
+    }
+    URLConnectionEnsureSessionStorage();
+    dispatch_sync(URLConnectionActiveSessionsQueue, ^{
+        [URLConnectionActiveSessions addObject:session];
+    });
+}
+
+static void URLConnectionUnregisterSession(id session) {
+    if (!session) {
+        return;
+    }
+    URLConnectionEnsureSessionStorage();
+    dispatch_sync(URLConnectionActiveSessionsQueue, ^{
+        [URLConnectionActiveSessions removeObject:session];
+    });
+}
+
+static NSArray *URLConnectionCopyTrackedSessions(void) {
+    URLConnectionEnsureSessionStorage();
+    __block NSArray *sessions = nil;
+    dispatch_sync(URLConnectionActiveSessionsQueue, ^{
+        sessions = [URLConnectionActiveSessions allObjects];
+        [URLConnectionActiveSessions removeAllObjects];
+    });
+    return sessions;
+}
+
 static void PostProxyValidity(BOOL isValid) {
     dispatch_async(dispatch_get_main_queue(), ^{
         [[NSNotificationCenter defaultCenter]
@@ -19,6 +60,11 @@ static void PostProxyValidity(BOOL isValid) {
   [self->dataTask cancel];
   [self->timeoutTimer invalidate];
   self->timeoutTimer = nil;
+  if (self->session) {
+    [self->session invalidateAndCancel];
+    URLConnectionUnregisterSession(self->session);
+    self->session = nil;
+  }
 }
 
 + (NSURLSessionConfiguration *)sessionConfiguration {
@@ -26,6 +72,58 @@ static void PostProxyValidity(BOOL isValid) {
     config.timeoutIntervalForRequest = kURLConnectionTimeoutSeconds;
     config.timeoutIntervalForResource = 45.0;
     return config;
+}
+
++ (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)config
+                                   delegate:(id<NSURLSessionDelegate>)delegate {
+    if (delegate) {
+        return [NSURLSession sessionWithConfiguration:config delegate:delegate delegateQueue:nil];
+    }
+    return [NSURLSession sessionWithConfiguration:config];
+}
+
+- (NSURLSessionDataTask *)dataTaskForSession:(NSURLSession *)sessionInstance
+                                     request:(NSURLRequest *)request {
+    __weak URLConnection *weakSelf = self;
+    return [sessionInstance dataTaskWithRequest:request
+                              completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        __strong URLConnection *strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            strongSelf->started = NO;
+            [strongSelf invalidateTimeout];
+            URLConnectionCallback callback = strongSelf->cb;
+            strongSelf->cb = nil;
+            if (callback) {
+                if (error) {
+                    callback(nil, error);
+                } else {
+                    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+                    if ([httpResponse isKindOfClass:[NSHTTPURLResponse class]] &&
+                        httpResponse.statusCode >= 400) {
+                        NSDictionary *userInfo = @{
+                            NSLocalizedDescriptionKey: [NSString stringWithFormat:@"HTTP Error: %ld", (long)httpResponse.statusCode]
+                        };
+                        NSError *httpError = [NSError errorWithDomain:@"HTTPError"
+                                                                 code:httpResponse.statusCode
+                                                             userInfo:userInfo];
+                        callback(nil, httpError);
+                    } else {
+                        if (data != nil) {
+                            [strongSelf->bytes appendData:data];
+                        }
+                        callback(strongSelf->bytes, nil);
+                    }
+                }
+            }
+            if (strongSelf->session) {
+                URLConnectionUnregisterSession(strongSelf->session);
+                strongSelf->session = nil;
+            }
+        });
+    }];
 }
 
 - (void)beginTimeout {
@@ -76,53 +174,9 @@ static void PostProxyValidity(BOOL isValid) {
     // Create session configuration
     NSURLSessionConfiguration *config = [self sessionConfiguration];
     [self setHermesProxy:config];  // Use the class method to set proxy
-    
-  // Add Create weak reference to avoid retain cycle and crashes
-  __weak URLConnection *weakSelf = c;
-
-    // Create session and data task
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
-    c->dataTask = [session dataTaskWithRequest:request
-                            completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-      
-      // Strong reference inside block - safe to use
-      __strong URLConnection *strongSelf = weakSelf;
-      if (!strongSelf) {
-          // Object was deallocated, safely exit
-          return;
-      }
-      // Dispatch callback to main thread to avoid UI thread issues
-        dispatch_async(dispatch_get_main_queue(), ^{
-            strongSelf->started = NO;
-            [strongSelf invalidateTimeout];
-            URLConnectionCallback callback = strongSelf->cb;
-            strongSelf->cb = nil;
-            if (!callback) {
-                return;
-            }
-            if (error) {
-                callback(nil, error);
-                return;
-            }
-
-            NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-            if (httpResponse.statusCode >= 400) {
-                NSDictionary *userInfo = @{
-                    NSLocalizedDescriptionKey: [NSString stringWithFormat:@"HTTP Error: %ld", (long)httpResponse.statusCode]
-                };
-                NSError *httpError = [NSError errorWithDomain:@"HTTPError"
-                                                       code:httpResponse.statusCode
-                                                   userInfo:userInfo];
-                callback(nil, httpError);
-                return;
-            }
-
-            if (data != nil) {
-                [strongSelf->bytes appendData:data];
-            }
-            callback(strongSelf->bytes, nil);
-        });
-    }];
+    c->session = [self sessionWithConfiguration:config delegate:nil];
+    URLConnectionRegisterSession(c->session);
+    c->dataTask = [c dataTaskForSession:c->session request:request];
     
     return c;
 }
@@ -139,6 +193,13 @@ static void PostProxyValidity(BOOL isValid) {
     cb = nil;
     [dataTask cancel];
     dataTask = nil;
+    if (session) {
+        URLConnectionUnregisterSession(session);
+        if ([session respondsToSelector:@selector(invalidateAndCancel)]) {
+            [session invalidateAndCancel];
+        }
+        session = nil;
+    }
 }
 
 - (void)setHermesProxy {
@@ -151,47 +212,23 @@ static void PostProxyValidity(BOOL isValid) {
     // Get current request from existing data task
     NSURLRequest *currentRequest = dataTask.currentRequest;
     [dataTask cancel]; // Cancel existing task
+    dataTask = nil;
+    if (session) {
+        URLConnectionUnregisterSession(session);
+        if ([session respondsToSelector:@selector(invalidateAndCancel)]) {
+            [session invalidateAndCancel];
+        }
+        session = nil;
+    }
     
     // Create new configuration and session
     NSURLSessionConfiguration *config = [[self class] sessionConfiguration];
     [[self class] setHermesProxy:config];
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
+    session = [[self class] sessionWithConfiguration:config delegate:nil];
+    URLConnectionRegisterSession(session);
     
     // Create new data task with the same request
-    dataTask = [session dataTaskWithRequest:currentRequest
-                         completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self invalidateTimeout];
-            URLConnectionCallback callback = self->cb;
-            self->cb = nil;
-            self->started = NO;
-            if (!callback) {
-                return;
-            }
-
-            if (error) {
-                callback(nil, error);
-                return;
-            }
-
-            NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-            if (httpResponse.statusCode >= 400) {
-                NSDictionary *userInfo = @{
-                    NSLocalizedDescriptionKey: [NSString stringWithFormat:@"HTTP Error: %ld", (long)httpResponse.statusCode]
-                };
-                NSError *httpError = [NSError errorWithDomain:@"HTTPError"
-                                                       code:httpResponse.statusCode
-                                                   userInfo:userInfo];
-                callback(nil, httpError);
-                return;
-            }
-
-            if (data != nil) {
-                [self->bytes appendData:data];
-            }
-            callback(self->bytes, nil);
-        });
-    }];
+    dataTask = [self dataTaskForSession:session request:currentRequest];
     
     // Resume the new task if we were already started
     if (self->started) {
@@ -283,6 +320,15 @@ static void PostProxyValidity(BOOL isValid) {
 + (void)setSystemProxy:(NSURLSessionConfiguration*)config {
     if (!config) return;
     config.connectionProxyDictionary = CFBridgingRelease(CFNetworkCopySystemProxySettings());
+}
+
++ (void)resetCachedProxySessions {
+    NSArray *sessions = URLConnectionCopyTrackedSessions();
+    for (id session in sessions) {
+        if ([session respondsToSelector:@selector(invalidateAndCancel)]) {
+            [session invalidateAndCancel];
+        }
+    }
 }
 
 @end

@@ -3,6 +3,7 @@ typedef void(^URLConnectionCallback)(NSData*, NSError*);
 extern NSString * const URLConnectionProxyValidityChangedNotification;
 
 @interface URLConnection : NSObject {
+    NSURLSession *session;
     NSURLSessionDataTask *dataTask;
     URLConnectionCallback cb;
     NSMutableData *bytes;
@@ -16,6 +17,7 @@ extern NSString * const URLConnectionProxyValidityChangedNotification;
 + (void)setHermesProxy:(NSURLSessionConfiguration*)config;
 + (BOOL)validProxyHost:(NSString **)host port:(NSInteger)port;
 + (void)validateProxyHostAsync:(NSString *)host port:(NSInteger)port;
++ (void)resetCachedProxySessions;
 
 - (void)start;
 - (void)cancel;

@@ -2,16 +2,87 @@
 
 extern NSString * const URLConnectionProxyValidityChangedNotification;
 
+@protocol NSURLSessionDelegate;
+
 @interface URLConnection : NSObject
++ (instancetype)connectionForRequest:(NSURLRequest *)request
+                 completionHandler:(void (^)(NSData *, NSError *))cb;
 + (NSURLSessionConfiguration *)sessionConfiguration;
++ (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)config
+                                   delegate:(id<NSURLSessionDelegate>)delegate;
 + (void)setHermesProxy:(NSURLSessionConfiguration *)config;
 + (void)validateProxyHostAsync:(NSString *)host port:(NSInteger)port;
++ (void)resetCachedProxySessions;
+- (void)cancel;
 @end
 
 static NSString * const kEnabledProxyKey = @"enabledProxy";
 static NSString * const kHTTPHostKey = @"httpProxyHost";
 static NSString * const kHTTPPortKey = @"httpProxyPort";
 static NSInteger const kProxyHTTP = 1;
+
+@interface MockURLSessionDataTask : NSObject
+@property(nonatomic, copy) void (^completionHandler)(NSData *, NSURLResponse *, NSError *);
+@property(nonatomic, strong) NSURLRequest *request;
+@property(nonatomic, assign) BOOL cancelled;
+- (instancetype)initWithRequest:(NSURLRequest *)request
+               completionHandler:(void (^)(NSData *, NSURLResponse *, NSError *))completionHandler;
+- (void)resume;
+- (void)cancel;
+- (NSURLRequest *)currentRequest;
+@end
+
+@implementation MockURLSessionDataTask
+- (instancetype)initWithRequest:(NSURLRequest *)request
+               completionHandler:(void (^)(NSData *, NSURLResponse *, NSError *))completionHandler {
+  if ((self = [super init])) {
+    _request = request;
+    _completionHandler = [completionHandler copy];
+    _cancelled = NO;
+  }
+  return self;
+}
+- (void)resume {
+  // No-op for tests
+}
+- (void)cancel {
+  self.cancelled = YES;
+}
+- (NSURLRequest *)currentRequest {
+  return self.request;
+}
+@end
+
+@interface MockProxySession : NSObject
+@property(nonatomic, assign) BOOL invalidated;
+@property(nonatomic, strong) MockURLSessionDataTask *dataTask;
+- (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request
+                           completionHandler:(void (^)(NSData *, NSURLResponse *, NSError *))completionHandler;
+- (void)invalidateAndCancel;
+@end
+
+@implementation MockProxySession
+- (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request
+                           completionHandler:(void (^)(NSData *, NSURLResponse *, NSError *))completionHandler {
+  self.dataTask = [[MockURLSessionDataTask alloc] initWithRequest:request completionHandler:completionHandler];
+  return (NSURLSessionDataTask *)self.dataTask;
+}
+- (void)invalidateAndCancel {
+  self.invalidated = YES;
+}
+@end
+
+static MockProxySession *gCurrentMockProxySession = nil;
+
+@interface TestProxyURLConnection : URLConnection
+@end
+
+@implementation TestProxyURLConnection
++ (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)config
+                                   delegate:(id<NSURLSessionDelegate>)delegate {
+  return (NSURLSession *)gCurrentMockProxySession;
+}
+@end
 
 @interface URLConnectionProxyTests : XCTestCase
 @end
@@ -77,6 +148,24 @@ static NSInteger const kProxyHTTP = 1;
 
   [self waitForExpectations:@[expectation] timeout:5.0];
   [[NSNotificationCenter defaultCenter] removeObserver:token];
+}
+
+- (void)testResetCachedProxySessionsInvalidatesTrackedSessions {
+  MockProxySession *mockSession = [[MockProxySession alloc] init];
+  gCurrentMockProxySession = mockSession;
+
+  NSURL *url = [NSURL URLWithString:@"https://example.com/reset-proxy"];
+  NSURLRequest *request = [NSURLRequest requestWithURL:url];
+  URLConnection *connection = [TestProxyURLConnection connectionForRequest:request
+                                                         completionHandler:^(NSData *data, NSError *error) {}];
+  XCTAssertNotNil(connection);
+  XCTAssertFalse(mockSession.invalidated);
+
+  [URLConnection resetCachedProxySessions];
+  XCTAssertTrue(mockSession.invalidated);
+
+  [connection cancel];
+  gCurrentMockProxySession = nil;
 }
 
 @end
