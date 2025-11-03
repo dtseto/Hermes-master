@@ -67,6 +67,7 @@
   NSUInteger idx = [queue indexOfObject:url];
   if (idx == NSNotFound) {
     if ([url isEqualToString:curURL]) {
+      [cur cancel];
       cur = nil;
       curURL = nil;
       [self tryFetch];

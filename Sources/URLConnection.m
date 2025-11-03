@@ -124,6 +124,14 @@ static const NSTimeInterval kURLConnectionTimeoutSeconds = 15.0;
     [dataTask resume];
 }
 
+- (void)cancel {
+    [self invalidateTimeout];
+    started = NO;
+    cb = nil;
+    [dataTask cancel];
+    dataTask = nil;
+}
+
 - (void)setHermesProxy {
 
   if (!dataTask) {

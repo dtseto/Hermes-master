@@ -81,4 +81,21 @@
   [self waitForExpectations:@[expectation] timeout:15.0];
 }
 
+- (void)testCancelPreventsCallback {
+  XCTestExpectation *expectation = [self expectationWithDescription:@"Callback should not fire"];
+  expectation.inverted = YES;
+  NSURL *url = [NSURL URLWithString:@"hermes-test://cancel"];
+  NSURLRequest *request = [NSURLRequest requestWithURL:url];
+
+  URLConnection *connection = [TestURLConnection connectionForRequest:request
+                                                   completionHandler:^(NSData *data, NSError *error) {
+    [expectation fulfill];
+  }];
+
+  [connection start];
+  [connection cancel];
+
+  [self waitForExpectations:@[expectation] timeout:0.5];
+}
+
 @end
