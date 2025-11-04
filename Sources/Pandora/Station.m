@@ -4,7 +4,16 @@
 #import "StationsController.h"
 #import "Notifications.h"
 
+static NSString *HMSStationDecodeString(NSCoder *decoder, NSString *key) {
+  id value = [decoder decodeObjectOfClass:[NSString class] forKey:key];
+  return [value isKindOfClass:[NSString class]] ? value : nil;
+}
+
 @implementation Station
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
 
 - (id) init {
   if (!(self = [super init])) return nil;
@@ -45,46 +54,130 @@
 
 - (id) initWithCoder:(NSCoder *)aDecoder {
   if ((self = [self init])) {
-    [self setStationId:[aDecoder decodeObjectForKey:@"stationId"]];
-    [self setName:[aDecoder decodeObjectForKey:@"name"]];
-    [self setVolume:[aDecoder decodeFloatForKey:@"volume"]];
-    [self setCreated:[aDecoder decodeInt32ForKey:@"created"]];
-    [self setToken:[aDecoder decodeObjectForKey:@"token"]];
+    NSString *decodedStationId = HMSStationDecodeString(aDecoder, @"stationId");
+    if (decodedStationId != nil) {
+      [self setStationId:decodedStationId];
+    }
+
+    NSString *decodedName = HMSStationDecodeString(aDecoder, @"name");
+    if (decodedName != nil) {
+      [self setName:decodedName];
+    }
+
+    if ([aDecoder containsValueForKey:@"volume"]) {
+      [self setVolume:[aDecoder decodeDoubleForKey:@"volume"]];
+    }
+
+    if ([aDecoder containsValueForKey:@"created"]) {
+      long long decodedCreated = [aDecoder decodeInt64ForKey:@"created"];
+      if (decodedCreated >= 0) {
+        [self setCreated:(unsigned long long)decodedCreated];
+      }
+    }
+
+    NSString *decodedToken = HMSStationDecodeString(aDecoder, @"token");
+    if (decodedToken != nil) {
+      [self setToken:decodedToken];
+    }
+
     [self setShared:[aDecoder decodeBoolForKey:@"shared"]];
     [self setAllowAddMusic:[aDecoder decodeBoolForKey:@"allowAddMusic"]];
     [self setAllowRename:[aDecoder decodeBoolForKey:@"allowRename"]];
-    lastKnownSeekTime = [aDecoder decodeFloatForKey:@"lastKnownSeekTime"];
-    [songs addObject:[aDecoder decodeObjectForKey:@"playing"]];
-    [songs addObjectsFromArray:[aDecoder decodeObjectForKey:@"songs"]];
-    [urls addObject:[aDecoder decodeObjectForKey:@"playingURL"]];
-    [urls addObjectsFromArray:[aDecoder decodeObjectForKey:@"urls"]];
+    [self setIsQuickMix:[aDecoder decodeBoolForKey:@"isQuickMix"]];
+
+    if ([aDecoder containsValueForKey:@"lastKnownSeekTime"]) {
+      lastKnownSeekTime = [aDecoder decodeDoubleForKey:@"lastKnownSeekTime"];
+    }
+
+    Song *decodedPlayingSong = [aDecoder decodeObjectOfClass:[Song class] forKey:@"playing"];
+    if ([decodedPlayingSong isKindOfClass:[Song class]]) {
+      [self setPlayingSong:decodedPlayingSong];
+      [songs addObject:decodedPlayingSong];
+    } else {
+      [self setPlayingSong:nil];
+    }
+    Song *currentPlayingSong = self.playingSong;
+
+    NSSet *songClasses = [NSSet setWithObjects:[NSArray class], [Song class], nil];
+    NSArray<Song *> *decodedSongs = [aDecoder decodeObjectOfClasses:songClasses forKey:@"songs"];
+    for (Song *song in decodedSongs) {
+      if (![song isKindOfClass:[Song class]]) {
+        continue;
+      }
+      if (song == currentPlayingSong) {
+        continue;
+      }
+      [songs addObject:song];
+    }
+
+    NSURL *decodedPlayingURL = [aDecoder decodeObjectOfClass:[NSURL class] forKey:@"playingURL"];
+    if ([decodedPlayingURL isKindOfClass:[NSURL class]]) {
+      [urls addObject:decodedPlayingURL];
+    }
+    NSURL *currentPlayingURL = decodedPlayingURL;
+
+    NSSet *urlClasses = [NSSet setWithObjects:[NSArray class], [NSURL class], nil];
+    NSArray<NSURL *> *decodedURLs = [aDecoder decodeObjectOfClasses:urlClasses forKey:@"urls"];
+    for (NSURL *url in decodedURLs) {
+      if (![url isKindOfClass:[NSURL class]]) {
+        continue;
+      }
+      if (currentPlayingURL != nil && [url isEqual:currentPlayingURL]) {
+        continue;
+      }
+      [urls addObject:url];
+    }
+
     if ([songs count] != [urls count]) {
       [songs removeAllObjects];
       [urls removeAllObjects];
+      [self setPlayingSong:nil];
     }
+
     [Station addStation:self];
   }
   return self;
 }
 
 - (void) encodeWithCoder:(NSCoder *)aCoder {
-  [aCoder encodeObject:_stationId forKey:@"stationId"];
-  [aCoder encodeObject:_name forKey:@"name"];
-  [aCoder encodeObject:_playingSong forKey:@"playing"];
-  double seek = -1;
-  if (_playingSong) {
+  if (_stationId != nil) {
+    [aCoder encodeObject:_stationId forKey:@"stationId"];
+  }
+  if (_name != nil) {
+    [aCoder encodeObject:_name forKey:@"name"];
+  }
+  if (_playingSong != nil) {
+    [aCoder encodeObject:_playingSong forKey:@"playing"];
+  }
+
+  double seek = -1.0;
+  if (_playingSong != nil && stream != nil) {
     [stream progress:&seek];
   }
-  [aCoder encodeFloat:seek forKey:@"lastKnownSeekTime"];
-  [aCoder encodeFloat:volume forKey:@"volume"];
-  [aCoder encodeInt32:(int32_t)_created forKey:@"created"]; // XXX truncated?
-  [aCoder encodeObject:songs forKey:@"songs"];
-  [aCoder encodeObject:urls forKey:@"urls"];
-  [aCoder encodeObject:[self playing] forKey:@"playingURL"];
-  [aCoder encodeObject:_token forKey:@"token"];
+  [aCoder encodeDouble:seek forKey:@"lastKnownSeekTime"];
+  [aCoder encodeDouble:volume forKey:@"volume"];
+  [aCoder encodeInt64:(int64_t)_created forKey:@"created"];
+
+  if (songs != nil) {
+    [aCoder encodeObject:[songs copy] forKey:@"songs"];
+  }
+  if (urls != nil) {
+    [aCoder encodeObject:[urls copy] forKey:@"urls"];
+  }
+
+  NSURL *currentPlayingURL = [self playing];
+  if (currentPlayingURL != nil) {
+    [aCoder encodeObject:currentPlayingURL forKey:@"playingURL"];
+  }
+
+  if (_token != nil) {
+    [aCoder encodeObject:_token forKey:@"token"];
+  }
+
   [aCoder encodeBool:_shared forKey:@"shared"];
   [aCoder encodeBool:_allowAddMusic forKey:@"allowAddMusic"];
   [aCoder encodeBool:_allowRename forKey:@"allowRename"];
+  [aCoder encodeBool:_isQuickMix forKey:@"isQuickMix"];
 }
 
 - (void) dealloc {

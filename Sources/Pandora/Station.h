@@ -1,9 +1,9 @@
-#import <AudioStreamer/ASPlaylist.h>
+#import "../AudioStreamer/ASPlaylist.h"
 
 @class Pandora;
 @class Song;
 
-@interface Station : ASPlaylist<NSCoding> {
+@interface Station : ASPlaylist<NSSecureCoding> {
   BOOL shouldPlaySongOnFetch;
 
   NSMutableArray *songs;

@@ -94,7 +94,7 @@
   // Fix: Use modern archiving method
   NSError *archiveError = nil;
   NSData *archivedData = [NSKeyedArchiver archivedDataWithRootObject:songs
-                                              requiringSecureCoding:NO
+                                              requiringSecureCoding:YES
                                                               error:&archiveError];
   
   if (archiveError || archivedData == nil) {
@@ -269,9 +269,9 @@
 
 - (nullable NSArray<Song *> *)decodeSavedSongsFromData:(NSData *)data path:(NSString *)path {
   NSError *unarchiveError = nil;
-  NSArray<Song *> *songsArray = [NSKeyedUnarchiver unarchivedObjectOfClass:[NSArray class]
-                                                                  fromData:data
-                                                                     error:&unarchiveError];
+  NSArray<Song *> *songsArray = [NSKeyedUnarchiver unarchivedArrayOfObjectsOfClass:[Song class]
+                                                                          fromData:data
+                                                                             error:&unarchiveError];
   if (songsArray != nil) {
     return songsArray;
   }
@@ -356,7 +356,7 @@
 
   NSError *archiveError = nil;
   NSData *archivedData = [NSKeyedArchiver archivedDataWithRootObject:songsArray
-                                             requiringSecureCoding:NO
+                                             requiringSecureCoding:YES
                                                              error:&archiveError];
   if (archivedData == nil) {
     NSLog(@"Failed to rewrite migrated songs archive: %@", archiveError);

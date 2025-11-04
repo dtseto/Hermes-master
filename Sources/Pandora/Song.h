@@ -1,6 +1,6 @@
 @class Station;
 
-@interface Song : NSObject <NSCoding>
+@interface Song : NSObject <NSSecureCoding>
 
 @property(nonatomic, retain) NSString *artist;
 @property(nonatomic, retain) NSString *title;

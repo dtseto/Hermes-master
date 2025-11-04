@@ -446,7 +446,7 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   // Fix: Use modern archiving method
   NSError *archiveError = nil;
   NSData *archivedData = [NSKeyedArchiver archivedDataWithRootObject:[self playing]
-                                              requiringSecureCoding:NO
+                                              requiringSecureCoding:YES
                                                               error:&archiveError];
   
   if (archiveError || archivedData == nil) {

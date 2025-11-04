@@ -1,10 +1,28 @@
 
 #import "Station.h"
 
+static NSSet *HMSSongStringClasses(void) {
+  static NSSet *classes = nil;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    classes = [NSSet setWithObjects:[NSString class], [NSNull class], nil];
+  });
+  return classes;
+}
+
+static NSString *HMSSecureDecodeSongString(NSCoder *coder, NSString *key) {
+  id value = [coder decodeObjectOfClasses:HMSSongStringClasses() forKey:key];
+  return value == [NSNull null] ? nil : value;
+}
+
 @implementation Song
 
 @synthesize artist, title, album, highUrl, stationId, nrating,
   albumUrl, artistUrl, titleUrl, art, token, medUrl, lowUrl, playDate;
+
++ (BOOL)supportsSecureCoding {
+  return YES;
+}
 
 #pragma mark - NSObject
 
@@ -20,20 +38,24 @@
 
 - (id) initWithCoder: (NSCoder *)coder {
   if ((self = [super init])) {
-    [self setArtist:[coder decodeObjectForKey:@"artist"]];
-    [self setTitle:[coder decodeObjectForKey:@"title"]];
-    [self setAlbum:[coder decodeObjectForKey:@"album"]];
-    [self setArt:[coder decodeObjectForKey:@"art"]];
-    [self setHighUrl:[coder decodeObjectForKey:@"highUrl"]];
-    [self setMedUrl:[coder decodeObjectForKey:@"medUrl"]];
-    [self setLowUrl:[coder decodeObjectForKey:@"lowUrl"]];
-    [self setStationId:[coder decodeObjectForKey:@"stationId"]];
-    [self setNrating:[coder decodeObjectForKey:@"nrating"]];
-    [self setAlbumUrl:[coder decodeObjectForKey:@"albumUrl"]];
-    [self setArtistUrl:[coder decodeObjectForKey:@"artistUrl"]];
-    [self setTitleUrl:[coder decodeObjectForKey:@"titleUrl"]];
-    [self setToken:[coder decodeObjectForKey:@"token"]];
-    [self setPlayDate:[coder decodeObjectForKey:@"playDate"]];
+    [self setArtist:HMSSecureDecodeSongString(coder, @"artist")];
+    [self setTitle:HMSSecureDecodeSongString(coder, @"title")];
+    [self setAlbum:HMSSecureDecodeSongString(coder, @"album")];
+    [self setArt:HMSSecureDecodeSongString(coder, @"art")];
+    [self setHighUrl:HMSSecureDecodeSongString(coder, @"highUrl")];
+    [self setMedUrl:HMSSecureDecodeSongString(coder, @"medUrl")];
+    [self setLowUrl:HMSSecureDecodeSongString(coder, @"lowUrl")];
+    [self setStationId:HMSSecureDecodeSongString(coder, @"stationId")];
+    [self setAlbumUrl:HMSSecureDecodeSongString(coder, @"albumUrl")];
+    [self setArtistUrl:HMSSecureDecodeSongString(coder, @"artistUrl")];
+    [self setTitleUrl:HMSSecureDecodeSongString(coder, @"titleUrl")];
+    [self setToken:HMSSecureDecodeSongString(coder, @"token")];
+
+    NSNumber *rating = [coder decodeObjectOfClass:[NSNumber class] forKey:@"nrating"];
+    [self setNrating:rating];
+
+    NSDate *decodedDate = [coder decodeObjectOfClass:[NSDate class] forKey:@"playDate"];
+    [self setPlayDate:decodedDate];
   }
   return self;
 }
