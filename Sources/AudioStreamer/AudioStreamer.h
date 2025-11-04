@@ -36,8 +36,10 @@
 
 @class AudioBufferManager;
 
-extern NSString * const ASBitrateReadyNotification;
-extern NSString * const ASDidChangeStateDistributedNotification;
+extern NSString * _Nonnull const ASBitrateReadyNotification;
+extern NSString * _Nonnull const ASDidChangeStateDistributedNotification;
+
+NS_ASSUME_NONNULL_BEGIN
 
 
 typedef enum {
@@ -86,6 +88,10 @@ typedef enum {
 } AudioStreamerDoneReason;
 
 extern NSString * const ASStatusChangedNotification;
+extern NSString * const ASStreamErrorInfoNotification;
+extern NSString * const ASStreamErrorCodeKey;
+extern NSString * const ASStreamErrorIsTransientKey;
+extern NSString * const ASStreamErrorUnderlyingErrorKey;
 
 /**
  * This class is implemented on top of Apple's AudioQueue framework. This
@@ -216,15 +222,17 @@ extern NSString * const ASStatusChangedNotification;
 @property AudioStreamerErrorCode errorCode;
 
 + (NSString*) stringForErrorCode:(AudioStreamerErrorCode)anErrorCode;
++ (BOOL)isErrorCodeTransient:(AudioStreamerErrorCode)errorCode
+                networkError:(NSError * _Nullable)networkError;
 
 /**
  * Headers received from the remote source
  *
  * Used to determine file size, but other information may be useful as well
  */
-@property (readonly) NSDictionary *httpHeaders;
+@property (readonly, nullable) NSDictionary *httpHeaders;
 
-@property (readonly) NSError *networkError;
+@property (readonly, nullable) NSError *networkError;
 
 @property (readonly) NSURL *url;
 
@@ -238,9 +246,9 @@ extern NSString * const ASStatusChangedNotification;
 
 @property (readwrite) int timeoutInterval;
 
-- (void) setHTTPProxy:(NSString*)host port:(int)port;
+- (void)setHTTPProxy:(NSString *)host port:(int)port;
 
-- (void) setSOCKSProxy:(NSString*)host port:(int)port;
+- (void)setSOCKSProxy:(NSString *)host port:(int)port;
 
 - (BOOL) start;
 
@@ -262,12 +270,14 @@ extern NSString * const ASStatusChangedNotification;
 
 - (BOOL) seekToTime:(double)newSeekTime;
 
-- (BOOL) calculatedBitRate:(double*)ret;
+- (BOOL)calculatedBitRate:(double *)ret;
 
 - (BOOL) setVolume:(double)volume;
 
-- (BOOL) duration:(double*)ret;
+- (BOOL)duration:(double *)ret;
 
-- (BOOL) progress:(double*)ret;
+- (BOOL)progress:(double *)ret;
+
+NS_ASSUME_NONNULL_END
 
 @end

@@ -28,6 +28,7 @@
 #import "AudioBufferManager.h"
 #import "AudioStreamerMetadata.h"
 #import "AudioStreamerStateController.h"
+#include <errno.h>
 
 #define BitRateEstimationMinPackets 50
 
@@ -52,6 +53,10 @@
 NSString * const ASBitrateReadyNotification = @"ASBitrateReadyNotification";
 NSString * const ASStatusChangedNotification = @"ASStatusChangedNotification";
 NSString * const ASDidChangeStateDistributedNotification = @"hermes.state";
+NSString * const ASStreamErrorInfoNotification = @"ASStreamErrorInfoNotification";
+NSString * const ASStreamErrorCodeKey = @"code";
+NSString * const ASStreamErrorIsTransientKey = @"transient";
+NSString * const ASStreamErrorUnderlyingErrorKey = @"underlyingError";
 
 @interface AudioStreamer () <AudioBufferManagerDelegate>
 @property (nonatomic, strong) NSLock *stateLock;
@@ -262,6 +267,58 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
   }
 
   return @"Audio streaming failed";
+}
+
++ (BOOL)isErrorCodeTransient:(AudioStreamerErrorCode)errorCode
+                networkError:(NSError *)networkError {
+  switch (errorCode) {
+    case AS_TIMED_OUT:
+    case AS_NETWORK_CONNECTION_FAILED:
+    case AS_AUDIO_QUEUE_START_FAILED:
+    case AS_AUDIO_QUEUE_ENQUEUE_FAILED:
+    case AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED:
+    case AS_AUDIO_QUEUE_CREATION_FAILED:
+    case AS_AUDIO_QUEUE_ADD_LISTENER_FAILED:
+    case AS_AUDIO_QUEUE_REMOVE_LISTENER_FAILED:
+    case AS_AUDIO_QUEUE_BUFFER_MISMATCH:
+    case AS_AUDIO_QUEUE_DISPOSE_FAILED:
+    case AS_AUDIO_QUEUE_STOP_FAILED:
+    case AS_AUDIO_QUEUE_FLUSH_FAILED:
+    case AS_AUDIO_STREAMER_FAILED:
+      return YES;
+    default:
+      break;
+  }
+
+  if (networkError != nil) {
+    NSString *domain = networkError.domain;
+    if ([domain isEqualToString:NSURLErrorDomain]) {
+      switch (networkError.code) {
+        case NSURLErrorTimedOut:
+        case NSURLErrorCannotFindHost:
+        case NSURLErrorCannotConnectToHost:
+        case NSURLErrorNetworkConnectionLost:
+        case NSURLErrorDNSLookupFailed:
+        case NSURLErrorNotConnectedToInternet:
+          return YES;
+        default:
+          break;
+      }
+    } else if ([domain isEqualToString:NSPOSIXErrorDomain]) {
+      switch (networkError.code) {
+        case ETIMEDOUT:
+        case ECONNRESET:
+        case ECONNABORTED:
+        case ENETDOWN:
+        case ENETUNREACH:
+          return YES;
+        default:
+          break;
+      }
+    }
+  }
+
+  return NO;
 }
 
 - (BOOL)isPlaying {
@@ -644,6 +701,18 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
     NSLog(@"Already has error, ignoring new error: %d", anErrorCode);
     return;
   }
+
+  BOOL isTransient = [AudioStreamer isErrorCodeTransient:anErrorCode networkError:networkError];
+  NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithCapacity:3];
+  userInfo[ASStreamErrorCodeKey] = @(anErrorCode);
+  userInfo[ASStreamErrorIsTransientKey] = @(isTransient);
+  if (networkError != nil) {
+    userInfo[ASStreamErrorUnderlyingErrorKey] = networkError;
+  }
+  [[NSNotificationCenter defaultCenter]
+      postNotificationName:ASStreamErrorInfoNotification
+                    object:self
+                  userInfo:userInfo];
 
   NSLog(@"Audio error: %d", anErrorCode);
   errorCode = anErrorCode;
