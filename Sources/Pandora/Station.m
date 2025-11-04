@@ -92,46 +92,29 @@ static NSString *HMSStationDecodeString(NSCoder *decoder, NSString *key) {
     Song *decodedPlayingSong = [aDecoder decodeObjectOfClass:[Song class] forKey:@"playing"];
     if ([decodedPlayingSong isKindOfClass:[Song class]]) {
       [self setPlayingSong:decodedPlayingSong];
-      [songs addObject:decodedPlayingSong];
     } else {
       [self setPlayingSong:nil];
     }
-    Song *currentPlayingSong = self.playingSong;
 
     NSSet *songClasses = [NSSet setWithObjects:[NSArray class], [Song class], nil];
     NSArray<Song *> *decodedSongs = [aDecoder decodeObjectOfClasses:songClasses forKey:@"songs"];
-    for (Song *song in decodedSongs) {
-      if (![song isKindOfClass:[Song class]]) {
-        continue;
-      }
-      if (song == currentPlayingSong) {
-        continue;
-      }
-      [songs addObject:song];
-    }
 
     NSURL *decodedPlayingURL = [aDecoder decodeObjectOfClass:[NSURL class] forKey:@"playingURL"];
+    NSURL *currentPlayingURL = nil;
     if ([decodedPlayingURL isKindOfClass:[NSURL class]]) {
-      [urls addObject:decodedPlayingURL];
+      currentPlayingURL = decodedPlayingURL;
     }
-    NSURL *currentPlayingURL = decodedPlayingURL;
 
     NSSet *urlClasses = [NSSet setWithObjects:[NSArray class], [NSURL class], nil];
     NSArray<NSURL *> *decodedURLs = [aDecoder decodeObjectOfClasses:urlClasses forKey:@"urls"];
-    for (NSURL *url in decodedURLs) {
-      if (![url isKindOfClass:[NSURL class]]) {
-        continue;
-      }
-      if (currentPlayingURL != nil && [url isEqual:currentPlayingURL]) {
-        continue;
-      }
-      [urls addObject:url];
-    }
 
-    if ([songs count] != [urls count]) {
+    BOOL hadPersistedQueue = (decodedSongs.count > 0) || (decodedURLs.count > 0) || (currentPlayingURL != nil);
+    if (hadPersistedQueue) {
       [songs removeAllObjects];
       [urls removeAllObjects];
-      [self setPlayingSong:nil];
+      [self setPlaying:nil];
+      lastKnownSeekTime = 0;
+      shouldPlaySongOnFetch = YES;
     }
 
     [Station addStation:self];
@@ -189,8 +172,12 @@ static NSString *HMSStationDecodeString(NSCoder *decoder, NSString *key) {
 }
 
 - (void) attemptingNewSong:(NSNotification*) notification {
-    _playingSong = songs[0];
-    [songs removeObjectAtIndex:0];
+  if ([songs count] == 0) {
+    _playingSong = nil;
+    return;
+  }
+  _playingSong = songs[0];
+  [songs removeObjectAtIndex:0];
 }
 
 - (void) fetchMoreSongs:(NSNotification*) notification {

@@ -138,13 +138,12 @@
   XCTAssertEqual(decoded.isQuickMix, station.isQuickMix);
   XCTAssertEqual(decoded.created, station.created);
   NSArray *decodedSongs = [decoded valueForKey:@"songs"];
-  NSArray *originalSongs = [station valueForKey:@"songs"];
-  XCTAssertEqual(decodedSongs.count, originalSongs.count);
-  XCTAssertEqual(decoded.playingSong.nrating, station.playingSong.nrating);
+  XCTAssertEqual(decodedSongs.count, 0);
+  XCTAssertEqual(decoded.playingSong.nrating.integerValue, station.playingSong.nrating.integerValue);
   XCTAssertEqualObjects(decoded.playingSong.token, station.playingSong.token);
-  XCTAssertEqualObjects(decoded.playing, station.playing);
+  XCTAssertNil(decoded.playing);
   NSArray *decodedURLs = [decoded valueForKey:@"urls"];
-  XCTAssertEqual(decodedSongs.count, decodedURLs.count);
+  XCTAssertEqual(decodedURLs.count, 0);
 
   [Station removeStation:decoded];
 }
