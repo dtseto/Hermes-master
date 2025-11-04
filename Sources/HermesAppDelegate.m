@@ -333,6 +333,7 @@ static void DummyPacketsProc(void *inClientData,
     PLEASE_GROWL_PLAY:          @"0",
     PLEASE_GROWL_NEW:           @"1",
     PLEASE_BIND_MEDIA:          @"1",
+    INPUT_MONITORING_REMINDER_ENABLED: @"1",
     PLEASE_CLOSE_DRAWER:        @"0",
     ENABLED_PROXY:              @PROXY_SYSTEM,
     PROXY_AUDIO:                @"0",
@@ -673,6 +674,9 @@ static void DummyPacketsProc(void *inClientData,
       return NO;
     }
     if (!PREF_KEY_BOOL(PLEASE_BIND_MEDIA)) {
+      return NO;
+    }
+    if (!PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED)) {
       return NO;
     }
     return ![playbackController hasInputMonitoringAccess];

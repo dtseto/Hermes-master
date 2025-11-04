@@ -100,10 +100,19 @@
 #endif
   } else if (@available(macOS 10.15, *)) {
     if (![[HMSAppDelegate playback] hasInputMonitoringAccess]) {
-      mediaKeysLabel.stringValue = @"Hermes still needs Input Monitoring permission for media keys. Open System Settings → Privacy & Security → Input Monitoring and enable Hermes.";
+      if (!PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED)) {
+        mediaKeysLabel.stringValue = @"Input Monitoring reminder is turned off. Click below to re-enable it when you're ready.";
+      } else {
+        mediaKeysLabel.stringValue = @"Hermes still needs Input Monitoring permission for media keys. Open System Settings → Privacy & Security → Input Monitoring and enable Hermes.";
+      }
     } else {
       mediaKeysLabel.stringValue = @"";
     }
+  }
+
+  if (@available(macOS 10.15, *)) {
+    [self installInputMonitoringReminderButtonIfNeeded];
+    [self updateInputMonitoringReminderButtonState];
   }
 
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -153,7 +162,67 @@
     [mediaKeyTap stopWatchingMediaKeys];
   }
 
+  PREF_KEY_SET_BOOL(INPUT_MONITORING_REMINDER_ENABLED, PREF_KEY_BOOL(PLEASE_BIND_MEDIA));
+
   [HMSAppDelegate refreshInputMonitoringReminder];
+  if (@available(macOS 10.15, *)) {
+    if (![[HMSAppDelegate playback] hasInputMonitoringAccess]) {
+      mediaKeysLabel.stringValue = PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED)
+        ? @"Hermes still needs Input Monitoring permission for media keys. Open System Settings → Privacy & Security → Input Monitoring and enable Hermes."
+        : @"Input Monitoring reminder is turned off. Click below to re-enable it when you're ready.";
+    } else {
+      mediaKeysLabel.stringValue = @"";
+    }
+  }
+  [self updateInputMonitoringReminderButtonState];
+}
+
+- (void)installInputMonitoringReminderButtonIfNeeded {
+  if (inputMonitoringReminderButton != nil || playback == nil || mediaKeysLabel == nil) {
+    return;
+  }
+
+  inputMonitoringReminderButton = [NSButton buttonWithTitle:@"Enable Input Monitoring Reminder…"
+                                                     target:self
+                                                     action:@selector(enableInputMonitoringReminder:)];
+  if (@available(macOS 11.0, *)) {
+    inputMonitoringReminderButton.bezelStyle = NSBezelStyleInline;
+  } else {
+    inputMonitoringReminderButton.bordered = NO;
+  }
+  inputMonitoringReminderButton.translatesAutoresizingMaskIntoConstraints = NO;
+  [playback addSubview:inputMonitoringReminderButton];
+
+  [NSLayoutConstraint activateConstraints:@[
+    [inputMonitoringReminderButton.topAnchor constraintEqualToAnchor:mediaKeysLabel.bottomAnchor constant:8.0],
+    [inputMonitoringReminderButton.leadingAnchor constraintEqualToAnchor:mediaKeysLabel.leadingAnchor]
+  ]];
+  inputMonitoringReminderButton.hidden = PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED);
+}
+
+- (void)updateInputMonitoringReminderButtonState {
+  if (inputMonitoringReminderButton == nil) {
+    return;
+  }
+  BOOL reminderEnabled = PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED);
+  inputMonitoringReminderButton.hidden = reminderEnabled;
+}
+
+- (IBAction)enableInputMonitoringReminder:(id)sender {
+  PREF_KEY_SET_BOOL(INPUT_MONITORING_REMINDER_ENABLED, YES);
+  [HMSAppDelegate refreshInputMonitoringReminder];
+  [[HMSAppDelegate playback] presentInputMonitoringInstructionsAllowingRepeat];
+  if (@available(macOS 10.15, *)) {
+    BOOL reminderEnabled = PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED);
+    if (![[HMSAppDelegate playback] hasInputMonitoringAccess]) {
+      mediaKeysLabel.stringValue = reminderEnabled
+        ? @"Hermes still needs Input Monitoring permission for media keys. Open System Settings → Privacy & Security → Input Monitoring and enable Hermes."
+        : @"Input Monitoring reminder is turned off. Click below to re-enable it when you're ready.";
+    } else {
+      mediaKeysLabel.stringValue = @"";
+    }
+  }
+  [self updateInputMonitoringReminderButtonState];
 }
 
 - (IBAction) show: (id) sender {

@@ -2,6 +2,8 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
+#import "PreferencesController.h"
+
 @class Song;
 @class Station;
 @class Pandora;
@@ -151,6 +153,7 @@ static id StubImageLoaderLoader(id self, SEL _cmd) {
 
 - (void)setUp {
   [super setUp];
+  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:INPUT_MONITORING_REMINDER_ENABLED];
   gCancelledArt = [NSMutableArray array];
   self.stubLoader = [[StubImageLoader alloc] init];
   gStubImageLoader = self.stubLoader;
@@ -163,6 +166,7 @@ static id StubImageLoaderLoader(id self, SEL _cmd) {
 }
 
 - (void)tearDown {
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:INPUT_MONITORING_REMINDER_ENABLED];
   Class loaderClass = NSClassFromString(@"ImageLoader");
   Method loaderMethod = class_getClassMethod(loaderClass, @selector(loader));
   if (self.originalImageLoaderLoaderIMP != NULL) {

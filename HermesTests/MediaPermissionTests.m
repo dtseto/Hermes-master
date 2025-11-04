@@ -1,5 +1,7 @@
 #import <XCTest/XCTest.h>
 
+#import "PreferencesController.h"
+
 typedef BOOL (*HMSInputMonitoringAccessFunction)(void);
 extern void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction preflight,
                                                     HMSInputMonitoringAccessFunction request);
@@ -46,9 +48,15 @@ static BOOL TestRequestDeny(void) {
 
 @implementation MediaPermissionTests
 
+- (void)setUp {
+  [super setUp];
+  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:INPUT_MONITORING_REMINDER_ENABLED];
+}
+
 - (void)tearDown {
   gPreflightGranted = NO;
   HMSSetListenEventAccessFunctionPointers(NULL, NULL);
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:INPUT_MONITORING_REMINDER_ENABLED];
   [super tearDown];
 }
 

@@ -86,6 +86,10 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 }
 
 - (void)presentInputMonitoringInstructions {
+  if (!PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED)) {
+    presentedInputMonitoringAlert = NO;
+    return;
+  }
   if (presentedInputMonitoringAlert) {
     return;
   }
@@ -132,7 +136,7 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 
 - (BOOL)shouldSurfaceInputMonitoringReminder {
   if (@available(macOS 10.15, *)) {
-    if (self.mediaKeyTap != nil && PREF_KEY_BOOL(PLEASE_BIND_MEDIA)) {
+    if (self.mediaKeyTap != nil && PREF_KEY_BOOL(PLEASE_BIND_MEDIA) && PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED)) {
       return ![self hasInputMonitoringAccess];
     }
   }
@@ -158,9 +162,13 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   alert.informativeText = @"Hermes needs permission in System Settings → Privacy & Security → Input Monitoring to react to media keys. Enable Hermes in Input Monitoring so Play/Pause continues working.";
   [alert addButtonWithTitle:@"Open System Settings"];
   [alert addButtonWithTitle:@"Not Now"];
+  [alert addButtonWithTitle:@"Don't Remind Me Again"];
   NSModalResponse response = [alert runModal];
   if (response == NSAlertFirstButtonReturn) {
     [self openInputMonitoringPreferences];
+  } else if (response == NSAlertThirdButtonReturn) {
+    PREF_KEY_SET_BOOL(INPUT_MONITORING_REMINDER_ENABLED, NO);
+    presentedInputMonitoringAlert = NO;
   }
   [self notifyInputMonitoringReminderUpdate];
 }

@@ -27,10 +27,12 @@
 - (void)setUp {
   [super setUp];
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:PLEASE_BIND_MEDIA];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:INPUT_MONITORING_REMINDER_ENABLED];
 }
 
 - (void)tearDown {
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:PLEASE_BIND_MEDIA];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:INPUT_MONITORING_REMINDER_ENABLED];
   [super tearDown];
 }
 
@@ -44,6 +46,7 @@
   id dummyTap = [[NSObject alloc] init];
   [controller setValue:dummyTap forKey:@"mediaKeyTap"];
   [[NSUserDefaults standardUserDefaults] setBool:YES forKey:PLEASE_BIND_MEDIA];
+  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:INPUT_MONITORING_REMINDER_ENABLED];
 
   __block BOOL reminderShown = NO;
 
@@ -86,6 +89,7 @@
   proxy.mediaKeyTap = [[NSObject alloc] init];
   proxy.hasAccess = NO;
   [[NSUserDefaults standardUserDefaults] setBool:YES forKey:PLEASE_BIND_MEDIA];
+  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:INPUT_MONITORING_REMINDER_ENABLED];
 
   NSMenu *menu = [[NSMenu alloc] initWithTitle:@"Status"];
   [delegate setValue:menu forKey:@"statusBarMenu"];
@@ -106,6 +110,48 @@
   }
 
   XCTAssertTrue(reminderItem.hidden);
+}
+
+- (void)testReminderSuppressedWhenPreferenceDisabled {
+  Class playbackClass = NSClassFromString(@"PlaybackController");
+  XCTAssertNotNil(playbackClass);
+
+  id controller = [[playbackClass alloc] init];
+  XCTAssertNotNil(controller);
+
+  id dummyTap = [[NSObject alloc] init];
+  [controller setValue:dummyTap forKey:@"mediaKeyTap"];
+  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:PLEASE_BIND_MEDIA];
+  [[NSUserDefaults standardUserDefaults] setBool:NO forKey:INPUT_MONITORING_REMINDER_ENABLED];
+
+  __block BOOL reminderShown = NO;
+  SEL presentSelector = NSSelectorFromString(@"presentInputMonitoringInstructions");
+  Method presentMethod = class_getInstanceMethod(playbackClass, presentSelector);
+  IMP originalPresentIMP = method_getImplementation(presentMethod);
+  IMP replacementPresentIMP = imp_implementationWithBlock(^(__kindof id _self){
+    reminderShown = YES;
+  });
+  method_setImplementation(presentMethod, replacementPresentIMP);
+
+  SEL hasAccessSelector = NSSelectorFromString(@"hasInputMonitoringAccess");
+  Method hasAccessMethod = class_getInstanceMethod(playbackClass, hasAccessSelector);
+  IMP originalHasAccessIMP = method_getImplementation(hasAccessMethod);
+  IMP replacementHasAccessIMP = imp_implementationWithBlock(^BOOL(__kindof id _self){
+    return NO;
+  });
+  method_setImplementation(hasAccessMethod, replacementHasAccessIMP);
+
+  SEL requestSelector = NSSelectorFromString(@"requestInputMonitoringReminderIfNeeded");
+  if ([controller respondsToSelector:requestSelector]) {
+    ((void (*)(id, SEL))objc_msgSend)(controller, requestSelector);
+  }
+
+  XCTAssertFalse(reminderShown);
+
+  method_setImplementation(presentMethod, originalPresentIMP);
+  method_setImplementation(hasAccessMethod, originalHasAccessIMP);
+  imp_removeBlock(replacementPresentIMP);
+  imp_removeBlock(replacementHasAccessIMP);
 }
 
 @end

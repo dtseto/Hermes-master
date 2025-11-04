@@ -11,6 +11,7 @@
 
 
 #define PLEASE_BIND_MEDIA          @"pleaseBindMedia"
+#define INPUT_MONITORING_REMINDER_ENABLED @"inputMonitoringReminderEnabled"
 #define PLEASE_SCROBBLE            @"pleaseScrobble"
 #define PLEASE_SCROBBLE_LIKES      @"pleaseScrobbleLikes"
 #define ONLY_SCROBBLE_LIKED        @"onlyScrobbleLiked"
@@ -84,6 +85,7 @@
   
   IBOutlet NSButton *mediaKeysCheckbox;
   IBOutlet NSTextField *mediaKeysLabel;
+  NSButton *inputMonitoringReminderButton;
 
   IBOutlet NSButton *statusItemShowColorIcon;
   IBOutlet NSButton *statusItemShowBlackAndWhiteIcon;
