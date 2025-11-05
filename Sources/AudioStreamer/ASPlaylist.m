@@ -48,6 +48,8 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
     [stream stop];
   }
   stream = [AudioStreamer streamWithURL: _playing];
+  retrying = NO;
+  tries = 0;
   [[NSNotificationCenter defaultCenter]
         postNotificationName:ASCreatedNewStream
                       object:self
@@ -64,6 +66,11 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
     addObserver:self
        selector:@selector(bitrateReady:)
            name:ASBitrateReadyNotification
+         object:stream];
+  [[NSNotificationCenter defaultCenter]
+    addObserver:self
+       selector:@selector(streamerErrorInfo:)
+           name:ASStreamErrorInfoNotification
          object:stream];
 }
 
@@ -83,6 +90,18 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   lastKnownSeekTime = 0;
 }
 
+- (void)streamerErrorInfo:(NSNotification *)notification {
+  if ([notification object] != stream) {
+    return;
+  }
+  BOOL willRetry = [notification.userInfo[ASStreamErrorIsTransientKey] boolValue];
+  if (willRetry) {
+    retrying = YES;
+  } else {
+    retrying = NO;
+  }
+}
+
 - (void)playbackStateChanged: (NSNotification *)notification {
   NSAssert([notification object] == stream,
            @"Should only receive notifications for the current stream");
@@ -91,9 +110,14 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   }
 
   int code = [stream errorCode];
+  BOOL streamerRetryScheduled = NO;
+  @try { streamerRetryScheduled = [[stream valueForKey:@"retryScheduled"] boolValue]; } @catch (NSException *exception) { streamerRetryScheduled = NO; }
   if (stopping) {
     return;
   } else if (code != 0) {
+    if (streamerRetryScheduled) {
+      return;
+    }
     /* If we've hit an error, then we want to record out current progress into
        the song. Only do this if we're not in the process of retrying to
        establish a connection, so that way we don't blow away the original

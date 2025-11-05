@@ -256,7 +256,7 @@ static void PostProxyValidity(BOOL isValid) {
 
 + (BOOL)validProxyHost:(NSString **)host port:(NSInteger)port {
     NSString *trimmed = nil;
-    if (host || *host) {
+    if (host && *host) {
         trimmed = [*host stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
     }
     if (trimmed.length == 0) {
