@@ -15,6 +15,7 @@ A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 **Bug workarounds:**
 
 Known bug: The 2.0.0b1 refactor introduced a bug that can occasionaly cause audio skipping in the beginning  of a track from lost frames.
+Old behavior is the player would stop and throw an error to restart the playback from beginning.
 
 B10 and B11 have heightened security permissions. B11 has hardened runtime. Try downloading b9 and running it before be b10 and b11.
 
