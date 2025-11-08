@@ -39,6 +39,9 @@
 /* Default number and size of audio queue buffers */
 #define kDefaultNumAQBufs 16
 #define kDefaultAQDefaultBufSize 2048
+#define HMS_MAX_TRANSIENT_RETRIES_DEFAULT 3
+#define HMS_RETRY_BACKOFF_DEFAULT 1.0
+#define HMS_RETRY_BACKOFF_MAX 5.0
 
 #define CHECK_ERR(err, code) {                                                 \
     if (err) { [self failWithErrorCode:code]; return; }                        \
@@ -64,9 +67,18 @@ NSString * const ASStreamErrorUnderlyingErrorKey = @"underlyingError";
 @property (nonatomic, assign) NSTimeInterval lastPlayCall;
 @property (nonatomic, assign) NSTimeInterval lastPauseCall;
 @property (nonatomic, strong) AudioStreamerStateController *stateController;
+@property (nonatomic, assign) NSUInteger retryAttemptCount;
+@property (nonatomic, assign) NSUInteger maxRetryCount;
+@property (nonatomic, assign) NSUInteger retryGeneration;
+@property (nonatomic, assign) NSTimeInterval retryBackoffInterval;
+@property (nonatomic, assign) BOOL retryScheduled;
+@property (nonatomic, assign) double retryResumeTime;
 
 - (void)legacyTransitionToState:(AudioStreamerState)newState;
 - (void)handleFailureSynchronouslyWithCode:(AudioStreamerErrorCode)anErrorCode;
+- (void)prepareForRetry;
+- (void)scheduleRetryForError:(AudioStreamerErrorCode)errorCode;
+- (void)teardownAudioResources;
 
 - (void)handlePropertyChangeForFileStream:(AudioFileStreamID)inAudioFileStream
                      fileStreamPropertyID:(AudioFileStreamPropertyID)inPropertyID
@@ -158,6 +170,12 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
                              notificationCenter:[NSNotificationCenter defaultCenter]
                              distributedNotificationCenter:[NSDistributedNotificationCenter defaultCenter]
                              targetQueue:dispatch_get_main_queue()];
+        _maxRetryCount = HMS_MAX_TRANSIENT_RETRIES_DEFAULT;
+        _retryBackoffInterval = HMS_RETRY_BACKOFF_DEFAULT;
+        _retryAttemptCount = 0;
+        _retryGeneration = 0;
+        _retryScheduled = NO;
+        _retryResumeTime = 0.0;
     }
     return self;
 }
@@ -402,6 +420,38 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
   return YES;
 }
 
+- (void)teardownAudioResources {
+  [timeout invalidate];
+  timeout = nil;
+
+  [self closeURLSession];
+  if (audioFileStream) {
+    err = AudioFileStreamClose(audioFileStream);
+    assert(!err);
+    audioFileStream = nil;
+  }
+  if (audioQueue) {
+    AudioQueueStop(audioQueue, true);
+    err = AudioQueueDispose(audioQueue, true);
+    assert(!err);
+    audioQueue = nil;
+  }
+  if (buffers != NULL) {
+    free(buffers);
+    buffers = NULL;
+  }
+  if (bufferManager != nil) {
+    [bufferManager reset];
+    bufferManager = nil;
+  }
+
+  httpHeaders = nil;
+  seekByteOffset = 0;
+  packetBufferSize = 0;
+  processedPacketsCount = 0;
+  processedPacketsSizeTotal = 0;
+}
+
 - (BOOL)pause {
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
     
@@ -476,39 +526,15 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
     return YES;
 }
 
-- (void) stop {
+- (void)stop {
   if (![self isDone]) {
     [self setState:AS_STOPPED];
   }
-
-  [timeout invalidate];
-  timeout = nil;
-
-  /* Clean up our session */
-  [self closeURLSession];
-  if (audioFileStream) {
-    err = AudioFileStreamClose(audioFileStream);
-    assert(!err);
-    audioFileStream = nil;
-  }
-  if (audioQueue) {
-    AudioQueueStop(audioQueue, true);
-    err = AudioQueueDispose(audioQueue, true);
-    assert(!err);
-    audioQueue = nil;
-  }
-  if (buffers != NULL) {
-    free(buffers);
-    buffers = NULL;
-  }
-  if (bufferManager != nil) {
-    [bufferManager reset];
-    bufferManager = nil;
-  }
-
-  httpHeaders      = nil;
-  seekByteOffset   = 0;
-  packetBufferSize = 0;
+  self.retryGeneration += 1;
+  self.retryScheduled = NO;
+  self.retryAttemptCount = 0;
+  self.retryResumeTime = 0.0;
+  [self teardownAudioResources];
 }
 
 - (BOOL)seekToTime:(double)newSeekTime {
@@ -676,12 +702,17 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
   switch (aStatus) {
     case AS_PLAYING:
       statusString = @"playing";
+      self.retryAttemptCount = 0;
+      self.retryScheduled = NO;
+      self.retryResumeTime = 0.0;
       break;
     case AS_PAUSED:
       statusString = @"paused";
       break;
     case AS_STOPPED:
       statusString = @"stopped";
+      self.retryScheduled = NO;
+      self.retryResumeTime = 0.0;
       break;
     default:
       break;
@@ -703,9 +734,10 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
   }
 
   BOOL isTransient = [AudioStreamer isErrorCodeTransient:anErrorCode networkError:networkError];
+  BOOL willRetry = isTransient && self.retryAttemptCount < self.maxRetryCount;
   NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithCapacity:3];
   userInfo[ASStreamErrorCodeKey] = @(anErrorCode);
-  userInfo[ASStreamErrorIsTransientKey] = @(isTransient);
+  userInfo[ASStreamErrorIsTransientKey] = @(willRetry);
   if (networkError != nil) {
     userInfo[ASStreamErrorUnderlyingErrorKey] = networkError;
   }
@@ -714,12 +746,81 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
                     object:self
                   userInfo:userInfo];
 
+  if (willRetry) {
+    [self scheduleRetryForError:anErrorCode];
+    return;
+  }
+
+  self.retryAttemptCount = 0;
+  self.retryScheduled = NO;
+  self.retryResumeTime = 0.0;
+  self.retryGeneration += 1;
+
   NSLog(@"Audio error: %d", anErrorCode);
   errorCode = anErrorCode;
 
   [self progress:&lastProgress];
 
   [self stop];
+}
+
+- (void)prepareForRetry {
+  [self teardownAudioResources];
+  discontinuous = YES;
+}
+
+- (void)scheduleRetryForError:(AudioStreamerErrorCode)errorCodeValue {
+  self.retryAttemptCount += 1;
+
+  double resume = 0.0;
+  if ([self progress:&resume]) {
+    self.retryResumeTime = resume;
+    lastProgress = resume;
+    seekTime = resume;
+  } else {
+    self.retryResumeTime = 0.0;
+  }
+
+  self.retryGeneration += 1;
+  NSUInteger generation = self.retryGeneration;
+  self.retryScheduled = YES;
+
+  NSTimeInterval delay = self.retryBackoffInterval * (double)self.retryAttemptCount;
+  if (delay > HMS_RETRY_BACKOFF_MAX) {
+    delay = HMS_RETRY_BACKOFF_MAX;
+  }
+
+  NSLog(@"Transient audio error %d, scheduling retry attempt %lu/%lu in %.2f seconds",
+        errorCodeValue,
+        (unsigned long)self.retryAttemptCount,
+        (unsigned long)self.maxRetryCount,
+        delay);
+
+  [self setState:AS_WAITING_FOR_DATA];
+  [self prepareForRetry];
+
+  __weak typeof(self) weakSelf = self;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)),
+                 dispatch_get_main_queue(), ^{
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (!strongSelf) {
+      return;
+    }
+    if (generation != strongSelf.retryGeneration) {
+      return;
+    }
+    strongSelf.retryScheduled = NO;
+    if (strongSelf->state_ == AS_STOPPED || strongSelf->state_ == AS_DONE) {
+      return;
+    }
+    strongSelf->networkError = nil;
+    strongSelf->errorCode = AS_NO_ERROR;
+    strongSelf->state_ = AS_INITIALIZED;
+    if (![strongSelf start]) {
+      [strongSelf failWithErrorCode:errorCodeValue];
+      return;
+    }
+  });
 }
 
 - (void) checkTimeout {
