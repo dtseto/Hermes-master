@@ -97,7 +97,7 @@
 - (void)openInputMonitoringPreferences;
 - (void)requestInputMonitoringReminderIfNeeded;
 
-typedef BOOL (*HMSInputMonitoringAccessFunction)(void);
+typedef bool (*HMSInputMonitoringAccessFunction)(void);
 void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction preflight,
                                              HMSInputMonitoringAccessFunction request);
 
