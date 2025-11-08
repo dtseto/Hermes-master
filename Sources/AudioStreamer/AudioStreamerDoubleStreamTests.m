@@ -2,6 +2,7 @@
 
 #import "ASPlaylist.h"
 #import "AudioStreamer.h"
+#import "ASPlaylist+Testing.h"
 
 @interface AudioStreamerDoubleStreamTests : XCTestCase
 @end
@@ -28,10 +29,8 @@
   long waitResult = dispatch_group_wait(group, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)));
   XCTAssertEqual(waitResult, (long)0, @"Concurrent playlist starts should finish without hanging");
 
-  id stream = [playlist valueForKey:@"stream"];
-  XCTAssertNotNil(stream, @"Playlist should have an active stream after play");
-  NSURL *playingURL = [playlist valueForKey:@"playing"];
-  XCTAssertEqualObjects(playingURL, url);
+  XCTAssertNotNil(playlist.testing_currentStream, @"Playlist should have an active stream after play");
+  XCTAssertEqualObjects(playlist.testing_currentURL, url);
 }
 
 - (void)testAudioStreamerIgnoresSecondStartWhilePlaying {

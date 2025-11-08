@@ -248,4 +248,9 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   self->volume = vol;
 }
 
+#ifdef DEBUG
+- (AudioStreamer *)testing_currentStream { return stream; }
+- (NSURL *)testing_currentURL { return _playing; }
+#endif
+
 @end
