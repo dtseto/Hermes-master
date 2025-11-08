@@ -4,10 +4,7 @@
 
 #import "ASPlaylist.h"
 #import "AudioStreamer.h"
-
-@interface AudioStreamer (PlaylistRetryTestsExposure)
-- (void)failWithErrorCode:(AudioStreamerErrorCode)code;
-@end
+#import "../Sources/AudioStreamer/AudioStreamer+Testing.h"
 
 static AudioStreamer *(*OriginalStreamWithURL)(Class, SEL, NSURL *);
 static AudioStreamer *gNextStreamer = nil;
@@ -42,7 +39,7 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   NSUInteger attempt = self.startInvocationCount;
   if (self.autoFailCount > 0 && attempt <= self.autoFailCount) {
     dispatch_async(dispatch_get_main_queue(), ^{
-      [self failWithErrorCode:AS_TIMED_OUT];
+      [self simulateErrorForTesting:AS_TIMED_OUT];
     });
   } else {
     dispatch_async(dispatch_get_main_queue(), ^{

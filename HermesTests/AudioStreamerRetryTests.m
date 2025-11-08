@@ -2,10 +2,7 @@
 #import <objc/message.h>
 
 #import "AudioStreamer.h"
-
-@interface AudioStreamer (RetryTestsExposure)
-- (void)failWithErrorCode:(AudioStreamerErrorCode)code;
-@end
+#import "../Sources/AudioStreamer/AudioStreamer+Testing.h"
 
 @interface TestRetryAudioStreamer : AudioStreamer
 @property (nonatomic, assign) NSUInteger startInvocationCount;
@@ -33,7 +30,7 @@
   NSUInteger attempt = self.startInvocationCount;
   if (self.autoFailCount > 0 && attempt <= self.autoFailCount) {
     dispatch_async(dispatch_get_main_queue(), ^{
-      [self failWithErrorCode:AS_TIMED_OUT];
+      [self simulateErrorForTesting:AS_TIMED_OUT];
     });
   } else {
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -57,7 +54,7 @@
   [streamer setValue:@(1) forKey:@"maxRetryCount"];
   [streamer setValue:@(0.01) forKey:@"retryBackoffInterval"];
 
-  [streamer failWithErrorCode:AS_TIMED_OUT];
+  [streamer simulateErrorForTesting:AS_TIMED_OUT];
 
   [self waitForExpectations:@[streamer.startExpectation] timeout:1.0];
   XCTAssertEqual(streamer.startInvocationCount, 1U);
@@ -87,7 +84,7 @@
                 }
               }];
 
-  [streamer failWithErrorCode:AS_TIMED_OUT];
+  [streamer simulateErrorForTesting:AS_TIMED_OUT];
 
   [self waitForExpectations:@[fatalExpectation] timeout:2.0];
   [[NSNotificationCenter defaultCenter] removeObserver:token];

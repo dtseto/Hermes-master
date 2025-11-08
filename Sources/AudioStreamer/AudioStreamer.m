@@ -1432,4 +1432,10 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
   return [description copy];
 }
 
+#pragma mark - Testing hooks
+
+- (void)simulateErrorForTesting:(AudioStreamerErrorCode)code {
+  [self failWithErrorCode:code];
+}
+
 @end
