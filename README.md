@@ -60,7 +60,9 @@ If you would like to compile Hermes, continue reading.
 
 - Hard redesign for UI in swift instead of interface builder (probably not since Hermes is forked from pianobar written in C)(still pending to rewrite to use swift instead of interface builder)
 
-- Need to split large files like audiostreamer to make it easier to maintain.
+- Need to split large files like audiostreamer to make it easier to maintain. Partly done for audiostreamer.
+
+- Need more tests. Partly done.
 
 Below for Hermes
 Thanks to the suggestions by [blalor](https://github.com/blalor), there's a few
