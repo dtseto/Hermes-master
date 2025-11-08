@@ -246,6 +246,11 @@ extern NSString * const ASStreamErrorUnderlyingErrorKey;
 
 @property (readwrite) int timeoutInterval;
 
+@property (nonatomic, readonly) BOOL retryScheduled;
+@property (nonatomic, readonly) NSUInteger retryAttemptCount;
+@property (nonatomic, readwrite) NSUInteger maxRetryCount;
+@property (nonatomic, readonly) NSTimeInterval retryResumeTime;
+
 - (void)setHTTPProxy:(NSString *)host port:(int)port;
 
 - (void)setSOCKSProxy:(NSString *)host port:(int)port;

@@ -67,12 +67,11 @@ NSString * const ASStreamErrorUnderlyingErrorKey = @"underlyingError";
 @property (nonatomic, assign) NSTimeInterval lastPlayCall;
 @property (nonatomic, assign) NSTimeInterval lastPauseCall;
 @property (nonatomic, strong) AudioStreamerStateController *stateController;
-@property (nonatomic, assign) NSUInteger retryAttemptCount;
-@property (nonatomic, assign) NSUInteger maxRetryCount;
+@property (nonatomic, readwrite) NSUInteger retryAttemptCount;
 @property (nonatomic, assign) NSUInteger retryGeneration;
 @property (nonatomic, assign) NSTimeInterval retryBackoffInterval;
-@property (nonatomic, assign) BOOL retryScheduled;
-@property (nonatomic, assign) double retryResumeTime;
+@property (nonatomic, readwrite) BOOL retryScheduled;
+@property (nonatomic, readwrite) double retryResumeTime;
 
 - (void)legacyTransitionToState:(AudioStreamerState)newState;
 - (void)handleFailureSynchronouslyWithCode:(AudioStreamerErrorCode)anErrorCode;

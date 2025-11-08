@@ -106,12 +106,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   }
 
   int code = [stream errorCode];
-  BOOL streamerRetryScheduled = NO;
-  @try {
-    streamerRetryScheduled = [[stream valueForKey:@"retryScheduled"] boolValue];
-  } @catch (__unused NSException *exception) {
-    streamerRetryScheduled = NO;
-  }
+  BOOL streamerRetryScheduled = [stream retryScheduled];
   if (stopping) {
     return;
   } else if (code != 0) {
