@@ -14,6 +14,8 @@ A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 
 **Bug workarounds:**
 
+Known bug: The 2.0.0b1 refactor introduced a bug that can occasionaly cause audio skipping in the beginning  of a track from lost frames.
+
 B10 and B11 have heightened security permissions. B11 has hardened runtime. Try downloading b9 and running it before be b10 and b11.
 
 Media keys in b11 and probably b10 will require heightened permissions accessibility and input monitoring enabled manually for Hermes after starting for the first time.
@@ -23,11 +25,13 @@ System Settings → Privacy & Security → Input Monitoring
 
 If installing B11 and the scroll views for stations and history are not centered expand the window to fit them and restart they recenter on restart.
 
-For b11 adding a station has to be done manually from toolbar. At top menu click Pandora > New / Edit / Reload stations Removing a station will have to be done from pandora in web browser.
+For b11 adding a station has to be done manually from toolbar. At top menu click Pandora > New / Edit / Reload stations 
 
-The play / pause button now says play. It still pauses when pressed.
+Removing a station will have to be done from pandora in web browser. Should be fixed.
 
-New delete station menu button causes UI glitch. Double click a station to play and restart.
+The play / pause button now says play. It still pauses when pressed. FIXED
+
+New delete station menu button causes UI glitch. Double click a station to play and restart. should be fixed.
 
 ### THIS PROJECT IS MAINTAINED BUT VOLUNTEERS TO TEST ARE WELCOME
 
