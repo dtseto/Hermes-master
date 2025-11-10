@@ -21,10 +21,18 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
 @interface TestPlaylistAudioStreamer : AudioStreamer
 @property (nonatomic, assign) NSUInteger startInvocationCount;
 @property (nonatomic, assign) NSUInteger autoFailCount;
+@property (nonatomic, assign) AudioStreamerErrorCode forcedErrorCode;
 @property (nonatomic, strong) XCTestExpectation *successExpectation;
 @end
 
 @implementation TestPlaylistAudioStreamer
+
+- (instancetype)init {
+  if ((self = [super init])) {
+    _forcedErrorCode = AS_TIMED_OUT;
+  }
+  return self;
+}
 
 - (BOOL)openURLSession {
   ((void (*)(id, SEL, AudioStreamerState))objc_msgSend)(self, NSSelectorFromString(@"setState:"), AS_WAITING_FOR_DATA);
@@ -39,7 +47,7 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   NSUInteger attempt = self.startInvocationCount;
   if (self.autoFailCount > 0 && attempt <= self.autoFailCount) {
     dispatch_async(dispatch_get_main_queue(), ^{
-      [self simulateErrorForTesting:AS_TIMED_OUT];
+      [self simulateErrorForTesting:self.forcedErrorCode];
     });
   } else {
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -120,6 +128,62 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
 
   [self waitForExpectations:@[errorExpectation] timeout:3.0];
   [[NSNotificationCenter defaultCenter] removeObserver:token];
+  [playlist stop];
+}
+
+- (void)testPlaylistPerformsAutomaticRecoveryBeforeSurfaceNetworkError {
+  TestPlaylistAudioStreamer *streamer1 = [[TestPlaylistAudioStreamer alloc] init];
+  streamer1.autoFailCount = 1;
+  streamer1.forcedErrorCode = AS_NETWORK_CONNECTION_FAILED;
+
+  TestPlaylistAudioStreamer *streamer2 = [[TestPlaylistAudioStreamer alloc] init];
+  streamer2.autoFailCount = 1;
+  streamer2.forcedErrorCode = AS_NETWORK_CONNECTION_FAILED;
+
+  TestPlaylistAudioStreamer *streamer3 = [[TestPlaylistAudioStreamer alloc] init];
+  streamer3.autoFailCount = 1;
+  streamer3.forcedErrorCode = AS_NETWORK_CONNECTION_FAILED;
+
+  XCTestExpectation *errorExpectation = [self expectationWithDescription:@"error surfaced after auto recovery"];
+  errorExpectation.assertForOverFulfill = YES;
+
+  ASPlaylist *playlist = [[ASPlaylist alloc] init];
+
+  __block NSUInteger shortageNotifications = 0;
+  id shortageToken = [[NSNotificationCenter defaultCenter]
+      addObserverForName:ASNoSongsLeft
+                  object:nil
+                   queue:[NSOperationQueue mainQueue]
+              usingBlock:^(__unused NSNotification *note) {
+                shortageNotifications += 1;
+                if (shortageNotifications == 1) {
+                  gNextStreamer = streamer2;
+                  NSURL *url2 = [NSURL URLWithString:@"https://example.com/replacement.mp3"];
+                  [playlist addSong:url2 play:YES];
+                  gNextStreamer = streamer3;
+                  NSURL *url3 = [NSURL URLWithString:@"https://example.com/fallback.mp3"];
+                  [playlist addSong:url3 play:NO];
+                }
+              }];
+
+  __block NSUInteger streamErrorCount = 0;
+  id errorToken = [[NSNotificationCenter defaultCenter]
+      addObserverForName:ASStreamError
+                  object:nil
+                   queue:[NSOperationQueue mainQueue]
+              usingBlock:^(__unused NSNotification *note) {
+                streamErrorCount += 1;
+                [errorExpectation fulfill];
+              }];
+
+  gNextStreamer = streamer1;
+  NSURL *url1 = [NSURL URLWithString:@"https://example.com/original.mp3"];
+  [playlist addSong:url1 play:YES];
+
+  [self waitForExpectations:@[errorExpectation] timeout:4.0];
+  XCTAssertEqual(streamErrorCount, 1u);
+  [[NSNotificationCenter defaultCenter] removeObserver:shortageToken];
+  [[NSNotificationCenter defaultCenter] removeObserver:errorToken];
   [playlist stop];
 }
 

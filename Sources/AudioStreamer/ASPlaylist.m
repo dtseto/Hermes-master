@@ -15,11 +15,18 @@ NSString * const ASRunningOutOfSongs = @"ASRunningOutOfSongs";
 NSString * const ASStreamError       = @"ASStreamError";
 NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 
+@interface ASPlaylist ()
+@property (nonatomic, assign) NSUInteger catastrophicRecoveryStage;
+@property (nonatomic, assign) BOOL awaitingPlaylistRefill;
+@end
+
 @implementation ASPlaylist
 
 - (id)init {
   if (!(self = [super init])) return nil;
   urls = [NSMutableArray arrayWithCapacity:10];
+  _catastrophicRecoveryStage = 0;
+  _awaitingPlaylistRefill = NO;
   return self;
 }
 
@@ -48,6 +55,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
     [stream stop];
   }
   stream = [AudioStreamer streamWithURL: _playing];
+  self.awaitingPlaylistRefill = NO;
   retrying = NO;
   tries = 0;
   [[NSNotificationCenter defaultCenter]
@@ -88,6 +96,8 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
     return;
   retrying = NO;
   lastKnownSeekTime = 0;
+  self.catastrophicRecoveryStage = 0;
+  self.awaitingPlaylistRefill = NO;
 }
 
 - (void)streamerErrorInfo:(NSNotification *)notification {
@@ -129,6 +139,9 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
        opportunity to hit a button to retry this specific connection so we can
        at least hope to regain our current place in the song */
     if (code == AS_NETWORK_CONNECTION_FAILED || code == AS_TIMED_OUT) {
+      if ([self handleCatastrophicNetworkFailureForCode:code]) {
+        return;
+      }
       [[NSNotificationCenter defaultCenter]
             postNotificationName:ASStreamError
                           object:self];
@@ -149,9 +162,15 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 }
 
 - (void)retry {
-  if (tries > 2) {
-    /* too many retries means just skip to the next song */
-    [self clearSongList];
+  static const NSInteger kMaxPlaylistRetries = 5;
+  if (tries >= kMaxPlaylistRetries) {
+    tries = 0;
+    retrying = NO;
+    if ([urls count] == 0) {
+      [[NSNotificationCenter defaultCenter]
+          postNotificationName:ASRunningOutOfSongs
+                        object:self];
+    }
     [self next];
     return;
   }
@@ -246,6 +265,51 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 - (void)setVolume:(double)vol {
   volumeSet = [stream setVolume:vol];
   self->volume = vol;
+}
+
+- (BOOL)handleCatastrophicNetworkFailureForCode:(AudioStreamerErrorCode)code {
+  if (code != AS_NETWORK_CONNECTION_FAILED && code != AS_TIMED_OUT) {
+    self.catastrophicRecoveryStage = 0;
+    self.awaitingPlaylistRefill = NO;
+    return NO;
+  }
+
+  if (self.awaitingPlaylistRefill) {
+    return YES;
+  }
+
+  if (self.catastrophicRecoveryStage == 0) {
+    [self requestPlaylistRefillAfterStreamFailure];
+    return YES;
+  }
+
+  if (self.catastrophicRecoveryStage == 1) {
+    [self skipSongAfterFailedReplacement];
+    return YES;
+  }
+
+  return NO;
+}
+
+- (void)requestPlaylistRefillAfterStreamFailure {
+  self.catastrophicRecoveryStage = 1;
+  self.awaitingPlaylistRefill = YES;
+  tries = 0;
+  retrying = NO;
+  [self stop];
+  [self clearSongList];
+  [self play];
+}
+
+- (void)skipSongAfterFailedReplacement {
+  self.catastrophicRecoveryStage = 2;
+  self.awaitingPlaylistRefill = NO;
+  if ([urls count] == 0) {
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:ASRunningOutOfSongs
+                      object:self];
+  }
+  [self next];
 }
 
 #ifdef DEBUG

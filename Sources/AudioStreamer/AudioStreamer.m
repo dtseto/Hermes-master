@@ -39,12 +39,14 @@
 /* Default number and size of audio queue buffers */
 #define kDefaultNumAQBufs 16
 #define kDefaultAQDefaultBufSize 2048
-#define HMS_MAX_TRANSIENT_RETRIES_DEFAULT 3
+#define HMS_MAX_TRANSIENT_RETRIES_DEFAULT 5
 #define HMS_RETRY_BACKOFF_DEFAULT 1.0
 #define HMS_RETRY_BACKOFF_MAX 5.0
 #define kMaxFormatSniffBytes (256 * 1024)
-#define kStartupBufferSeconds 3.0
+#define kStartupBufferSeconds 5.0
 #define kStartupBufferMinimumBuffers 6
+#define kContentLengthToleranceFraction 0.02
+#define kContentLengthToleranceMinimum (32 * 1024)
 
 #define CHECK_ERR(err, code) {                                                 \
     if (err) { [self failWithErrorCode:code]; return; }                        \
@@ -84,6 +86,8 @@ NSString * const ASStreamErrorUnderlyingErrorKey = @"underlyingError";
 @property (nonatomic, assign) double startupBufferedDuration;
 @property (nonatomic, assign) BOOL startupBufferSatisfied;
 @property (nonatomic, assign) BOOL hasAudioQueueStarted;
+@property (nonatomic, strong, nullable) NSTimer *bufferHealthTimer;
+@property (nonatomic, assign) NSTimeInterval playbackStartTimestamp;
 
 - (void)handleFailureSynchronouslyWithCode:(AudioStreamerErrorCode)anErrorCode;
 - (void)prepareForRetry;
@@ -94,6 +98,9 @@ NSString * const ASStreamErrorUnderlyingErrorKey = @"underlyingError";
 - (BOOL)attemptADTSFallbackReplayingBufferedDataWithBytes:(const void *)bytes
                                                    length:(UInt32)length
                                                     error:(OSStatus)error;
+- (void)startBufferHealthMonitor;
+- (void)stopBufferHealthMonitor;
+- (void)checkBufferHealth;
 
 - (void)handlePropertyChangeForFileStream:(AudioFileStreamID)inAudioFileStream
                      fileStreamPropertyID:(AudioFileStreamPropertyID)inPropertyID
@@ -199,6 +206,7 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
         _startupBufferedDuration = 0.0;
         _startupBufferSatisfied = NO;
         _hasAudioQueueStarted = NO;
+        _playbackStartTimestamp = 0.0;
     }
     return self;
 }
@@ -417,7 +425,6 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
 
   self.expectedContentLength = -1;
   self.totalBytesReceived = 0;
-  self.totalBytesReceived = 0;
   self.startupBufferedDuration = 0.0;
   self.startupBufferSatisfied = NO;
   self.hasAudioQueueStarted = NO;
@@ -473,6 +480,7 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
     audioQueue = nil;
     self.hasAudioQueueStarted = NO;
   }
+  [self stopBufferHealthMonitor];
   if (buffers != NULL) {
     free(buffers);
     buffers = NULL;
@@ -1045,9 +1053,15 @@ didCompleteWithError:(NSError *)error {
     return;
   }
   
-  BOOL transferIncomplete = (self.expectedContentLength > 0 &&
-                             self.totalBytesReceived > 0 &&
-                             (int64_t)self.totalBytesReceived < self.expectedContentLength);
+  BOOL transferIncomplete = NO;
+  if (self.expectedContentLength > 0 && self.totalBytesReceived > 0) {
+    int64_t shortfall = (int64_t)self.expectedContentLength - (int64_t)self.totalBytesReceived;
+    int64_t tolerance = (int64_t)(self.expectedContentLength * kContentLengthToleranceFraction);
+    if (tolerance < kContentLengthToleranceMinimum) {
+      tolerance = kContentLengthToleranceMinimum;
+    }
+    transferIncomplete = shortfall > tolerance;
+  }
   if (!error && transferIncomplete) {
     error = [NSError errorWithDomain:NSURLErrorDomain
                                 code:NSURLErrorNetworkConnectionLost
@@ -1090,6 +1104,7 @@ didCompleteWithError:(NSError *)error {
     }
   }
   self.expectedContentLength = -1;
+  self.totalBytesReceived = 0;
   self.totalBytesReceived = 0;
 }
 
@@ -1509,14 +1524,21 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
       self.retryAttemptCount = 0;
       self.retryScheduled = NO;
       self.retryResumeTime = 0.0;
+      self.playbackStartTimestamp = CFAbsoluteTimeGetCurrent();
+      [self startBufferHealthMonitor];
       break;
     case AS_STOPPED:
       self.retryScheduled = NO;
       self.retryResumeTime = 0.0;
+      [self stopBufferHealthMonitor];
       break;
     case AS_PAUSED:
+      [self stopBufferHealthMonitor];
       break;
     default:
+      if (newState != AS_WAITING_FOR_QUEUE_TO_START) {
+        [self stopBufferHealthMonitor];
+      }
       break;
   }
 }
@@ -1582,6 +1604,64 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
   }
 
   return YES;
+}
+
+- (void)startBufferHealthMonitor {
+  if (self.bufferHealthTimer != nil) {
+    return;
+  }
+  void (^schedule)(void) = ^{
+    if (self.bufferHealthTimer != nil) {
+      return;
+    }
+    self.bufferHealthTimer = [NSTimer scheduledTimerWithTimeInterval:1.0
+                                                              target:self
+                                                            selector:@selector(checkBufferHealth)
+                                                            userInfo:nil
+                                                             repeats:YES];
+  };
+  if ([NSThread isMainThread]) {
+    schedule();
+  } else {
+    dispatch_async(dispatch_get_main_queue(), schedule);
+  }
+}
+
+- (void)stopBufferHealthMonitor {
+  void (^invalidate)(void) = ^{
+    [self.bufferHealthTimer invalidate];
+    self.bufferHealthTimer = nil;
+  };
+  if ([NSThread isMainThread]) {
+    invalidate();
+  } else {
+    dispatch_async(dispatch_get_main_queue(), invalidate);
+  }
+}
+
+- (void)checkBufferHealth {
+  if (state_ != AS_PLAYING) {
+    [self stopBufferHealthMonitor];
+    return;
+  }
+  if (self.retryScheduled) {
+    return;
+  }
+  if (bufferManager == nil) {
+    return;
+  }
+  UInt32 used = bufferManager.buffersUsed;
+  if (used >= 2) {
+    return;
+  }
+  if (dataTask && dataTask.state == NSURLSessionTaskStateRunning) {
+    return;
+  }
+  NSTimeInterval elapsed = CFAbsoluteTimeGetCurrent() - self.playbackStartTimestamp;
+  if (elapsed < kStartupBufferSeconds) {
+    return;
+  }
+  [self failWithErrorCode:AS_TIMED_OUT];
 }
 
 @end
