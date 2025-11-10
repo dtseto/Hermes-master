@@ -91,4 +91,27 @@
   XCTAssertEqual(streamer.startInvocationCount, 2U);
 }
 
+- (void)testStateTransitionsResetRetryBookkeeping {
+  TestRetryAudioStreamer *streamer = [[TestRetryAudioStreamer alloc] init];
+  [streamer setValue:@3 forKey:@"retryAttemptCount"];
+  [streamer setValue:@YES forKey:@"retryScheduled"];
+  [streamer setValue:@(12.5) forKey:@"retryResumeTime"];
+  [streamer setValue:@(AS_WAITING_FOR_DATA) forKey:@"state_"];
+
+  SEL setStateSEL = NSSelectorFromString(@"setState:");
+  ((void (*)(id, SEL, AudioStreamerState))objc_msgSend)(streamer, setStateSEL, AS_PLAYING);
+
+  XCTAssertEqual(streamer.retryAttemptCount, 0U);
+  XCTAssertFalse(streamer.retryScheduled);
+  XCTAssertEqual(streamer.retryResumeTime, 0.0);
+
+  [streamer setValue:@YES forKey:@"retryScheduled"];
+  [streamer setValue:@(8.0) forKey:@"retryResumeTime"];
+
+  ((void (*)(id, SEL, AudioStreamerState))objc_msgSend)(streamer, setStateSEL, AS_STOPPED);
+
+  XCTAssertFalse(streamer.retryScheduled);
+  XCTAssertEqual(streamer.retryResumeTime, 0.0);
+}
+
 @end

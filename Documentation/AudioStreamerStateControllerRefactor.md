@@ -8,11 +8,10 @@ The XCTest coverage for the controller lives in `Sources/AudioStreamer/AudioStre
 
 ### Migration notes
 
-- `AudioStreamer` now instantiates `AudioStreamerStateController` but retains the legacy logic as a fallback (`legacyTransitionToState:` and `handleFailureSynchronouslyWithCode:`) to guarantee behaviour matches older builds even if the controller is unavailable. This preserves backwards compatibility and makes reversion simple.
+- `AudioStreamer` now instantiates `AudioStreamerStateController` and requires it for all state transitions. Retry bookkeeping (like clearing transient counters) still lives in `AudioStreamer`, but the controller owns notification fan-out and thread hopping so there is only one codepath to audit.
 - `failWithErrorCode:` routes through the controller for thread-hopping but the error-code gating still occurs inside `AudioStreamer`, which keeps existing error semantics intact.
 - Tests sit alongside the production sources because the sandbox prevented creating a dedicated `Tests/` directory. They can be moved into a formal test target as part of integration.
 
 ### Reverting
 
-To revert the change, remove `AudioStreamerStateController.{h,m}` and the associated test file, delete the helper import/property from `AudioStreamer.m`, and restore the original `setState:` and `failWithErrorCode:` implementations (now preserved in `legacyTransitionToState:` and `handleFailureSynchronouslyWithCode:`). The project file entries for the controller can then be dropped to return to the prior build graph.
-
+To revert the change, remove `AudioStreamerStateController.{h,m}` and the associated test file, delete the helper import/property from `AudioStreamer.m`, and restore the original `setState:` and `failWithErrorCode:` implementations that used to live inline (including the notification/distributed notification plumbing). The project file entries for the controller can then be dropped to return to the prior build graph.

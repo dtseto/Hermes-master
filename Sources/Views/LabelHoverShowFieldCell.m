@@ -14,7 +14,7 @@
     NSRect drawingRect = [super drawingRectForBounds:theRect];
     
     NSView *hoverView = [(LabelHoverShowField *)[self controlView] hoverView];
-    if (hoverView != nil) {
+    if (hoverView != nil && !hoverView.isHidden) {
         CGFloat hoverViewWidth = hoverView.frame.size.width;
         drawingRect.origin.x += hoverViewWidth;
         drawingRect.size.width -= 2 * hoverViewWidth;

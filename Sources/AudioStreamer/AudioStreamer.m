@@ -42,6 +42,9 @@
 #define HMS_MAX_TRANSIENT_RETRIES_DEFAULT 3
 #define HMS_RETRY_BACKOFF_DEFAULT 1.0
 #define HMS_RETRY_BACKOFF_MAX 5.0
+#define kMaxFormatSniffBytes (256 * 1024)
+#define kStartupBufferSeconds 3.0
+#define kStartupBufferMinimumBuffers 6
 
 #define CHECK_ERR(err, code) {                                                 \
     if (err) { [self failWithErrorCode:code]; return; }                        \
@@ -66,18 +69,31 @@ NSString * const ASStreamErrorUnderlyingErrorKey = @"underlyingError";
 @property (nonatomic, assign) BOOL isStateChanging;
 @property (nonatomic, assign) NSTimeInterval lastPlayCall;
 @property (nonatomic, assign) NSTimeInterval lastPauseCall;
-@property (nonatomic, strong) AudioStreamerStateController *stateController;
+@property (nonatomic, strong) AudioStreamerStateController * _Nonnull stateController;
 @property (nonatomic, readwrite) NSUInteger retryAttemptCount;
 @property (nonatomic, assign) NSUInteger retryGeneration;
 @property (nonatomic, assign) NSTimeInterval retryBackoffInterval;
 @property (nonatomic, readwrite) BOOL retryScheduled;
 @property (nonatomic, readwrite) double retryResumeTime;
+@property (nonatomic, assign) AudioFileTypeID currentFileTypeHint;
+@property (nonatomic, assign) BOOL parserReadyForPackets;
+@property (nonatomic, strong, nullable) NSMutableData *formatSniffBuffer;
+@property (nonatomic, assign) BOOL adtsFallbackAttempted;
+@property (nonatomic, assign) int64_t expectedContentLength;
+@property (nonatomic, assign) uint64_t totalBytesReceived;
+@property (nonatomic, assign) double startupBufferedDuration;
+@property (nonatomic, assign) BOOL startupBufferSatisfied;
+@property (nonatomic, assign) BOOL hasAudioQueueStarted;
 
-- (void)legacyTransitionToState:(AudioStreamerState)newState;
 - (void)handleFailureSynchronouslyWithCode:(AudioStreamerErrorCode)anErrorCode;
 - (void)prepareForRetry;
 - (void)scheduleRetryForError:(AudioStreamerErrorCode)errorCode;
 - (void)teardownAudioResources;
+- (void)applyRetrySideEffectsForState:(AudioStreamerState)newState;
+- (OSStatus)openAudioFileStreamWithHint:(AudioFileTypeID)hint;
+- (BOOL)attemptADTSFallbackReplayingBufferedDataWithBytes:(const void *)bytes
+                                                   length:(UInt32)length
+                                                    error:(OSStatus)error;
 
 - (void)handlePropertyChangeForFileStream:(AudioFileStreamID)inAudioFileStream
                      fileStreamPropertyID:(AudioFileStreamPropertyID)inPropertyID
@@ -175,6 +191,14 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
         _retryGeneration = 0;
         _retryScheduled = NO;
         _retryResumeTime = 0.0;
+        _currentFileTypeHint = 0;
+        _parserReadyForPackets = NO;
+        _adtsFallbackAttempted = NO;
+        _expectedContentLength = -1;
+        _totalBytesReceived = 0;
+        _startupBufferedDuration = 0.0;
+        _startupBufferSatisfied = NO;
+        _hasAudioQueueStarted = NO;
     }
     return self;
 }
@@ -391,6 +415,13 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
     return NO;
   }
 
+  self.expectedContentLength = -1;
+  self.totalBytesReceived = 0;
+  self.totalBytesReceived = 0;
+  self.startupBufferedDuration = 0.0;
+  self.startupBufferSatisfied = NO;
+  self.hasAudioQueueStarted = NO;
+
   AudioStreamerStateController *controller = self.stateController;
   if (controller) {
     [controller disableStopEnforcement];
@@ -428,12 +459,19 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
     err = AudioFileStreamClose(audioFileStream);
     assert(!err);
     audioFileStream = nil;
+    self.formatSniffBuffer = nil;
+    self.parserReadyForPackets = NO;
+    self.adtsFallbackAttempted = NO;
+    self.currentFileTypeHint = 0;
+    self.startupBufferedDuration = 0.0;
+    self.startupBufferSatisfied = NO;
   }
   if (audioQueue) {
     AudioQueueStop(audioQueue, true);
     err = AudioQueueDispose(audioQueue, true);
     assert(!err);
     audioQueue = nil;
+    self.hasAudioQueueStarted = NO;
   }
   if (buffers != NULL) {
     free(buffers);
@@ -652,78 +690,23 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
     [bufferManager abortPendingData];
   }
   AudioStreamerStateController *controller = self.stateController;
-  if (controller) {
-      if (![controller performBlockOnTargetQueue:^{
-              [self handleFailureSynchronouslyWithCode:anErrorCode];
-            }]) {
-          return;
-      }
-      return;
-  }
-  if (![NSThread isMainThread]) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [self failWithErrorCode:anErrorCode];
-    });
+  NSParameterAssert(controller != nil);
+  if (![controller performBlockOnTargetQueue:^{
+          [self handleFailureSynchronouslyWithCode:anErrorCode];
+        }]) {
     return;
   }
-  [self handleFailureSynchronouslyWithCode:anErrorCode];
+  return;
 }
 
 - (void)setState:(AudioStreamerState)aStatus {
-    AudioStreamerStateController *controller = self.stateController;
-    if (controller) {
-        [controller transitionToState:aStatus];
-        return;
-    }
-    [self legacyTransitionToState:aStatus];
-}
-
-- (void)legacyTransitionToState:(AudioStreamerState)aStatus {
-  if (state_ == aStatus) {
-    return;
+  AudioStreamerState previousState = state_;
+  if (previousState != aStatus) {
+    [self applyRetrySideEffectsForState:aStatus];
   }
-
-  if (![NSThread isMainThread]) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [self legacyTransitionToState:aStatus];
-    });
-    return;
-  }
-
-  NSLog(@"State transition: %d -> %d", state_, aStatus);
-  state_ = aStatus;
-
-  [[NSNotificationCenter defaultCenter]
-     postNotificationName:ASStatusChangedNotification
-                   object:self];
-
-  NSString *statusString = nil;
-  switch (aStatus) {
-    case AS_PLAYING:
-      statusString = @"playing";
-      self.retryAttemptCount = 0;
-      self.retryScheduled = NO;
-      self.retryResumeTime = 0.0;
-      break;
-    case AS_PAUSED:
-      statusString = @"paused";
-      break;
-    case AS_STOPPED:
-      statusString = @"stopped";
-      self.retryScheduled = NO;
-      self.retryResumeTime = 0.0;
-      break;
-    default:
-      break;
-  }
-
-  if (statusString) {
-    [[NSDistributedNotificationCenter defaultCenter]
-       postNotificationName:ASDidChangeStateDistributedNotification
-                     object:@"hermes"
-                   userInfo:@{ @"state" : statusString }
-        deliverImmediately:YES];
-  }
+  AudioStreamerStateController *controller = self.stateController;
+  NSParameterAssert(controller != nil);
+  [controller transitionToState:aStatus];
 }
 
 - (void)handleFailureSynchronouslyWithCode:(AudioStreamerErrorCode)anErrorCode {
@@ -952,11 +935,19 @@ completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))complet
   if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
     NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
     httpHeaders = httpResponse.allHeaderFields;
+    long long declaredLength = httpResponse.expectedContentLength;
     
     // Only read the content length if we seeked to time zero, otherwise
     // we only have a subset of the total bytes.
     if (seekByteOffset == 0) {
-      fileLength = [httpResponse.allHeaderFields[@"Content-Length"] integerValue];
+      NSNumber *contentLengthNumber = httpResponse.allHeaderFields[@"Content-Length"];
+      if ([contentLengthNumber respondsToSelector:@selector(longLongValue)]) {
+        declaredLength = [contentLengthNumber longLongValue];
+      }
+      fileLength = declaredLength;
+    }
+    if (declaredLength > 0) {
+      self.expectedContentLength = declaredLength;
     }
   }
   
@@ -976,12 +967,14 @@ completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))complet
 
     NSLog(@"Creating AudioFileStream with fileType: 0x%x (%u)", (unsigned int)fileType, (unsigned int)fileType);
 
-    // Create an audio file stream parser
-    err = AudioFileStreamOpen((__bridge void*) self, MyPropertyListenerProc,
-                              MyPacketsProc, kAudioFileAAC_ADTSType, &audioFileStream);
-    NSLog(@"AudioFileStreamOpen result: %d", (int)err);
-
-    CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED);
+    OSStatus openErr = [self openAudioFileStreamWithHint:fileType];
+    NSLog(@"AudioFileStreamOpen result: %d", (int)openErr);
+    if (openErr) {
+      [self failWithErrorCode:AS_FILE_STREAM_OPEN_FAILED];
+      completionHandler(NSURLSessionResponseCancel);
+      return;
+    }
+    self.adtsFallbackAttempted = (fileType == kAudioFileAAC_ADTSType);
   }
   
   // Continue with the task
@@ -1004,16 +997,41 @@ didReceiveData:(NSData *)data {
   if (length <= 0) {
     return;
   }
+  self.totalBytesReceived += length;
   
   // Parse the data through the audio file stream
   const void *bytes = [data bytes];
-  if (discontinuous) {
-    err = AudioFileStreamParseBytes(audioFileStream, (UInt32)length, bytes,
-                                    kAudioFileStreamParseFlag_Discontinuity);
-  } else {
-    err = AudioFileStreamParseBytes(audioFileStream, (UInt32)length, bytes, 0);
+
+  if (!self.parserReadyForPackets) {
+    if (self.formatSniffBuffer == nil) {
+      self.formatSniffBuffer = [NSMutableData data];
+    }
+    NSUInteger remainingCapacity = (self.formatSniffBuffer.length < kMaxFormatSniffBytes)
+      ? (kMaxFormatSniffBytes - self.formatSniffBuffer.length)
+      : 0;
+    if (remainingCapacity > 0) {
+      NSUInteger copyLength = MIN(length, remainingCapacity);
+      [self.formatSniffBuffer appendBytes:bytes length:copyLength];
+    }
   }
-  CHECK_ERR(err, AS_FILE_STREAM_PARSE_BYTES_FAILED);
+
+  OSStatus parseErr;
+  if (discontinuous) {
+    parseErr = AudioFileStreamParseBytes(audioFileStream, (UInt32)length, bytes,
+                                         kAudioFileStreamParseFlag_Discontinuity);
+  } else {
+    parseErr = AudioFileStreamParseBytes(audioFileStream, (UInt32)length, bytes, 0);
+  }
+
+  if (parseErr) {
+    if ([self attemptADTSFallbackReplayingBufferedDataWithBytes:bytes
+                                                        length:(UInt32)length
+                                                         error:parseErr]) {
+      return;
+    }
+    [self failWithErrorCode:AS_FILE_STREAM_PARSE_BYTES_FAILED];
+    return;
+  }
 }
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
@@ -1027,6 +1045,15 @@ didCompleteWithError:(NSError *)error {
     return;
   }
   
+  BOOL transferIncomplete = (self.expectedContentLength > 0 &&
+                             self.totalBytesReceived > 0 &&
+                             (int64_t)self.totalBytesReceived < self.expectedContentLength);
+  if (!error && transferIncomplete) {
+    error = [NSError errorWithDomain:NSURLErrorDomain
+                                code:NSURLErrorNetworkConnectionLost
+                            userInfo:@{ NSLocalizedDescriptionKey : @"Stream ended before all bytes were received." }];
+  }
+
   if (error) {
     networkError = error;
     if (bufferManager != nil) {
@@ -1062,6 +1089,8 @@ didCompleteWithError:(NSError *)error {
       return;
     }
   }
+  self.expectedContentLength = -1;
+  self.totalBytesReceived = 0;
 }
 
 // Handle task suspension when waiting for buffer
@@ -1200,6 +1229,8 @@ ioFlags:(UInt32 *)ioFlags {
     case kAudioFileStreamProperty_ReadyToProducePackets:
       LOG(@"ready for packets");
       discontinuous = true;
+      self.parserReadyForPackets = YES;
+      self.formatSniffBuffer = nil;
       break;
       
     case kAudioFileStreamProperty_DataOffset: {
@@ -1266,6 +1297,21 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
   for (i = 0; i < inNumberPackets; i++) {
     AudioStreamPacketDescription desc = inPacketDescriptions[i];
     const void *packetData = inputBytes + desc.mStartOffset;
+
+    if (!self.startupBufferSatisfied &&
+        !self.hasAudioQueueStarted &&
+        asbd.mSampleRate > 0) {
+      double frames = desc.mVariableFramesInPacket;
+      if (frames == 0 && asbd.mFramesPerPacket > 0) {
+        frames = asbd.mFramesPerPacket;
+      }
+      if (frames > 0) {
+        self.startupBufferedDuration += frames / asbd.mSampleRate;
+        if (self.startupBufferedDuration >= kStartupBufferSeconds) {
+          self.startupBufferSatisfied = YES;
+        }
+      }
+    }
 
     AudioBufferManagerEnqueueResult result =
       [bufferManager handlePacketData:packetData description:desc];
@@ -1400,7 +1446,24 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
   if (state_ != AS_WAITING_FOR_DATA) {
     return NO;
   }
-  return (bufferCnt < 3 || manager.buffersUsed > 2);
+  if (self.hasAudioQueueStarted) {
+    return NO;
+  }
+  if (!self.startupBufferSatisfied) {
+    UInt32 requiredBuffers = bufferCnt < kStartupBufferMinimumBuffers
+      ? bufferCnt
+      : kStartupBufferMinimumBuffers;
+    if (requiredBuffers == 0) {
+      requiredBuffers = 1;
+    }
+    if (self.startupBufferedDuration >= kStartupBufferSeconds &&
+        manager.buffersUsed >= requiredBuffers) {
+      self.startupBufferSatisfied = YES;
+    } else {
+      return NO;
+    }
+  }
+  return YES;
 }
 
 - (void)audioBufferManagerStartQueue:(AudioBufferManager *)manager {
@@ -1409,6 +1472,8 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
     [self failWithErrorCode:AS_AUDIO_QUEUE_START_FAILED];
     return;
   }
+  self.startupBufferSatisfied = YES;
+  self.hasAudioQueueStarted = YES;
   [self setState:AS_WAITING_FOR_QUEUE_TO_START];
 }
 
@@ -1436,6 +1501,87 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
 
 - (void)simulateErrorForTesting:(AudioStreamerErrorCode)code {
   [self failWithErrorCode:code];
+}
+
+- (void)applyRetrySideEffectsForState:(AudioStreamerState)newState {
+  switch (newState) {
+    case AS_PLAYING:
+      self.retryAttemptCount = 0;
+      self.retryScheduled = NO;
+      self.retryResumeTime = 0.0;
+      break;
+    case AS_STOPPED:
+      self.retryScheduled = NO;
+      self.retryResumeTime = 0.0;
+      break;
+    case AS_PAUSED:
+      break;
+    default:
+      break;
+  }
+}
+
+- (OSStatus)openAudioFileStreamWithHint:(AudioFileTypeID)hint {
+  if (audioFileStream) {
+    AudioFileStreamClose(audioFileStream);
+    audioFileStream = nil;
+  }
+  self.currentFileTypeHint = hint;
+  self.parserReadyForPackets = NO;
+  if (self.formatSniffBuffer == nil) {
+    self.formatSniffBuffer = [NSMutableData data];
+  } else {
+    [self.formatSniffBuffer setLength:0];
+  }
+  OSStatus openErr = AudioFileStreamOpen((__bridge void *)self,
+                                         MyPropertyListenerProc,
+                                         MyPacketsProc,
+                                         hint,
+                                         &audioFileStream);
+  if (openErr) {
+    self.formatSniffBuffer = nil;
+    self.currentFileTypeHint = 0;
+  }
+  return openErr;
+}
+
+- (BOOL)attemptADTSFallbackReplayingBufferedDataWithBytes:(const void *)bytes
+                                                   length:(UInt32)length
+                                                    error:(OSStatus)error {
+  if (self.adtsFallbackAttempted ||
+      self.parserReadyForPackets ||
+      self.currentFileTypeHint == kAudioFileAAC_ADTSType) {
+    return NO;
+  }
+
+  self.adtsFallbackAttempted = YES;
+  NSLog(@"AudioFileStream parse failed with error %d using hint 0x%x; retrying with ADTS",
+        (int)error,
+        (unsigned int)self.currentFileTypeHint);
+
+  NSMutableData *replayData = self.formatSniffBuffer;
+  if (replayData == nil && bytes != NULL && length > 0) {
+    replayData = [NSMutableData dataWithBytes:bytes length:length];
+  }
+
+  OSStatus reopenErr = [self openAudioFileStreamWithHint:kAudioFileAAC_ADTSType];
+  if (reopenErr) {
+    NSLog(@"ADTS fallback failed to open stream: %d", (int)reopenErr);
+    return NO;
+  }
+
+  if (replayData.length > 0) {
+    OSStatus replayErr = AudioFileStreamParseBytes(audioFileStream,
+                                                   (UInt32)replayData.length,
+                                                   replayData.bytes,
+                                                   kAudioFileStreamParseFlag_Discontinuity);
+    if (replayErr) {
+      NSLog(@"ADTS fallback replay failed: %d", (int)replayErr);
+      return NO;
+    }
+  }
+
+  return YES;
 }
 
 @end
