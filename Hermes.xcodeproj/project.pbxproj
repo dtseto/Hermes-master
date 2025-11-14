@@ -15,8 +15,7 @@
 		0F795D7B2EB7D51D0009B05D /* default.metallib in Resources */ = {isa = PBXBuildFile; fileRef = 0F795D7A2EB7D51D0009B05D /* default.metallib */; };
 		0F828EA42CD93B7200C35281 /* NotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F828EA32CD93A5900C35281 /* NotificationManager.m */; };
 		0F9B74682E2AE8A300AFFD8B /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F9B74672E2AE8A300AFFD8B /* UserNotifications.framework */; };
-		0F9B74692E2AF51C00AFFD8B /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAD42F8713678F7500E935CA /* Sparkle.framework */; };
-		0F9B746A2E2AF51C00AFFD8B /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FAD42F8713678F7500E935CA /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0F9B74692E2AF51C00AFFD8B /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAD42F8713678F7500E935CA /* Sparkle.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD58140DA1D0A300B32029 /* MainMenu.xib */; };
 		441C9F0D1CC80635000A0302 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9728D8A5158C3E7C00C078A4 /* AudioToolbox.framework */; };
 		441C9F0E1CC80AA0000A0302 /* ASPlaylist.m in Sources */ = {isa = PBXBuildFile; fileRef = FA99E25A15E4B7EA005AB6E6 /* ASPlaylist.m */; };
@@ -30,6 +29,7 @@
 		44DFC8E018FDFCBC007422DC /* Notifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 44DFC8DF18FDFCBC007422DC /* Notifications.m */; };
 		4A5B5B6D2F9C3CEC00B1F7A3 /* AudioStreamerMetadata.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A5B5B6C2F9C3CEC00B1F7A3 /* AudioStreamerMetadata.m */; };
 		4A88BD712FA22D77007A8C9F /* AudioStreamerStateController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A88BD702FA22D77007A8C9F /* AudioStreamerStateController.m */; };
+		7D9A0A0D2FB8B8AA008B9F3C /* AudioStreamerBufferHealthTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D9A0A0C2FB8B8AA008B9F3C /* AudioStreamerBufferHealthTests.m */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -42,6 +42,7 @@
 		97539FAD158442A500D1E65C /* URLConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 97539FAC158442A500D1E65C /* URLConnection.m */; };
 		97E0DA35159EDF7C00BEA465 /* radio.png in Resources */ = {isa = PBXBuildFile; fileRef = 97E0DA34159EDF7C00BEA465 /* radio.png */; };
 		B2A26AEF1AE39E9B00ADD460 /* MusicProgressSliderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B2A26AEE1AE39E9B00ADD460 /* MusicProgressSliderCell.m */; };
+		BF8C778833A4F74100F8BAA1 /* SUUpdaterStub.m in Sources */ = {isa = PBXBuildFile; fileRef = BF8C778733A4F74100F8BAA1 /* SUUpdaterStub.m */; };
 		E1200AA11CF2A4CC000D3215 /* LabelHoverShowField.m in Sources */ = {isa = PBXBuildFile; fileRef = E1200AA01CF2A4CC000D3215 /* LabelHoverShowField.m */; };
 		E1200AA41CF2B015000D3215 /* LabelHoverShowFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = E1200AA31CF2B015000D3215 /* LabelHoverShowFieldCell.m */; };
 		E124109A18EBAF6F007AF091 /* HermesApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E124109918EBAF6F007AF091 /* HermesApp.m */; };
@@ -108,7 +109,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				0F9B746A2E2AF51C00AFFD8B /* Sparkle.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -151,6 +151,7 @@
 		4A88BD6F2FA22D76007A8C9F /* AudioStreamerStateController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioStreamerStateController.h; sourceTree = "<group>"; };
 		4A88BD702FA22D77007A8C9F /* AudioStreamerStateController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioStreamerStateController.m; sourceTree = "<group>"; };
 		4ADB04B02FA383BF007182AF /* AudioStreamerDoubleStreamTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioStreamerDoubleStreamTests.m; sourceTree = "<group>"; };
+		7D9A0A0C2FB8B8AA008B9F3C /* AudioStreamerBufferHealthTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioStreamerBufferHealthTests.m; sourceTree = "<group>"; };
 		843B578919660680000898F2 /* NSObject+SPInvocationGrabbing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+SPInvocationGrabbing.h"; sourceTree = "<group>"; };
 		843B578A19660680000898F2 /* NSObject+SPInvocationGrabbing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+SPInvocationGrabbing.m"; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Hermes-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Hermes-Info.plist"; sourceTree = "<group>"; };
@@ -173,6 +174,7 @@
 		97E0DA34159EDF7C00BEA465 /* radio.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = radio.png; sourceTree = "<group>"; };
 		B2A26AED1AE39E9B00ADD460 /* MusicProgressSliderCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MusicProgressSliderCell.h; path = Views/MusicProgressSliderCell.h; sourceTree = "<group>"; };
 		B2A26AEE1AE39E9B00ADD460 /* MusicProgressSliderCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MusicProgressSliderCell.m; path = Views/MusicProgressSliderCell.m; sourceTree = "<group>"; };
+		BF8C778733A4F74100F8BAA1 /* SUUpdaterStub.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = SUUpdaterStub.m; path = Support/SUUpdaterStub.m; sourceTree = "<group>"; };
 		E1200A9F1CF2A4CC000D3215 /* LabelHoverShowField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LabelHoverShowField.h; path = Views/LabelHoverShowField.h; sourceTree = "<group>"; };
 		E1200AA01CF2A4CC000D3215 /* LabelHoverShowField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LabelHoverShowField.m; path = Views/LabelHoverShowField.m; sourceTree = "<group>"; };
 		E1200AA21CF2B015000D3215 /* LabelHoverShowFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LabelHoverShowFieldCell.h; path = Views/LabelHoverShowFieldCell.h; sourceTree = "<group>"; };
@@ -308,6 +310,7 @@
 				9717719C159EBBBF00EE3355 /* FileReader.m */,
 				44DFC8DE18FDFCBC007422DC /* Notifications.h */,
 				44DFC8DF18FDFCBC007422DC /* Notifications.m */,
+				BF8C778733A4F74100F8BAA1 /* SUUpdaterStub.m */,
 				B2A26AF01AE39E9F00ADD460 /* Views */,
 			);
 			path = Sources;
@@ -545,6 +548,7 @@
 				FA99E25A15E4B7EA005AB6E6 /* ASPlaylist.m */,
 				0F795D322EB6FAD50009B05D /* AudioStreamerDoubleStreamTests.m */,
 				0F795D2B2EB6F2860009B05D /* AudioStreamerMetadataTests.m */,
+				7D9A0A0C2FB8B8AA008B9F3C /* AudioStreamerBufferHealthTests.m */,
 				0F795D2C2EB6F2860009B05D /* AudioStreamerStateControllerTests.m */,
 				0F795D2F2EB6F2B00009B05D /* HermesTests-Bridging-Header.h */,
 			);
@@ -707,6 +711,7 @@
 				0F795D3A2EB8AAA00009B05D /* AudioBufferManagerTests.m in Sources */,
 				0F795D332EB6FAD50009B05D /* AudioStreamerDoubleStreamTests.m in Sources */,
 				0F795D2D2EB6F2860009B05D /* AudioStreamerMetadataTests.m in Sources */,
+				7D9A0A0D2FB8B8AA008B9F3C /* AudioStreamerBufferHealthTests.m in Sources */,
 				0F795D2E2EB6F2860009B05D /* AudioStreamerStateControllerTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -742,6 +747,7 @@
 				E145363D1D84CD4400DE7AFB /* HermesMainWindow.m in Sources */,
 				FA2442BB136B18DC00E126D3 /* PreferencesController.m in Sources */,
 				44DFC8E018FDFCBC007422DC /* Notifications.m in Sources */,
+				BF8C778833A4F74100F8BAA1 /* SUUpdaterStub.m in Sources */,
 				E124109A18EBAF6F007AF091 /* HermesApp.m in Sources */,
 				441C9F161CC86A74000A0302 /* AudioStreamer.m in Sources */,
 				4A88BD712FA22D77007A8C9F /* AudioStreamerStateController.m in Sources */,
@@ -907,12 +913,12 @@
 				);
 				LLVM_LTO = YES_THIN;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 2.0.0b3;
+				MARKETING_VERSION = 2.0.0b4;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.alexcrichton.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Hermes;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = hermesprovis;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				RUN_CLANG_STATIC_ANALYZER = YES;
 				WARNING_CFLAGS = (
 					"-Wall",
@@ -962,12 +968,12 @@
 				);
 				LLVM_LTO = YES_THIN;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 2.0.0b3;
+				MARKETING_VERSION = 2.0.0b4;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.alexcrichton.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Hermes;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = hermesprovis;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				RUN_CLANG_STATIC_ANALYZER = YES;
 				WARNING_CFLAGS = (
 					"-Wall",

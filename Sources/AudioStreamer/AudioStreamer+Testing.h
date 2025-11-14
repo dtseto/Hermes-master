@@ -16,6 +16,11 @@ NS_ASSUME_NONNULL_BEGIN
 /// occurs. Only intended for unit tests.
 - (void)simulateErrorForTesting:(AudioStreamerErrorCode)code;
 
+/// Starts the buffer health monitor, advances the supplied run loop briefly,
+/// and tears the timer back down so tests can exercise the timer lifecycle
+/// deterministically. Pass `[NSRunLoop mainRunLoop]` to mirror production.
+- (void)runBufferHealthMonitorOnceWithRunLoop:(NSRunLoop *)runLoop;
+
 @end
 
 NS_ASSUME_NONNULL_END

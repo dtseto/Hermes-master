@@ -101,6 +101,8 @@ NSString * const ASStreamErrorUnderlyingErrorKey = @"underlyingError";
 - (void)startBufferHealthMonitor;
 - (void)stopBufferHealthMonitor;
 - (void)checkBufferHealth;
+- (void)installBufferHealthTimerIfNeeded;
+- (void)invalidateBufferHealthTimer;
 
 - (void)handlePropertyChangeForFileStream:(AudioFileStreamID)inAudioFileStream
                      fileStreamPropertyID:(AudioFileStreamPropertyID)inPropertyID
@@ -1518,6 +1520,27 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
   [self failWithErrorCode:code];
 }
 
+- (void)runBufferHealthMonitorOnceWithRunLoop:(NSRunLoop *)runLoop {
+  if (runLoop == nil) {
+    return;
+  }
+  void (^driveTimer)(void) = ^{
+    [self startBufferHealthMonitor];
+    NSTimer *timer = self.bufferHealthTimer;
+    if (timer != nil) {
+      [timer fire];
+    }
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:0.05];
+    [runLoop runMode:NSDefaultRunLoopMode beforeDate:deadline];
+    [self stopBufferHealthMonitor];
+  };
+  if (runLoop == [NSRunLoop mainRunLoop] && ![NSThread isMainThread]) {
+    dispatch_sync(dispatch_get_main_queue(), driveTimer);
+  } else {
+    driveTimer();
+  }
+}
+
 - (void)applyRetrySideEffectsForState:(AudioStreamerState)newState {
   switch (newState) {
     case AS_PLAYING:
@@ -1610,33 +1633,55 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
   if (self.bufferHealthTimer != nil) {
     return;
   }
-  void (^schedule)(void) = ^{
-    if (self.bufferHealthTimer != nil) {
+  if ([NSThread isMainThread]) {
+    [self installBufferHealthTimerIfNeeded];
+    return;
+  }
+  __weak typeof(self) weakSelf = self;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (!strongSelf || strongSelf.bufferHealthTimer != nil) {
       return;
     }
-    self.bufferHealthTimer = [NSTimer scheduledTimerWithTimeInterval:1.0
-                                                              target:self
-                                                            selector:@selector(checkBufferHealth)
-                                                            userInfo:nil
-                                                             repeats:YES];
-  };
-  if ([NSThread isMainThread]) {
-    schedule();
-  } else {
-    dispatch_async(dispatch_get_main_queue(), schedule);
-  }
+    [strongSelf installBufferHealthTimerIfNeeded];
+  });
 }
 
 - (void)stopBufferHealthMonitor {
-  void (^invalidate)(void) = ^{
-    [self.bufferHealthTimer invalidate];
-    self.bufferHealthTimer = nil;
-  };
-  if ([NSThread isMainThread]) {
-    invalidate();
-  } else {
-    dispatch_async(dispatch_get_main_queue(), invalidate);
+  if (self.bufferHealthTimer == nil) {
+    return;
   }
+  if ([NSThread isMainThread]) {
+    [self invalidateBufferHealthTimer];
+    return;
+  }
+  __weak typeof(self) weakSelf = self;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (!strongSelf) {
+      return;
+    }
+    [strongSelf invalidateBufferHealthTimer];
+  });
+}
+
+- (void)installBufferHealthTimerIfNeeded {
+  if (self.bufferHealthTimer != nil) {
+    return;
+  }
+  self.bufferHealthTimer = [NSTimer scheduledTimerWithTimeInterval:1.0
+                                                            target:self
+                                                          selector:@selector(checkBufferHealth)
+                                                          userInfo:nil
+                                                           repeats:YES];
+}
+
+- (void)invalidateBufferHealthTimer {
+  if (self.bufferHealthTimer == nil) {
+    return;
+  }
+  [self.bufferHealthTimer invalidate];
+  self.bufferHealthTimer = nil;
 }
 
 - (void)checkBufferHealth {
