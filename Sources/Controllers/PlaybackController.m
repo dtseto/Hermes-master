@@ -34,6 +34,9 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 - (void)_setAllPossibleLabelsToFit:(NSArray *)toolbarItemLabels;
 @end
 
+@interface PlaybackController ()
+@end
+
 @implementation PlaybackController
 
 @synthesize playing;
@@ -254,6 +257,11 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
      selector:@selector(songPlayed:)
      name:StationDidPlaySongNotification
      object:nil];
+  [center
+     addObserver:self
+     selector:@selector(handleStationModesLoaded:)
+     name:PandoraDidLoadStationModesNotification
+     object:nil];
 
   // NSDistributedNotificationCenter is for interprocess communication.
   [[NSDistributedNotificationCenter defaultCenter] addObserver:self
@@ -279,6 +287,7 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   
   // prevent dragging the progress slider
   [playbackProgress setEnabled:NO];
+  [self configureStationModesUI];
 
   // Media keys
   if ([MPRemoteCommandCenter class] != nil) {
@@ -626,6 +635,7 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   }
 
   playing = station;
+  [self refreshStationModesForStation:station];
 
   if (station == nil) {
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:LAST_STATION_KEY];
@@ -793,6 +803,98 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 
   NSURL *url = [NSURL URLWithString:[[playing playingSong] albumUrl]];
   [[NSWorkspace sharedWorkspace] openURL:url];
+}
+
+#pragma mark - Station Modes
+
+- (void)configureStationModesUI {
+  if (!stationModeLabel || !stationModesMenu || !stationModesMenuItem) {
+    return;
+  }
+  stationModeLabel.hidden = YES;
+  stationModeLabel.stringValue = @"Station Mode";
+  stationModeLabel.textColor = [NSColor secondaryLabelColor];
+  [stationModesMenu setAutoenablesItems:NO];
+  [self clearStationModeMenu];
+}
+
+- (void)refreshStationModesForStation:(Station *)station {
+  if (!stationModeLabel) {
+    return;
+  }
+  [self clearStationModeMenu];
+  if (station == nil) {
+    stationModeLabel.hidden = YES;
+    return;
+  }
+  stationModeLabel.hidden = NO;
+  stationModeLabel.textColor = [NSColor secondaryLabelColor];
+  stationModeLabel.stringValue = @"Station Mode: Loading…";
+  [[self pandora] fetchStationModesForStation:station];
+}
+
+- (void)handleStationModesLoaded:(NSNotification *)notification {
+  Station *station = notification.object;
+  if (station == nil || station != playing) {
+    return;
+  }
+  NSDictionary *payload = notification.userInfo;
+  NSArray *modes = payload[@"modes"];
+  if (![modes isKindOfClass:[NSArray class]] || [modes count] == 0) {
+    [self showStationModesUnavailable];
+    return;
+  }
+  [self populateStationModeMenuWithEntries:modes];
+}
+
+- (void)populateStationModeMenuWithEntries:(NSArray<NSDictionary *> *)entries {
+  if (!stationModesMenu || !stationModesMenuItem || entries.count == 0) {
+    [self showStationModesUnavailable];
+    return;
+  }
+  [stationModesMenu removeAllItems];
+  NSString *currentModeName = nil;
+  for (NSDictionary *entry in entries) {
+    NSString *name = [entry[@"name"] isKindOfClass:[NSString class]] ? entry[@"name"] : nil;
+    if (name.length == 0) {
+      continue;
+    }
+    BOOL isCurrent = [entry[@"current"] boolValue];
+    NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:name action:NULL keyEquivalent:@""];
+    item.enabled = NO;
+    item.state = isCurrent ? NSControlStateValueOn : NSControlStateValueOff;
+    [stationModesMenu addItem:item];
+    if (isCurrent) {
+      currentModeName = name;
+    }
+  }
+  if (stationModesMenu.numberOfItems == 0) {
+    [self showStationModesUnavailable];
+    return;
+  }
+  stationModeLabel.hidden = NO;
+  stationModeLabel.textColor = [NSColor secondaryLabelColor];
+  NSString *displayName = currentModeName.length > 0 ? currentModeName : @"—";
+  stationModeLabel.stringValue = [NSString stringWithFormat:@"Station Mode: %@", displayName];
+  [stationModesMenuItem setEnabled:YES];
+}
+
+- (void)showStationModesUnavailable {
+  if (!stationModeLabel) {
+    return;
+  }
+  stationModeLabel.hidden = NO;
+  stationModeLabel.textColor = [NSColor secondaryLabelColor];
+  stationModeLabel.stringValue = @"Station Mode: Unavailable";
+  [self clearStationModeMenu];
+}
+
+- (void)clearStationModeMenu {
+  if (!stationModesMenu || !stationModesMenuItem) {
+    return;
+  }
+  [stationModesMenu removeAllItems];
+  [stationModesMenuItem setEnabled:NO];
 }
 
 - (void) setIntegerVolume: (NSInteger) vol {

@@ -233,6 +233,16 @@ typedef void(^PandoraCallback)(NSDictionary*);
  */
 - (BOOL) fetchStationInfo: (Station*) station;
 
+/**
+ * @brief Fetch the list of available station modes for the provided station.
+ *
+ * Fires PandoraDidLoadStationModesNotification with the station as the object
+ * and a userInfo dictionary describing each mode.
+ *
+ * @param station the station whose modes should be fetched.
+ */
+- (BOOL) fetchStationModesForStation:(Station *)station;
+
 #pragma mark Seed & Feedback Management (see also Song Manipulation)
 
 /**
@@ -346,4 +356,3 @@ typedef void(^PandoraCallback)(NSDictionary*);
 - (BOOL) sendRequest: (PandoraRequest*) request;
 
 @end
-

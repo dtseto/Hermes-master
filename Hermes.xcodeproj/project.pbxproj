@@ -12,6 +12,8 @@
 		0F795D332EB6FAD50009B05D /* AudioStreamerDoubleStreamTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F795D322EB6FAD50009B05D /* AudioStreamerDoubleStreamTests.m */; };
 		0F795D352EB711670009B05D /* AudioBufferManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F795D342EB711670009B05D /* AudioBufferManager.m */; };
 		0F795D3A2EB8AAA00009B05D /* AudioBufferManagerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F795D382EB8AAA00009B05D /* AudioBufferManagerTests.m */; };
+		7D4EA0A42FB8C6A2007A1234 /* StationModeParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D4EA0A22FB8C6A2007A1234 /* StationModeParser.m */; };
+		7D4EA0A52FB8C6A2007A1234 /* StationModeParserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D4EA0A32FB8C6A2007A1234 /* StationModeParserTests.m */; };
 		0F795D7B2EB7D51D0009B05D /* default.metallib in Resources */ = {isa = PBXBuildFile; fileRef = 0F795D7A2EB7D51D0009B05D /* default.metallib */; };
 		0F828EA42CD93B7200C35281 /* NotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F828EA32CD93A5900C35281 /* NotificationManager.m */; };
 		0F9B74682E2AE8A300AFFD8B /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F9B74672E2AE8A300AFFD8B /* UserNotifications.framework */; };
@@ -125,6 +127,9 @@
 		0F795D342EB711670009B05D /* AudioBufferManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioBufferManager.m; sourceTree = "<group>"; };
 		0F795D362EB7116D0009B05D /* AudioBufferManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioBufferManager.h; sourceTree = "<group>"; };
 		0F795D382EB8AAA00009B05D /* AudioBufferManagerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioBufferManagerTests.m; sourceTree = "<group>"; };
+		7D4EA0A12FB8C6A2007A1234 /* StationModeParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StationModeParser.h; sourceTree = "<group>"; };
+		7D4EA0A22FB8C6A2007A1234 /* StationModeParser.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = StationModeParser.m; sourceTree = "<group>"; };
+		7D4EA0A32FB8C6A2007A1234 /* StationModeParserTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HermesTests/StationModeParserTests.m; sourceTree = SOURCE_ROOT; };
 		0F795D7A2EB7D51D0009B05D /* default.metallib */ = {isa = PBXFileReference; lastKnownFileType = "archive.metal-library"; path = default.metallib; sourceTree = "<group>"; };
 		0F828EA12CD9388F00C35281 /* NotificationManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NotificationManager.h; path = ../../../NotificationManager.h; sourceTree = "<group>"; };
 		0F828EA32CD93A5900C35281 /* NotificationManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NotificationManager.m; sourceTree = "<group>"; };
@@ -509,6 +514,8 @@
 			children = (
 				FA2A3F77132BF97E0089AECC /* Pandora.h */,
 				FA2A3F78132BF97E0089AECC /* Pandora.m */,
+				7D4EA0A12FB8C6A2007A1234 /* StationModeParser.h */,
+				7D4EA0A22FB8C6A2007A1234 /* StationModeParser.m */,
 				FA2A3F91132BF9F50089AECC /* Crypt.h */,
 				FA2A3F92132BF9F50089AECC /* Crypt.m */,
 				FA2A3F94132BF9F50089AECC /* Song.h */,
@@ -713,6 +720,7 @@
 				0F795D2D2EB6F2860009B05D /* AudioStreamerMetadataTests.m in Sources */,
 				7D9A0A0D2FB8B8AA008B9F3C /* AudioStreamerBufferHealthTests.m in Sources */,
 				0F795D2E2EB6F2860009B05D /* AudioStreamerStateControllerTests.m in Sources */,
+				7D4EA0A52FB8C6A2007A1234 /* StationModeParserTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -727,6 +735,7 @@
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				FA2A3F7F132BF97E0089AECC /* StationsController.m in Sources */,
 				FA2A3F80132BF97E0089AECC /* Pandora.m in Sources */,
+				7D4EA0A42FB8C6A2007A1234 /* StationModeParser.m in Sources */,
 				FA2A3F98132BF9F50089AECC /* Crypt.m in Sources */,
 				FA2A3F99132BF9F50089AECC /* Song.m in Sources */,
 				FA2A3F9A132BF9F50089AECC /* Station.m in Sources */,
@@ -884,12 +893,12 @@
 				"ARCHS[sdk=*]" = "$(ARCHS_STANDARD)";
 				CODE_SIGN_ENTITLEMENTS = Hermes.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = GHTQCRGWTR;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -936,13 +945,13 @@
 				"ARCHS[sdk=*]" = "$(ARCHS_STANDARD)";
 				CODE_SIGN_ENTITLEMENTS = Hermes.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = GHTQCRGWTR;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_TESTABILITY = YES;

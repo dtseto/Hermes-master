@@ -234,6 +234,22 @@
                         </items>
                     </menu>
                 </menuItem>
+                <menuItem title="Stations" id="u95-GB-4fj" userLabel="Stations">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Stations" id="GCI-gN-aTQ">
+                        <items>
+                            <menuItem title="Item 1" id="nkN-1g-On2">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                            </menuItem>
+                            <menuItem title="Item 2" id="TTF-F3-Zad">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                            </menuItem>
+                            <menuItem title="Item 3" id="CkF-O4-0rV">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
                 <menuItem title="Window" id="19">
                     <menu key="submenu" title="Window" systemMenu="window" id="24">
                         <items>
@@ -445,7 +461,7 @@ DQ
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                     <clipView key="contentView" id="Qxl-WA-Sas">
                         <rect key="frame" x="1" y="1" width="301" height="246"/>
-                        <autoresizingMask key="autoresizingMask"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="734" customClass="StationsTableView">
                                 <rect key="frame" x="0.0" y="0.0" width="301" height="246"/>
@@ -522,7 +538,7 @@ DQ
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                     <clipView key="contentView" id="5Gd-m0-JbG">
                         <rect key="frame" x="1" y="1" width="295" height="255"/>
-                        <autoresizingMask key="autoresizingMask"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView maxNumberOfRows="26" maxNumberOfColumns="1" selectable="YES" id="2161" customClass="HistoryCollectionView">
                                 <rect key="frame" x="0.0" y="0.0" width="295" height="255"/>
@@ -671,7 +687,7 @@ DQ
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <clipView key="contentView" id="oiz-Qg-D22">
                                                 <rect key="frame" x="1" y="1" width="428" height="185"/>
-                                                <autoresizingMask key="autoresizingMask"/>
+                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
                                                     <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="firstColumnOnly" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" indentationPerLevel="16" autoresizesOutlineColumn="YES" outlineTableColumn="915" id="913">
                                                         <rect key="frame" x="0.0" y="0.0" width="428" height="185"/>
@@ -954,6 +970,9 @@ Gw
                 <outlet property="progressLabel" destination="1156" id="1245"/>
                 <outlet property="songLabel" destination="1172" id="1244"/>
                 <outlet property="songLoadingProgress" destination="1160" id="1246"/>
+                <outlet property="stationModeLabel" destination="qrv-8Y-Uid" id="cG2-5B-PpC"/>
+                <outlet property="stationModesMenu" destination="GCI-gN-aTQ" id="dbR-CJ-l2Q"/>
+                <outlet property="stationModesMenuItem" destination="u95-GB-4fj" id="sVR-YT-EEz"/>
                 <outlet property="tiredOfSong" destination="820" id="nFf-SX-qEV"/>
                 <outlet property="toolbar" destination="768" id="844"/>
                 <outlet property="volume" destination="1158" id="1247"/>
@@ -1123,10 +1142,10 @@ DQ
                     <rect key="frame" x="209" y="1" width="504" height="416"/>
                     <subviews>
                         <stackView autoresizesSubviews="NO" distribution="fill" orientation="vertical" alignment="leading" spacing="1" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" translatesAutoresizingMaskIntoConstraints="NO" id="2tX-eR-9Av" userLabel="VPlayback Song Stack View">
-                            <rect key="frame" x="0.0" y="0.0" width="220" height="416"/>
+                            <rect key="frame" x="0.0" y="95" width="220" height="321"/>
                             <subviews>
                                 <button autoresizesSubviews="NO" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="12" placeholderIntrinsicHeight="120" translatesAutoresizingMaskIntoConstraints="NO" id="2436" userLabel="AlbumCoverSquare">
-                                    <rect key="frame" x="0.0" y="104" width="200" height="202"/>
+                                    <rect key="frame" x="0.0" y="120" width="200" height="202"/>
                                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" imagePosition="only" alignment="center" state="on" borderStyle="border" imageScaling="axesIndependently" inset="2" id="2437">
                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                         <font key="font" metaFont="system" size="14"/>
@@ -1144,7 +1163,7 @@ DQ
                                     </connections>
                                 </button>
                                 <textField toolTip="Song Artist" focusRingType="none" horizontalHuggingPriority="300" verticalHuggingPriority="750" horizontalCompressionResistancePriority="999" verticalCompressionResistancePriority="999" allowsCharacterPickerTouchBarItem="YES" preferredMaxLayoutWidth="202" translatesAutoresizingMaskIntoConstraints="NO" id="1173" userLabel="Artist Label Hover Show Field" customClass="LabelHoverShowField">
-                                    <rect key="frame" x="-2" y="89" width="35" height="15"/>
+                                    <rect key="frame" x="-2" y="105" width="35" height="15"/>
                                     <constraints>
                                         <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="15" id="lmC-sc-VgH"/>
                                         <constraint firstAttribute="width" relation="lessThanOrEqual" constant="202" id="wtu-Kf-NuF"/>
@@ -1159,7 +1178,7 @@ DQ
                                     </connections>
                                 </textField>
                                 <textField toolTip="Song Album" focusRingType="none" horizontalHuggingPriority="300" verticalHuggingPriority="750" horizontalCompressionResistancePriority="999" verticalCompressionResistancePriority="999" allowsCharacterPickerTouchBarItem="YES" preferredMaxLayoutWidth="202" translatesAutoresizingMaskIntoConstraints="NO" id="1170" userLabel="Album Label Hover Show Field" customClass="LabelHoverShowField">
-                                    <rect key="frame" x="-2" y="73" width="40" height="15"/>
+                                    <rect key="frame" x="-2" y="89" width="40" height="15"/>
                                     <constraints>
                                         <constraint firstAttribute="width" relation="lessThanOrEqual" constant="202" id="Kzr-N2-mUA"/>
                                         <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="15" id="Psi-7d-r95"/>
@@ -1174,7 +1193,7 @@ DQ
                                     </connections>
                                 </textField>
                                 <textField toolTip="Song Title" focusRingType="none" horizontalHuggingPriority="300" verticalHuggingPriority="750" horizontalCompressionResistancePriority="999" verticalCompressionResistancePriority="999" allowsCharacterPickerTouchBarItem="YES" preferredMaxLayoutWidth="202" translatesAutoresizingMaskIntoConstraints="NO" id="1172" userLabel="Song Label Hover Show Field" customClass="LabelHoverShowField">
-                                    <rect key="frame" x="-2" y="57" width="62" height="15"/>
+                                    <rect key="frame" x="-2" y="73" width="62" height="15"/>
                                     <constraints>
                                         <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="15" id="0vj-8x-CUX"/>
                                         <constraint firstAttribute="width" relation="lessThanOrEqual" constant="202" id="J4o-1Y-Jgj"/>
@@ -1189,7 +1208,7 @@ DQ
                                     </connections>
                                 </textField>
                                 <slider verticalHuggingPriority="750" verticalCompressionResistancePriority="749" translatesAutoresizingMaskIntoConstraints="NO" id="7eu-hy-jM9" userLabel="Playback Horizontal Slider">
-                                    <rect key="frame" x="-2" y="43" width="202" height="15"/>
+                                    <rect key="frame" x="-2" y="59" width="202" height="15"/>
                                     <constraints>
                                         <constraint firstAttribute="height" constant="11" id="Hba-ua-w6D"/>
                                         <constraint firstAttribute="width" constant="198" id="v5s-SS-FEH"/>
@@ -1199,6 +1218,14 @@ DQ
                                     </shadow>
                                     <sliderCell key="cell" controlSize="mini" alignment="left" maxValue="100" doubleValue="50" tickMarkPosition="above" sliderType="linear" id="9lo-wA-JHN" customClass="MusicProgressSliderCell"/>
                                 </slider>
+                                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="qrv-8Y-Uid">
+                                    <rect key="frame" x="-2" y="45" width="76" height="15"/>
+                                    <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="StationMode" id="1Rp-aE-lqI">
+                                        <font key="font" metaFont="cellTitle"/>
+                                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    </textFieldCell>
+                                </textField>
                                 <textField identifier="explanationLabel" focusRingType="none" horizontalHuggingPriority="300" verticalHuggingPriority="750" horizontalCompressionResistancePriority="800" translatesAutoresizingMaskIntoConstraints="NO" id="Mwv-sA-ua1">
                                     <rect key="frame" x="-2" y="29" width="100" height="15"/>
                                     <constraints>
@@ -1233,10 +1260,11 @@ DQ
                                     </textFieldCell>
                                 </textField>
                             </subviews>
-                                <constraints>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="220" id="hiR-sk-OLS"/>
-                                </constraints>
+                            <constraints>
+                                <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="220" id="hiR-sk-OLS"/>
+                            </constraints>
                             <visibilityPriorities>
+                                <integer value="1000"/>
                                 <integer value="1000"/>
                                 <integer value="1000"/>
                                 <integer value="1000"/>
@@ -1247,6 +1275,7 @@ DQ
                                 <integer value="1000"/>
                             </visibilityPriorities>
                             <customSpacing>
+                                <real value="3.4028234663852886e+38"/>
                                 <real value="3.4028234663852886e+38"/>
                                 <real value="3.4028234663852886e+38"/>
                                 <real value="3.4028234663852886e+38"/>

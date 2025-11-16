@@ -29,6 +29,9 @@
   IBOutlet NSButton *art;
   IBOutlet NSSlider *playbackProgress;
   IBOutlet NSProgressIndicator *artLoading;
+  IBOutlet NSTextField *stationModeLabel;
+  IBOutlet NSMenu *stationModesMenu;
+  IBOutlet NSMenuItem *stationModesMenuItem;
 
   // Playback related items
   IBOutlet NSToolbarItem *like;

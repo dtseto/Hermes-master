@@ -9,6 +9,7 @@
 #import "FMEngine/NSString+FMEngine.h"
 #import "Pandora/Crypt.h"
 #import "Pandora/Station.h"
+#import "Pandora/StationModeParser.h"
 #import "PreferencesController.h"
 #import "URLConnection.h"
 #import "Notifications.h"
@@ -642,6 +643,42 @@ static NSString *hierrs[] = {
     
     [self postNotification:PandoraDidLoadStationInfoNotification result:info];
   }];
+  return [self sendAuthenticatedRequest:req];
+}
+
+- (BOOL)fetchStationModesForStation:(Station *)station {
+  if (station == nil || station.stationId.length == 0) {
+    return NO;
+  }
+
+  NSMutableDictionary *requestDictionary = [self defaultRequestDictionary];
+  requestDictionary[@"stationId"] = station.stationId;
+
+  PandoraRequest *req = [self defaultRequestWithMethod:@"interactiveradio.v1.getAvailableModes"];
+  req.request = requestDictionary;
+  __weak typeof(self) weakSelf = self;
+  req.callback = ^(NSDictionary *response) {
+    NSDictionary *result = response[@"result"];
+    NSString *currentIdentifier = nil;
+    NSArray<HMSStationMode *> *modes = [StationModeParser modesFromResultDictionary:result
+                                                             currentModeIdentifier:&currentIdentifier];
+    NSMutableArray<NSDictionary *> *serializedModes = [NSMutableArray arrayWithCapacity:modes.count];
+    for (HMSStationMode *mode in modes) {
+      [serializedModes addObject:@{
+        @"identifier": mode.identifier,
+        @"name": mode.name,
+        @"current": @(mode.isCurrent)
+      }];
+    }
+    NSDictionary *payload = @{
+      @"stationId": station.stationId ?: @"",
+      @"modes": [serializedModes copy],
+      @"currentModeId": currentIdentifier ?: @""
+    };
+    [weakSelf postNotification:PandoraDidLoadStationModesNotification
+                        request:station
+                         result:payload];
+  };
   return [self sendAuthenticatedRequest:req];
 }
 

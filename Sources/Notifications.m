@@ -31,6 +31,7 @@ NSString * const PandoraDidCreateStationNotification                 = @"Pandora
 NSString * const PandoraDidDeleteStationNotification                 = @"PandoraDidDeleteStationNotification";
 NSString * const PandoraDidRenameStationNotification                 = @"PandoraDidRenameStationNotification";
 NSString * const PandoraDidLoadStationInfoNotification               = @"PandoraDidLoadStationInfoNotification";
+NSString * const PandoraDidLoadStationModesNotification              = @"PandoraDidLoadStationModesNotification";
 NSString * const PandoraDidAddSeedNotification                       = @"PandoraDidAddSeedNotification";
 NSString * const PandoraDidDeleteSeedNotification                    = @"PandoraDidDeleteSeedNotification";
 NSString * const PandoraDidDeleteFeedbackNotification                = @"PandoraDidDeleteFeedbackNotification";
