@@ -1,0 +1,354 @@
+2025-11-21 20:00:33.663 xcodebuild[2452:4381883] [MT] DVTSDK: Skipped SDK /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk; its version (10.7) is below required minimum (14.0) for the macosx platform.
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -scheme Hermes -destination platform=macOS
+
+2025-11-21 20:00:34.201 xcodebuild[2452:4381928]  DVTDeviceOperation: Encountered a build number "" that is incompatible with DVTBuildVersion.
+2025-11-21 20:00:34.327 xcodebuild[2452:4381883] [MT] DVTDeviceOperation: Encountered a build number "" that is incompatible with DVTBuildVersion.
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:macOS, arch:arm64, id:00008103-001E249E2130801E, name:My Mac }
+{ platform:macOS, arch:x86_64, id:00008103-001E249E2130801E, name:My Mac }
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'HermesTests' in project 'Hermes'
+        ➜ Explicit dependency on target 'Hermes' in project 'Hermes'
+    Target 'Hermes' in project 'Hermes' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/ibtool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -x objective-c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: b8f901fe8a807510faa2d93033f4f9a1
+Build description path: /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/XCBuildData/b8f901fe8a807510faa2d93033f4f9a1.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk /Users/user2/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx15.5-24F74-8254517eb8b97d462ccbc072ba9094c9.sdkstatcache
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Hermes.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -o /Users/user2/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx15.5-24F74-8254517eb8b97d462ccbc072ba9094c9.sdkstatcache
+
+note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'HermesTests' from project 'Hermes')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/HermesTests/StationsControllerTests.m (in target 'HermesTests' from project 'Hermes')
+WriteAuxiliaryFile /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/Objects-normal/arm64/HermesTests.LinkFileList (in target 'HermesTests' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    write-file /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/Objects-normal/arm64/HermesTests.LinkFileList
+
+CompileC /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/AudioStreamer.o /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Sources/AudioStreamer/AudioStreamer.m normal arm64 objective-c com.apple.compilers.llvm.clang.1_0.compiler (in target 'Hermes' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    
+    Using response file: /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/e6072d4f65d7061329687fe24e3d63a7-common-args.resp
+    
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x objective-c -ivfsstatcache /Users/user2/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx15.5-24F74-8254517eb8b97d462ccbc072ba9094c9.sdkstatcache -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -fno-color-diagnostics -Wno-trigraphs -Werror -Wno-missing-field-initializers -Wno-missing-prototypes -Wunreachable-code -Wquoted-include-in-framework-header -Wno-implicit-atomic-properties -Wno-objc-interface-ivars -Wno-arc-repeated-use-of-weak -Wimplicit-retain-self -Wduplicate-method-match -Wno-missing-braces -Wparentheses -Wswitch -Wunused-function -Wno-unused-label -Wno-unused-parameter -Wunused-variable -Wunused-value -Wempty-body -Wuninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wconstant-conversion -Wint-conversion -Wbool-conversion -Wenum-conversion -Wno-float-conversion -Wnon-literal-null-conversion -Wobjc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -Wno-selector -Wno-strict-selector-match -Wundeclared-selector -Wdeprecated-implementations -Wno-implicit-fallthrough -fstrict-aliasing -Wprotocol -Wdeprecated-declarations -Wno-sign-conversion -Winfinite-recursion -Wcomma -Wblock-capture-autoreleasing -Wstrict-prototypes -Wno-semicolon-before-method-body -index-store-path /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Index.noindex/DataStore -Wall -Wextra -Wno-unused-parameter -Werror @/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/e6072d4f65d7061329687fe24e3d63a7-common-args.resp -include /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/PrecompiledHeaders/SharedPrecompiledHeaders/15765223876371007828/Hermes_Prefix.pch -MMD -MT dependencies -MF /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/AudioStreamer.d --serialize-diagnostics /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/AudioStreamer.dia -c /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Sources/AudioStreamer/AudioStreamer.m -o /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/AudioStreamer.o -index-unit-output-path /Hermes.build/Debug/Hermes.build/Objects-normal/arm64/AudioStreamer.o
+
+AnalyzeShallow /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Sources/AudioStreamer/AudioStreamer.m normal arm64 (in target 'Hermes' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    
+    Using response file: /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/22a6d426986e98cf1a8e0c880c6a22df-common-args.resp
+    
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x objective-c -ivfsstatcache /Users/user2/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx15.5-24F74-8254517eb8b97d462ccbc072ba9094c9.sdkstatcache -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -fno-color-diagnostics -Wno-trigraphs -Werror -Wno-missing-field-initializers -Wno-missing-prototypes -Wunreachable-code -Wquoted-include-in-framework-header -Wno-implicit-atomic-properties -Wno-objc-interface-ivars -Wno-arc-repeated-use-of-weak -Wimplicit-retain-self -Wduplicate-method-match -Wno-missing-braces -Wparentheses -Wswitch -Wunused-function -Wno-unused-label -Wno-unused-parameter -Wunused-variable -Wunused-value -Wempty-body -Wuninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wconstant-conversion -Wint-conversion -Wbool-conversion -Wenum-conversion -Wno-float-conversion -Wnon-literal-null-conversion -Wobjc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -Wno-selector -Wno-strict-selector-match -Wundeclared-selector -Wdeprecated-implementations -Wno-implicit-fallthrough -fstrict-aliasing -Wprotocol -Wdeprecated-declarations -Wno-sign-conversion -Winfinite-recursion -Wcomma -Wblock-capture-autoreleasing -Wstrict-prototypes -Wno-semicolon-before-method-body -Wall -Wextra -Wno-unused-parameter -Werror @/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/22a6d426986e98cf1a8e0c880c6a22df-common-args.resp -include /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/PrecompiledHeaders/SharedPrecompiledHeaders/16965735929917325739/Hermes_Prefix.pch -MMD -MT dependencies -MF /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/StaticAnalyzer/Hermes/Hermes/normal/arm64/AudioStreamer.d --analyze /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Sources/AudioStreamer/AudioStreamer.m -o /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/StaticAnalyzer/Hermes/Hermes/normal/arm64/AudioStreamer.plist
+
+Ld /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/MacOS/Hermes normal (in target 'Hermes' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-macos11.0 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -O0 -L/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug -L/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug -F/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug -F/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug -F/Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master -F/Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Frameworks -F/Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Frameworks -filelist /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/Hermes.LinkFileList -Xlinker -rpath -Xlinker @executable_path/../Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/Hermes_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -dependency_info -Xlinker /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Objects-normal/arm64/Hermes_dependency_info.dat -fobjc-arc -fobjc-link-runtime -flto\=thin -Xlinker -cache_path_lto -Xlinker /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/LTOCache -framework UserNotifications -framework Carbon -framework AudioToolbox -framework Quartz -framework SystemConfiguration -framework Security -framework Cocoa -weak_framework MediaPlayer -Xlinker -no_adhoc_codesign -o /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/MacOS/Hermes
+ld: warning: search path '/Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Frameworks' not found
+ld: warning: search path '/Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Frameworks' not found
+
+ProcessInfoPlistFile /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/Info.plist /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Resources/Hermes-Info.plist (in target 'Hermes' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    builtin-infoPlistUtility /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master/Resources/Hermes-Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PkgInfo -expandbuildsettings -platform macosx -additionalcontentfile /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Base.lproj/MainMenu-PartialInfo.plist -o /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/Info.plist
+
+Ld /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/MacOS/HermesTests normal (in target 'HermesTests' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-macos11.0 -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -O0 -L/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug -L/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug -F/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -filelist /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/Objects-normal/arm64/HermesTests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/../Frameworks -Xlinker -rpath -Xlinker @executable_path/../Frameworks -dead_strip -bundle_loader /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/MacOS/Hermes -Xlinker -object_path_lto -Xlinker /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/Objects-normal/arm64/HermesTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -dependency_info -Xlinker /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/Objects-normal/arm64/HermesTests_dependency_info.dat -fobjc-arc -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/Objects-normal/arm64/HermesTests.swiftmodule -framework XCTest -lXCTestSwiftSupport -Xlinker -no_adhoc_codesign -o /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/MacOS/HermesTests
+
+ExtractAppIntentsMetadata (in target 'HermesTests' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name HermesTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk --xcode-version 16F6 --platform-family macOS --deployment-target 11.0 --bundle-identifier Hermes.HermesTests --output /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Resources --target-triple arm64-apple-macos11.0 --binary-file /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/MacOS/HermesTests --dependency-file /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/Objects-normal/arm64/HermesTests_dependency_info.dat --stringsdata-file /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/Objects-normal/arm64/HermesTests.SwiftFileList --metadata-file-list /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/HermesTests.DependencyMetadataFileList --static-metadata-file-list /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/HermesTests.DependencyStaticMetadataFileList --swift-const-vals-list /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/Objects-normal/arm64/HermesTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2025-11-21 20:00:40.971 appintentsmetadataprocessor[2487:4382171] Starting appintentsmetadataprocessor export
+2025-11-21 20:00:40.974 appintentsmetadataprocessor[2487:4382171] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+ProcessInfoPlistFile /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Info.plist /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/empty-HermesTests.plist (in target 'HermesTests' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    builtin-infoPlistUtility /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/empty-HermesTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -platform macosx -o /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Info.plist
+
+CopySwiftLibs /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest (in target 'HermesTests' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    builtin-swiftStdLibTool --copy --verbose --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --scan-executable /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/MacOS/HermesTests --scan-folder /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks --scan-folder /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/PlugIns --scan-folder /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Library/SystemExtensions --scan-folder /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Extensions --platform macosx --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/HermesTests.build/SwiftStdLibToolInputDependencies.dep
+libswiftIOKit.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftIOKit.dylib
+libswiftCore.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCore.dylib
+libswiftQuartzCore.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftQuartzCore.dylib
+libswiftDarwin.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDarwin.dylib
+libswiftObjectiveC.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftObjectiveC.dylib
+libswift_Concurrency.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswift_Concurrency.dylib
+libswiftCoreImage.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreImage.dylib
+libswiftCoreFoundation.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreFoundation.dylib
+libswiftXPC.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftXPC.dylib
+libswiftCoreGraphics.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreGraphics.dylib
+libswiftMetal.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftMetal.dylib
+libswiftos.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftos.dylib
+libswiftDispatch.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDispatch.dylib
+libswiftsimd.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftsimd.dylib
+libswiftFoundation.dylib is up to date at /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftFoundation.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftIOKit.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftIOKit.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftIOKit.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftIOKit.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftIOKit.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftIOKit.dylib
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftIOKit.dylib is unchanged; keeping original
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftQuartzCore.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftQuartzCore.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftObjectiveC.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftObjectiveC.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDarwin.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDarwin.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreGraphics.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreGraphics.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCore.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCore.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftXPC.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftXPC.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswift_Concurrency.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswift_Concurrency.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftMetal.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftFoundation.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftFoundation.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftos.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftos.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftMetal.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreFoundation.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreFoundation.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftsimd.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftsimd.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDispatch.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreImage.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreImage.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDispatch.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreGraphics.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreGraphics.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDarwin.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDarwin.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftQuartzCore.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftQuartzCore.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftObjectiveC.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftObjectiveC.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCore.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCore.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftos.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftos.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftXPC.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftXPC.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftFoundation.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftFoundation.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswift_Concurrency.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswift_Concurrency.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftsimd.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftsimd.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDispatch.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDispatch.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftMetal.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftMetal.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreImage.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreImage.dylib
+Codesigning /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreFoundation.dylib
+/usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --verbose /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreFoundation.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDarwin.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDarwin.dylib
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDarwin.dylib is unchanged; keeping original
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreGraphics.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreGraphics.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftQuartzCore.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftQuartzCore.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftObjectiveC.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftObjectiveC.dylib
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreGraphics.dylib is unchanged; keeping original
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftQuartzCore.dylib is unchanged; keeping original
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftos.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftos.dylib
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftObjectiveC.dylib is unchanged; keeping original
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftos.dylib is unchanged; keeping original
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftXPC.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftXPC.dylib
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftXPC.dylib is unchanged; keeping original
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreFoundation.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreFoundation.dylib
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreFoundation.dylib is unchanged; keeping original
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreImage.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreImage.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftFoundation.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftFoundation.dylib
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftFoundation.dylib is unchanged; keeping original
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCoreImage.dylib is unchanged; keeping original
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDispatch.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDispatch.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftsimd.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftsimd.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftMetal.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftMetal.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCore.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCore.dylib
+Probing signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswift_Concurrency.dylib
+/usr/bin/codesign -r- --display /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswift_Concurrency.dylib
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftsimd.dylib is unchanged; keeping original
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftDispatch.dylib is unchanged; keeping original
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftMetal.dylib is unchanged; keeping original
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswiftCore.dylib is unchanged; keeping original
+Code signature of /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest/Contents/Frameworks/libswift_Concurrency.dylib is unchanged; keeping original
+
+CodeSign /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest (in target 'HermesTests' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    
+    Signing Identity:     "Apple Development: David Seto (QN66F622R4)"
+    
+    /usr/bin/codesign --force --sign 7A8F39217C1F3C5B0073284622261E2CDF4234C7 --timestamp\=none --generate-entitlement-der /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app/Contents/PlugIns/HermesTests.xctest
+
+CodeSign /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app (in target 'Hermes' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - -o runtime --entitlements /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Intermediates.noindex/Hermes.build/Debug/Hermes.build/Hermes.app.xcent --timestamp\=none --generate-entitlement-der /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app
+
+Validate /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app (in target 'Hermes' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    builtin-validationUtility /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app -no-validate-extension -infoplist-subpath Contents/Info.plist
+
+RegisterWithLaunchServices /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app (in target 'Hermes' from project 'Hermes')
+    cd /Users/user2/Downloads/PersonalProgAppsWorking/Hermes-master
+    /System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Versions/Current/Support/lsregister -f -R -trusted /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Build/Products/Debug/Hermes.app
+
+Testing started
+Test suite 'URLConnectionTests' started on 'My Mac - Hermes (2536)'
+Test case '-[URLConnectionTests testCancelPreventsCallback]' passed on 'My Mac - Hermes (2536)' (0.508 seconds)
+Test suite 'ASPlaylistRetryTests' started on 'My Mac - Hermes (2538)'
+Test suite 'URLConnectionProxyTests' started on 'My Mac - Hermes (2540)'
+Test case '-[URLConnectionProxyTests testResetCachedProxySessionsInvalidatesTrackedSessions]' passed on 'My Mac - Hermes (2540)' (0.008 seconds)
+Test case '-[URLConnectionProxyTests testSetHermesProxyAppliesHTTPSettings]' passed on 'My Mac - Hermes (2540)' (0.010 seconds)
+Test suite 'StationsControllerTests' started on 'My Mac - Hermes (2541)'
+Test case '-[StationsControllerTests testStationsLoadedDispatchesToMainThreadWhenCalledInBackground]' passed on 'My Mac - Hermes (2541)' (0.005 seconds)
+Test case '-[StationsControllerTests testStationsLoadedDoesNotReShowChooserOncePresentedAndStationActive]' passed on 'My Mac - Hermes (2541)' (0.002 seconds)
+Test suite 'HermesTests' started on 'My Mac - Hermes (2539)'
+Test case '-[HermesTests testExample]' passed on 'My Mac - Hermes (2539)' (0.002 seconds)
+Test case '-[StationsControllerTests testStationsLoadedShowsChooserWhenNoStationActive]' passed on 'My Mac - Hermes (2541)' (0.001 seconds)
+Test case '-[URLConnectionProxyTests testSetHermesProxyRejectsEmptyHost]' passed on 'My Mac - Hermes (2540)' (0.009 seconds)
+Test case '-[URLConnectionProxyTests testValidateProxyHostAsyncImmediateInvalid]' passed on 'My Mac - Hermes (2540)' (0.096 seconds)
+Test case '-[URLConnectionProxyTests testValidateProxyHostAsyncValidHost]' passed on 'My Mac - Hermes (2540)' (0.152 seconds)
+Test suite 'PandoraSendRequestTests' started on 'My Mac - Hermes (2540)'
+Test case '-[PandoraSendRequestTests testSendRequestInvokesCallbackOnSuccess]' passed on 'My Mac - Hermes (2540)' (0.106 seconds)
+Test case '-[PandoraSendRequestTests testSendRequestPostsErrorNotificationOnFailure]' passed on 'My Mac - Hermes (2540)' (0.028 seconds)
+Test suite 'PandoraExplainSongTests' started on 'My Mac - Hermes (2540)'
+Test suite 'AuthControllerTests' started on 'My Mac - Hermes (2542)'
+Test case '-[AuthControllerTests testAuthenticateInvokesPandoraClient]' passed on 'My Mac - Hermes (2542)' (0.005 seconds)
+Test case '-[AuthControllerTests testAuthenticationFailedDisplaysError]' passed on 'My Mac - Hermes (2542)' (0.004 seconds)
+Test case '-[AuthControllerTests testAuthenticationSucceededSavesCredentials]' passed on 'My Mac - Hermes (2542)' (0.031 seconds)
+Test case '-[AuthControllerTests testLoginButtonEnablesAfterTypingValidCredentials]' passed on 'My Mac - Hermes (2542)' (0.003 seconds)
+Test case '-[AuthControllerTests testLogoutInvokesClient]' passed on 'My Mac - Hermes (2542)' (0.002 seconds)
+Test case '-[PandoraExplainSongTests testExplainSongFallsBackWhenNoTraits]' passed on 'My Mac - Hermes (2540)' (0.054 seconds)
+Test case '-[PandoraExplainSongTests testExplainSongPostsFormattedNotification]' passed on 'My Mac - Hermes (2540)' (0.053 seconds)
+Test suite 'StationControllerTests' started on 'My Mac - Hermes (2542)'
+Test case '-[StationControllerTests testAddSeedRequestsAllSelectedResults]' passed on 'My Mac - Hermes (2542)' (0.006 seconds)
+Test case '-[StationControllerTests testDeleteFeedbackRemovesSelectedItems]' passed on 'My Mac - Hermes (2542)' (0.005 seconds)
+Test case '-[StationControllerTests testDeleteSeedInvokesRemoveForSelection]' passed on 'My Mac - Hermes (2542)' (0.004 seconds)
+Test suite 'MediaPermissionTests' started on 'My Mac - Hermes (2540)'
+Test case '-[StationControllerTests testRenameStationInvokesService]' passed on 'My Mac - Hermes (2542)' (0.005 seconds)
+Test suite 'AudioStreamerErrorClassificationTests' started on 'My Mac - Hermes (2542)'
+Test case '-[AudioStreamerErrorClassificationTests testDataNotFoundIsNotTransient]' passed on 'My Mac - Hermes (2542)' (0.002 seconds)
+Test case '-[AudioStreamerErrorClassificationTests testErrorNotificationIncludesClassificationMetadata]' passed on 'My Mac - Hermes (2542)' (0.002 seconds)
+Test case '-[AudioStreamerErrorClassificationTests testNetworkErrorDomainInfluencesClassification]' passed on 'My Mac - Hermes (2542)' (0.002 seconds)
+Test case '-[AudioStreamerErrorClassificationTests testTimeoutClassifiedAsTransient]' passed on 'My Mac - Hermes (2542)' (0.001 seconds)
+Test suite 'ScrobblerTests' started on 'My Mac - Hermes (2542)'
+Test case '-[ScrobblerTests testScrobbleDoesNothingWhenDisabled]' passed on 'My Mac - Hermes (2542)' (0.004 seconds)
+Test case '-[ScrobblerTests testScrobbleSendsNowPlayingWhenEnabled]' passed on 'My Mac - Hermes (2542)' (0.004 seconds)
+Test case '-[ScrobblerTests testSetPreferenceRequestsSessionWhenMissing]' passed on 'My Mac - Hermes (2542)' (0.004 seconds)
+Test case '-[MediaPermissionTests testInstructionsPresentedOnMainThreadFromBackgroundRequest]' passed on 'My Mac - Hermes (2540)' (0.105 seconds)
+Test suite 'PlaybackControllerTests' started on 'My Mac - Hermes (2542)'
+Test case '-[PlaybackControllerTests testArtAccessibilityDescriptionMatchesSongTitle]' passed on 'My Mac - Hermes (2542)' (0.004 seconds)
+Test case '-[PlaybackControllerTests testDislikeClearsQueueAndRatesNegative]' passed on 'My Mac - Hermes (2542)' (0.003 seconds)
+Test case '-[PlaybackControllerTests testLikeRatesSongPositive]' passed on 'My Mac - Hermes (2542)' (0.003 seconds)
+Test case '-[MediaPermissionTests testRequestShowsInstructionsWhenPermissionDenied]' passed on 'My Mac - Hermes (2540)' (0.003 seconds)
+Test case '-[MediaPermissionTests testRequestSkipsWhenAlreadyGranted]' passed on 'My Mac - Hermes (2540)' (0.002 seconds)
+Test case '-[MediaPermissionTests testRequestSucceedsWhenPromptGrantsAccess]' passed on 'My Mac - Hermes (2540)' (0.002 seconds)
+Test suite 'ImageLoaderTests' started on 'My Mac - Hermes (2540)'
+Test case '-[PlaybackControllerTests testNextCancelsArtAndAdvancesPlaying]' passed on 'My Mac - Hermes (2542)' (0.003 seconds)
+Test case '-[PlaybackControllerTests testPauseAndResumeOnScreenLockNotifications]' passed on 'My Mac - Hermes (2542)' (0.084 seconds)
+Test case '-[PlaybackControllerTests testPauseReturnsNoWhenAlreadyPaused]' passed on 'My Mac - Hermes (2542)' (0.003 seconds)
+Test case '-[PlaybackControllerTests testPauseStopsWhenPlaying]' passed on 'My Mac - Hermes (2542)' (0.003 seconds)
+Test case '-[PlaybackControllerTests testPlayReturnsNoWhenAlreadyPlaying]' passed on 'My Mac - Hermes (2542)' (0.003 seconds)
+Test case '-[PlaybackControllerTests testPlayStartsWhenNotAlreadyPlaying]' passed on 'My Mac - Hermes (2542)' (0.003 seconds)
+Test case '-[PlaybackControllerTests testProgressTimerInvalidatesOnDealloc]' passed on 'My Mac - Hermes (2542)' (0.003 seconds)
+Test case '-[PlaybackControllerTests testTiredRequestsPandoraWhenSongAvailable]' passed on 'My Mac - Hermes (2542)' (0.003 seconds)
+Test case '-[ImageLoaderTests testCancelPendingRequestRemovesCallbackSafely]' passed on 'My Mac - Hermes (2540)' (0.053 seconds)
+Test case '-[ImageLoaderTests testCancelStopsCurrentDownloadAndStartsNext]' passed on 'My Mac - Hermes (2540)' (0.002 seconds)
+Test case '-[ImageLoaderTests testNilURLInvokesCallbackWithoutStartingRequest]' passed on 'My Mac - Hermes (2540)' (0.002 seconds)
+Test suite 'AudioStreamerRetryTests' started on 'My Mac - Hermes (2542)'
+Test suite 'PlaybackSleepLockTests' started on 'My Mac - Hermes (2540)'
+Test case '-[PlaybackSleepLockTests testPauseOnScreenLockRecordsState]' passed on 'My Mac - Hermes (2540)' (0.006 seconds)
+Test case '-[PlaybackSleepLockTests testPauseOnScreensaverStartHonorsPreference]' passed on 'My Mac - Hermes (2540)' (0.004 seconds)
+Test case '-[PlaybackSleepLockTests testPauseOnScreensaverStartKeepsFlagFalseIfPauseFails]' passed on 'My Mac - Hermes (2540)' (0.005 seconds)
+Test case '-[PlaybackSleepLockTests testPauseOnScreensaverStartNoOpWhenPreferenceDisabled]' passed on 'My Mac - Hermes (2540)' (0.004 seconds)
+Test case '-[PlaybackSleepLockTests testPlayOnScreensaverStopNoOpWithoutFlag]' passed on 'My Mac - Hermes (2540)' (0.004 seconds)
+Test case '-[PlaybackSleepLockTests testPlayOnScreensaverStopResumesAndResetsFlag]' passed on 'My Mac - Hermes (2540)' (0.004 seconds)
+Test case2025-11-21 20:01:05.129 xcodebuild[2452:4381883] [MT] IDETesting: Failed to construct test run summaries and write them to the result bundle: fileSystemFailure(reason: "mkstemp: No such file or directory")
+2025-11-21 20:01:05.131 xcodebuild[2452:4381883] [MT] IDETestOperationsObserverDebug: 23.405 elapsed -- Testing started completed.
+2025-11-21 20:01:05.131 xcodebuild[2452:4381883] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2025-11-21 20:01:05.131 xcodebuild[2452:4381883] [MT] IDETestOperationsObserverDebug: 23.405 sec, +23.405 sec -- end
+2025-11-21 20:01:05.284 xcodebuild[2452:4381883] [MT] IDEResultKit: Warning: While writing a result bundle to /Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Logs/Test/Test-Hermes-2025.11.21_20-00-34--0800.xcresult, not all contents have been imported, as the Staging directory still contains the following files/directories: ["1_Test"]
+2025-11-21 20:01:05.287 xcodebuild[2452:4381883] [MT] IDETesting: Result bundle saving failed with error: Error Domain=IDEFoundationErrorDomain Code=12 "The result bundle could not be saved due to multiple errors: failed to import activity log, underlying error: fileSystemFailure(reason: "mkstemp: No such file or directory"), The operation couldn’t be completed. (CASDB.FileBackedCASDatabase.Error error 0.)" UserInfo={NSLocalizedDescription=The result bundle could not be saved due to multiple errors: failed to import activity log, underlying error: fileSystemFailure(reason: "mkstemp: No such file or directory"), The operation couldn’t be completed. (CASDB.FileBackedCASDatabase.Error error 0.), NSUnderlyingError=0x1398987f0 {Error Domain=IDEFoundation.ResultBundleError Code=2 "failed to import activity log, underlying error: fileSystemFailure(reason: "mkstemp: No such file or directory")"}}.
+
+Test session results, code coverage, and logs:
+	/Users/user2/Library/Developer/Xcode/DerivedData/Hermes-gayrmdhfnqltfgffycgkcqztcdfv/Logs/Test/Test-Hermes-2025.11.21_20-00-34--0800.xcresult
+
+Failing tests:
+	-[ASPlaylistRetryTests testPlaylistEmitsErrorAfterRetriesExhausted]
+	-[ASPlaylistRetryTests testPlaylistIgnoresTransientErrorsDuringRetry]
+	-[ASPlaylistRetryTests testPlaylistPerformsAutomaticRecoveryBeforeSurfaceNetworkError]
+	-[ASPlaylistRetryTests testPlaylistPerformsAutomaticRecoveryBeforeSurfaceNetworkError]
+	-[StationsControllerTests testStationsLoadedShowsChooserWhenSavedStationRestores]
+	-[AudioStreamerRetryTests testRetryExhaustionTriggersFinalFailure]
+	-[AudioStreamerRetryTests testRetryExhaustionTriggersFinalFailure]
+
+** TEST FAILED **
+
+ '-[PlaybackSleepLockTests testPlayOnScreenUnlockIgnoredWhenPreferenceOff]' passed on 'My Mac - Hermes (2540)' (0.003 seconds)
+Test case '-[PlaybackSleepLockTests testPlayOnScreenUnlockResumesAndClearsFlag]' passed on 'My Mac - Hermes (2540)' (0.003 seconds)
+Test suite 'SecureCodingPersistenceTests' started on 'My Mac - Hermes (2540)'
+Test case '-[SecureCodingPersistenceTests testHistoryControllerMigratesLegacyArchive]' passed on 'My Mac - Hermes (2540)' (0.024 seconds)
+Test case '-[SecureCodingPersistenceTests testHistoryControllerSecureArchiveRoundTrip]' passed on 'My Mac - Hermes (2540)' (0.002 seconds)
+Test case '-[SecureCodingPersistenceTests testStationSecureCodingRoundTrip]' passed on 'My Mac - Hermes (2540)' (0.002 seconds)
+Test suite 'InputMonitoringReminderTests' started on 'My Mac - Hermes (2540)'
+Test case '-[InputMonitoringReminderTests testPlaybackControllerRequestsReminderWhenNeeded]' passed on 'My Mac - Hermes (2540)' (0.006 seconds)
+Test case '-[InputMonitoringReminderTests testReminderSuppressedWhenPreferenceDisabled]' passed on 'My Mac - Hermes (2540)' (0.006 seconds)
+Test case '-[InputMonitoringReminderTests testStatusMenuReminderVisibilityTracksInputMonitoringAccess]' passed on 'My Mac - Hermes (2540)' (0.004 seconds)
+Test suite 'StationModeParserTests' started on 'My Mac - Hermes (2540)'
+Test case '-[StationModeParserTests testFiltersInvalidModeEntries]' passed on 'My Mac - Hermes (2540)' (0.001 seconds)
+Test case '-[StationModeParserTests testParsesValidModesAndMarksCurrent]' passed on 'My Mac - Hermes (2540)' (0.001 seconds)
+Test suite 'HermesInfoPlistTests' started on 'My Mac - Hermes (2540)'
+Test case 'HermesInfoPlistTests.testInputMonitoringUsageDescriptionPresent()' passed on 'My Mac - Hermes (2540)' (0.002 seconds)
+Test case '-[HermesTests testPerformanceExample]' passed on 'My Mac - Hermes (2539)' (1.460 seconds)
+Test case '-[StationsControllerTests testStationsLoadedShowsChooserWhenSavedStationRestores]' failed on 'My Mac - Hermes (2541)' (1.474 seconds)
+Test case '-[AudioStreamerRetryTests testRetryExhaustionTriggersFinalFailure]' failed on 'My Mac - Hermes (2542)' (0.000 seconds)
+Test case '-[ASPlaylistRetryTests testPlaylistEmitsErrorAfterRetriesExhausted]' failed on 'My Mac - Hermes (2538)' (3.105 seconds)
+Test case '-[AudioStreamerRetryTests testStateTransitionsResetRetryBookkeeping]' passed on 'My Mac - Hermes (2550)' (0.001 seconds)
+Test case '-[AudioStreamerRetryTests testTransientErrorSchedulesRetry]' passed on 'My Mac - Hermes (2550)' (0.012 seconds)
+Test case '-[ASPlaylistRetryTests testPlaylistIgnoresTransientErrorsDuringRetry]' failed on 'My Mac - Hermes (2538)' (3.013 seconds)
+Test case '-[ASPlaylistRetryTests testPlaylistPerformsAutomaticRecoveryBeforeSurfaceNetworkError]' failed on 'My Mac - Hermes (2538)' (4.020 seconds)
+Test case '-[URLConnectionTests testSlowResponseDoesNotTimeoutEarly]' passed on 'My Mac - Hermes (2536)' (11.007 seconds)
