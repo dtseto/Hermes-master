@@ -182,6 +182,19 @@
     return;
   }
 
+  // The playback pane may not be in a window when this fires (e.g., tests showing
+  // the Network tab first). Defer installation until the label actually has a
+  // superview so the constraints share a common ancestor.
+  if (mediaKeysLabel.superview == nil) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      // Guard again in case the button was created while we were waiting.
+      if (self->inputMonitoringReminderButton == nil) {
+        [self installInputMonitoringReminderButtonIfNeeded];
+      }
+    });
+    return;
+  }
+
   inputMonitoringReminderButton = [NSButton buttonWithTitle:@"Enable Input Monitoring Reminder…"
                                                      target:self
                                                      action:@selector(enableInputMonitoringReminder:)];
@@ -191,7 +204,8 @@
     inputMonitoringReminderButton.bordered = NO;
   }
   inputMonitoringReminderButton.translatesAutoresizingMaskIntoConstraints = NO;
-  [playback addSubview:inputMonitoringReminderButton];
+  NSView *targetSuperview = mediaKeysLabel.superview;
+  [targetSuperview addSubview:inputMonitoringReminderButton];
 
   [NSLayoutConstraint activateConstraints:@[
     [inputMonitoringReminderButton.topAnchor constraintEqualToAnchor:mediaKeysLabel.bottomAnchor constant:8.0],

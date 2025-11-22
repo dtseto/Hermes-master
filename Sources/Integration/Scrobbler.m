@@ -13,7 +13,35 @@
 #import "Pandora/Station.h"
 #import "Notifications.h"
 
+@interface FMEngine (ScrobblerConformance) <ScrobblerEngine>
+@end
+
+@implementation FMEngine (ScrobblerConformance)
+@end
+
 #define LASTFM_KEYCHAIN_ITEM @"hermes-lastfm-sk"
+
+@interface KeychainScrobblerStore : NSObject <ScrobblerCredentialStore>
+@end
+
+@implementation KeychainScrobblerStore
+- (NSString *)fetchSessionToken {
+  NSString *token = KeychainGetPassword(LASTFM_KEYCHAIN_ITEM);
+  if (token.length == 0) {
+    return nil;
+  }
+  return token;
+}
+- (BOOL)storeSessionToken:(NSString *)token {
+  return KeychainSetItem(LASTFM_KEYCHAIN_ITEM, token ?: @"");
+}
+@end
+
+@interface Scrobbler ()
+@property (nonatomic, strong) id<ScrobblerEngine> engine;
+@property (nonatomic, strong) id<ScrobblerCredentialStore> credentialStore;
+@property (nonatomic, copy) NSString *sessionToken;
+@end
 
 @implementation Scrobbler
 
@@ -22,14 +50,21 @@
  *
  * Also begins fetching of session keys for the Last.fm API
  */
-- (id) init {
-  if (!(self = [super init])) { return self; }
+- (instancetype)init {
+  return [self initWithEngine:[[FMEngine alloc] init]
+             credentialStore:[[KeychainScrobblerStore alloc] init]];
+}
 
-  engine = [[FMEngine alloc] init];
-  sessionToken = KeychainGetPassword(LASTFM_KEYCHAIN_ITEM);
-  if ([@"" isEqualToString:sessionToken]) {
-    sessionToken = nil;
-  }
+- (instancetype)initWithEngine:(id<ScrobblerEngine>)engine
+             credentialStore:(id<ScrobblerCredentialStore>)credentialStore {
+  NSParameterAssert(engine);
+  NSParameterAssert(credentialStore);
+
+  if (!(self = [super init])) { return nil; }
+
+  _engine = engine;
+  _credentialStore = credentialStore;
+  self.sessionToken = [credentialStore fetchSessionToken];
 
   [[NSNotificationCenter defaultCenter]
     addObserver:self
@@ -81,7 +116,7 @@ typedef void(^ScrobblerCallback)(NSDictionary*);
       
       switch (errorCode) {
         case 9: /* Invalid session key - Please re-authenticate */
-          self->sessionToken = nil;
+      self.sessionToken = nil;
           [self fetchRequestToken];
           break;
         case 8: /* Operation failed - Most likely the backend service failed. Please try again. */
@@ -145,14 +180,14 @@ typedef void(^ScrobblerCallback)(NSDictionary*);
       (PREF_KEY_BOOL(ONLY_SCROBBLE_LIKED) && [[song nrating] intValue] != 1)) {
     return;
   }
-  if (sessionToken == nil) {
+  if (self.sessionToken == nil) {
     [self fetchSessionToken];
     /* just lose this scrobble; it's not mission critical anyway */
     return;
   }
 
   NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-  dictionary[@"sk"] = sessionToken;
+  dictionary[@"sk"] = self.sessionToken;
   dictionary[@"api_key"] = _LASTFM_API_KEY_;
   dictionary[@"track"] = [song title];
   dictionary[@"artist"] = [song artist];
@@ -168,7 +203,7 @@ typedef void(^ScrobblerCallback)(NSDictionary*);
    */
   NSString *method = status == FinalStatus ? @"track.scrobble"
                                            : @"track.updateNowPlaying";
-  [engine performMethod:method
+  [self.engine performMethod:method
            withCallback:[self errorChecker:^(NSDictionary *_){}
                              handlesErrors:NO]
          withParameters:dictionary
@@ -186,7 +221,7 @@ typedef void(^ScrobblerCallback)(NSDictionary*);
   if (!PREF_KEY_BOOL(PLEASE_SCROBBLE) || !PREF_KEY_BOOL(PLEASE_SCROBBLE_LIKES)){
     return;
   }
-  if (sessionToken == nil) {
+  if (self.sessionToken == nil) {
     /* As above, it's "OK" if we drop this and just fetch a token for now */
     [self fetchSessionToken];
     return;
@@ -194,13 +229,13 @@ typedef void(^ScrobblerCallback)(NSDictionary*);
 
   NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
 
-  dictionary[@"sk"] = sessionToken;
+  dictionary[@"sk"] = self.sessionToken;
   dictionary[@"api_key"] = _LASTFM_API_KEY_;
   dictionary[@"track"] = [song title];
   dictionary[@"artist"] = [song artist];
 
   /* Relevant API documentation at http://www.last.fm/api/show/track.love */
-  [engine performMethod:(loved ? @"track.love" : @"track.unlove")
+  [self.engine performMethod:(loved ? @"track.love" : @"track.unlove")
            withCallback:[self errorChecker:^(NSDictionary *_){}
                              handlesErrors:NO]
          withParameters:dictionary
@@ -270,7 +305,7 @@ typedef void(^ScrobblerCallback)(NSDictionary*);
     }
   };
 
-  [engine performMethod:@"auth.getToken"
+  [self.engine performMethod:@"auth.getToken"
            withCallback:[self errorChecker:cb handlesErrors:NO]
          withParameters:dict
            useSignature:YES
@@ -306,18 +341,18 @@ typedef void(^ScrobblerCallback)(NSDictionary*);
       } else {
         [self error:object[@"message"]];
       }
-      self->sessionToken = nil;
+      self.sessionToken = nil;
       return;
     }
 
     NSDictionary *session = object[@"session"];
-    self->sessionToken = session[@"key"];
-    if (!KeychainSetItem(LASTFM_KEYCHAIN_ITEM, self->sessionToken)) {
+    self.sessionToken = session[@"key"];
+    if (![self.credentialStore storeSessionToken:self.sessionToken]) {
       [self error:@"Couldn't save session token to keychain!"];
     }
   };
 
-  [engine performMethod:@"auth.getSession"
+  [self.engine performMethod:@"auth.getSession"
            withCallback:[self errorChecker:cb handlesErrors:YES]
          withParameters:dict
            useSignature:YES

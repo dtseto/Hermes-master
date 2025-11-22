@@ -928,15 +928,20 @@ static void DummyPacketsProc(void *inClientData,
     if (streamIsPlaying) {
       Station *playing = [playback playing];
       Song *song = [playing playingSong];
+      if (song == nil) {
+        nowPlayingInfoCenter.playbackState = MPNowPlayingPlaybackStateUnknown;
+        nowPlayingInfoCenter.nowPlayingInfo = nil;
+        return;
+      }
       double progress = 0, duration = 0;
       [playing progress:&progress];
       [playing duration:&duration];
       nowPlayingInfoCenter.playbackState = MPNowPlayingPlaybackStatePlaying;
       nowPlayingInfoCenter.nowPlayingInfo = @{
         MPNowPlayingInfoPropertyMediaType: @(MPNowPlayingInfoMediaTypeAudio),
-        MPMediaItemPropertyArtist: song.artist,
-        MPMediaItemPropertyAlbumTitle: song.album,
-        MPMediaItemPropertyTitle: song.title,
+        MPMediaItemPropertyArtist: song.artist ?: @"",
+        MPMediaItemPropertyAlbumTitle: song.album ?: @"",
+        MPMediaItemPropertyTitle: song.title ?: @"",
         MPNowPlayingInfoPropertyElapsedPlaybackTime: @(progress),
         MPNowPlayingInfoPropertyPlaybackRate: @(1.),
         @"playbackDuration": @(duration) // XXX MPMediaItemPropertyPlaybackDuration not exposed in 10.12 SDK
@@ -955,10 +960,19 @@ static void DummyPacketsProc(void *inClientData,
 }
 
 - (void) handleStreamError: (NSNotification*) notification {
-  lastStationErr = [notification object];
+  Station *stationFromError = [playback playing];
+
   [self setCurrentView:errorView];
-  NSString *err = [lastStationErr streamNetworkError];
-  [errorLabel setStringValue:err];
+
+  NSString *err = nil;
+  if ([stationFromError respondsToSelector:@selector(streamNetworkError)]) {
+    err = [stationFromError streamNetworkError];
+  } else {
+    NSNumber *code = notification.userInfo[ASStreamErrorCodeKey];
+    err = code != nil ? [NSString stringWithFormat:@"Stream error (%@)", code] : @"Stream error";
+  }
+
+  [errorLabel setStringValue:err ?: @"Stream error"];
   [window orderFront:nil];
 }
 

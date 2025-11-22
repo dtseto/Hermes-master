@@ -114,7 +114,7 @@ typedef void(^PandoraCallback)(NSDictionary*);
  * methods indirectly.
  *
  * @param user the username to log in with
- * @param pass the password to log in with
+ * @param password the password to log in with
  * @param req an optional request which will be retried once the authentication
  *        has completed
  */
@@ -130,7 +130,7 @@ typedef void(^PandoraCallback)(NSDictionary*);
  * @param callback a callback to be invoked once the synchronization and login
  *        is done
  */
-- (BOOL) doPartnerLogin: (SyncCallback) cb;
+- (BOOL) doPartnerLogin: (SyncCallback) callback;
 
 - (void) logout;
 - (void) logoutNoNotify;
@@ -168,7 +168,7 @@ typedef void(^PandoraCallback)(NSDictionary*);
  *
  * @param stationToken the token of the station retrieved previously which is
  *                     to be renamed
- * @param to the new name of the station
+ * @param name the new name of the station
  */
 - (BOOL) renameStation: (NSString*)stationToken to:(NSString*)name;
 
@@ -288,8 +288,6 @@ typedef void(^PandoraCallback)(NSDictionary*);
 #pragma mark - Song Manipulation
 
 /**
- * @param Rate a Song
- *
  * Fires the "hermes.song-rated" event when done. The userInfo for the event is
  * a dictionary with one key, "song", the same one as provided to this method
  *

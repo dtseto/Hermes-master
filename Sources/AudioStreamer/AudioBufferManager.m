@@ -24,6 +24,7 @@ typedef struct queued_packet {
 @property (nonatomic, getter=isWaitingOnBuffer) BOOL waitingOnBuffer;
 @property (nonatomic) BOOL didSuspendDataTask;
 @property (nonatomic) BOOL streamAborted;
+@property (nonatomic, strong) NSRecursiveLock *lock;
 @end
 
 @implementation AudioBufferManager
@@ -56,6 +57,7 @@ typedef struct queued_packet {
         return nil;
     }
 
+    _lock = [[NSRecursiveLock alloc] init];
     [self reset];
     return self;
 }
@@ -71,6 +73,7 @@ typedef struct queued_packet {
 }
 
 - (void)reset {
+    [_lock lock];
     _packetsFilled = 0;
     _bytesFilled = 0;
     _fillBufferIndex = 0;
@@ -82,6 +85,7 @@ typedef struct queued_packet {
         memset(_inuse, 0, sizeof(BOOL) * _bufferCount);
     }
     [self freeQueuedPackets];
+    [_lock unlock];
 }
 
 - (void)freeQueuedPackets {
@@ -108,22 +112,27 @@ typedef struct queued_packet {
 
 - (AudioBufferManagerEnqueueResult)handlePacketData:(const void *)data
                                         description:(AudioStreamPacketDescription)desc {
+    [_lock lock];
     if (_streamAborted) {
+        [_lock unlock];
         return AudioBufferManagerEnqueueResultFailed;
     }
 
     UInt32 packetSize = desc.mDataByteSize;
     if (packetSize == 0) {
+        [_lock unlock];
         return AudioBufferManagerEnqueueResultCommitted;
     }
 
     if (packetSize > _packetBufferSize) {
+        [_lock unlock];
         return AudioBufferManagerEnqueueResultFailed;
     }
 
     if (_packetBufferSize - _bytesFilled < packetSize) {
         AudioBufferManagerEnqueueResult flushResult = [self flushCurrentBuffer];
         if (flushResult != AudioBufferManagerEnqueueResultCommitted) {
+            [_lock unlock];
             return flushResult;
         }
         NSAssert(_bytesFilled == 0, @"bytesFilled should be zero after flushing buffer.");
@@ -146,20 +155,26 @@ typedef struct queued_packet {
     _packetsFilled++;
 
     if (_packetsFilled >= _maxPacketDescs) {
-        return [self flushCurrentBuffer];
+        AudioBufferManagerEnqueueResult result = [self flushCurrentBuffer];
+        [_lock unlock];
+        return result;
     }
 
+    [_lock unlock];
     return AudioBufferManagerEnqueueResultCommitted;
 }
 
 - (AudioBufferManagerEnqueueResult)flushCurrentBuffer {
+    [_lock lock];
     if (_streamAborted) {
         _bytesFilled = 0;
         _packetsFilled = 0;
+        [_lock unlock];
         return AudioBufferManagerEnqueueResultFailed;
     }
 
     if (_packetsFilled == 0) {
+        [_lock unlock];
         return AudioBufferManagerEnqueueResultCommitted;
     }
 
@@ -170,6 +185,7 @@ typedef struct queued_packet {
             [_delegate audioBufferManagerSuspendData:self];
             _didSuspendDataTask = YES;
         }
+        [_lock unlock];
         return AudioBufferManagerEnqueueResultBlocked;
     }
 
@@ -190,6 +206,7 @@ typedef struct queued_packet {
         if (_buffersUsed > 0) {
             _buffersUsed--;
         }
+        [_lock unlock];
         return AudioBufferManagerEnqueueResultFailed;
     }
 
@@ -210,17 +227,21 @@ typedef struct queued_packet {
             [_delegate audioBufferManagerSuspendData:self];
             _didSuspendDataTask = YES;
         }
+        [_lock unlock];
         return AudioBufferManagerEnqueueResultBlocked;
     }
 
+    [_lock unlock];
     return AudioBufferManagerEnqueueResultCommitted;
 }
 
 - (void)cachePacketData:(const void *)data
-              packetSize:(UInt32)packetSize
-             description:(AudioStreamPacketDescription)desc {
+               packetSize:(UInt32)packetSize
+              description:(AudioStreamPacketDescription)desc {
+    [_lock lock];
     queued_packet_t *packet = malloc(sizeof(queued_packet_t) + packetSize);
     if (!packet) {
+        [_lock unlock];
         return;
     }
 
@@ -237,21 +258,28 @@ typedef struct queued_packet {
         _queuedTail->next = packet;
         _queuedTail = packet;
     }
+    [_lock unlock];
 }
 
 - (BOOL)hasQueuedPackets {
-    return _queuedHead != NULL;
+    [_lock lock];
+    BOOL hasPackets = _queuedHead != NULL;
+    [_lock unlock];
+    return hasPackets;
 }
 
 - (void)clearQueuedPackets {
+    [_lock lock];
     [self freeQueuedPackets];
     _waitingOnBuffer = NO;
     if (_didSuspendDataTask) {
         _didSuspendDataTask = NO;
     }
+    [_lock unlock];
 }
 
 - (void)abortPendingData {
+    [_lock lock];
     _streamAborted = YES;
     _bytesFilled = 0;
     _packetsFilled = 0;
@@ -261,16 +289,23 @@ typedef struct queued_packet {
     }
     _didSuspendDataTask = NO;
     [self freeQueuedPackets];
+    [_lock unlock];
 }
 
 - (void)processQueuedPackets {
+    [_lock lock];
     if (_streamAborted) {
         [self freeQueuedPackets];
+        [_lock unlock];
         return;
     }
 
     queued_packet_t *current = _queuedHead;
     while (current && !_waitingOnBuffer) {
+        // Unlock while handling packet data to avoid re-entrancy issues if handlePacketData calls out
+        // But handlePacketData also locks, so we need to be careful.
+        // Since we are using NSRecursiveLock, it's fine to call handlePacketData which also locks.
+        
         AudioBufferManagerEnqueueResult result =
             [self handlePacketData:current->data description:current->desc];
         if (result == AudioBufferManagerEnqueueResultFailed) {
@@ -293,9 +328,11 @@ typedef struct queued_packet {
             _didSuspendDataTask = NO;
         }
     }
+    [_lock unlock];
 }
 
 - (BOOL)bufferCompletedAtIndex:(UInt32)index {
+    [_lock lock];
     NSAssert(index < _bufferCount, @"Buffer index out of range.");
     NSAssert(_inuse[index], @"Completed buffer was not marked as in use.");
 
@@ -310,9 +347,11 @@ typedef struct queued_packet {
     }
 
     if (_streamAborted) {
+        [_lock unlock];
         return NO;
     }
 
+    [_lock unlock];
     return wasWaiting;
 }
 

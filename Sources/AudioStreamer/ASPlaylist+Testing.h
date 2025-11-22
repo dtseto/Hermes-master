@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(HERMES_TESTING)
 
  @interface ASPlaylist (Testing)
 

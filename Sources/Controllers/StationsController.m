@@ -9,6 +9,11 @@
 #define SORT_NAME 0
 #define SORT_DATE 1
 
+@interface StationsController ()
+@property (nonatomic, assign) BOOL hasPresentedStationsView;
+- (void)presentStationsChooser;
+@end
+
 @implementation StationsController
 
 - (id) init {
@@ -354,6 +359,10 @@
   [stationsRefreshing stopAnimation:nil];
   [stationsTable deselectAll:nil];
   [stationsTable reloadData];
+
+  if ([not.name isEqualToString:PandoraDidLogOutNotification]) {
+    self.hasPresentedStationsView = NO;
+  }
 }
 
 - (void) stationRenamed: (NSNotification*) not {
@@ -372,17 +381,39 @@
 
 /* Called whenever stations finish loading from pandora */
 - (void) stationsLoaded: (NSNotification*) not {
+  if (![NSThread isMainThread]) {
+    __weak typeof(self) weakSelf = self;
+    NSString *name = not.name;
+    id object = not.object;
+    NSDictionary *userInfo = not.userInfo;
+    dispatch_async(dispatch_get_main_queue(), ^{
+      NSNotification *relay = [NSNotification notificationWithName:name object:object userInfo:userInfo];
+      [weakSelf stationsLoaded:relay];
+    });
+    return;
+  }
+
   [self sortStations];
   [stationsTable reloadData];
 
   [stationsRefreshing setHidden:YES];
   [stationsRefreshing stopAnimation:nil];
 
-  if ([self playingStation] == nil && ![self playSavedStation]) {
-    [HMSAppDelegate setCurrentView:chooseStationView];
-  //  [HMSAppDelegate showStationsDrawer:nil];
+  BOOL hasActiveStation = ([self playingStation] != nil);
+  if (!hasActiveStation) {
+    hasActiveStation = [self playSavedStation];
   }
- // [HMSAppDelegate handleDrawer];
+
+  if (!self.hasPresentedStationsView) {
+    if (hasActiveStation) {
+      [[HMSAppDelegate playback] show];
+    } else {
+      [self presentStationsChooser];
+    }
+  } else if (!hasActiveStation) {
+    [self presentStationsChooser];
+  }
+  [self showDrawer];
 
   BOOL isAscending = YES;
   NSInteger otherSegment = SORT_DATE;
@@ -481,6 +512,11 @@
   [[self pandora] fetchGenreStations];
   [genreSpinner startAnimation:nil];
   [genreSpinner setHidden:NO];
+}
+
+- (void)presentStationsChooser {
+  [HMSAppDelegate setCurrentView:chooseStationView];
+  self.hasPresentedStationsView = YES;
 }
 
 /* Callback for the search box on the create sheet */

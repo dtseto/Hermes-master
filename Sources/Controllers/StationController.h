@@ -5,6 +5,17 @@
 
 @class Station;
 
+NS_ASSUME_NONNULL_BEGIN
+
+@protocol StationService <NSObject>
+- (void)fetchStationInfo:(Station * _Nonnull)station;
+- (void)renameStation:(NSString * _Nonnull)stationToken to:(NSString * _Nonnull)name;
+- (void)search:(NSString * _Nonnull)query;
+- (void)addSeed:(NSString * _Nonnull)seedIdentifier toStation:(Station * _Nonnull)station;
+- (void)removeSeed:(NSString * _Nonnull)seedIdentifier;
+- (void)deleteFeedback:(NSString * _Nonnull)feedbackId;
+@end
+
 @interface StationController : NSObject <NSTableViewDataSource, NSOutlineViewDataSource> {
   IBOutlet NSWindow *window;
 
@@ -36,15 +47,20 @@
   NSString *station_url;
 }
 
-- (void) editStation: (Station*) station;
-- (IBAction) renameStation:(id)sender;
-- (IBAction) gotoPandora:(id)sender;
+@property (nonatomic, strong, nullable) id<StationService> stationService;
+@property (nonatomic, strong, nullable) NSNotificationCenter *notificationCenter;
 
-- (IBAction) searchSeeds:(id)sender;
-- (IBAction) addSeed:(id)sender;
-- (IBAction) deleteSeed:(id)sender;
-- (void) seedFailedDeletion:(NSNotification*) not;
+- (void) editStation: (Station * _Nullable) station;
+- (IBAction) renameStation:(id _Nullable)sender;
+- (IBAction) gotoPandora:(id _Nullable)sender;
 
-- (IBAction) deleteFeedback:(id)sender;
+- (IBAction) searchSeeds:(id _Nullable)sender;
+- (IBAction) addSeed:(id _Nullable)sender;
+- (IBAction) deleteSeed:(id _Nullable)sender;
+- (void) seedFailedDeletion:(NSNotification * _Nonnull) not;
+
+- (IBAction) deleteFeedback:(id _Nullable)sender;
 
 @end
+
+NS_ASSUME_NONNULL_END

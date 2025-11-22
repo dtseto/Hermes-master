@@ -18,6 +18,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 @interface ASPlaylist ()
 @property (nonatomic, assign) NSUInteger catastrophicRecoveryStage;
 @property (nonatomic, assign) BOOL awaitingPlaylistRefill;
+@property (nonatomic, assign) AudioStreamerErrorCode pendingStreamErrorCode;
 @end
 
 @implementation ASPlaylist
@@ -27,6 +28,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   urls = [NSMutableArray arrayWithCapacity:10];
   _catastrophicRecoveryStage = 0;
   _awaitingPlaylistRefill = NO;
+  _pendingStreamErrorCode = AS_NO_ERROR;
   return self;
 }
 
@@ -98,6 +100,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   lastKnownSeekTime = 0;
   self.catastrophicRecoveryStage = 0;
   self.awaitingPlaylistRefill = NO;
+  self.pendingStreamErrorCode = AS_NO_ERROR;
 }
 
 - (void)streamerErrorInfo:(NSNotification *)notification {
@@ -116,6 +119,17 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   }
 
   int code = [stream errorCode];
+  if (code != 0) {
+    NSLog(@"ASPlaylist observed stream error code %d retryScheduled=%d stage=%lu awaiting=%d urls=%lu",
+          code,
+          [stream retryScheduled],
+          (unsigned long)self.catastrophicRecoveryStage,
+          self.awaitingPlaylistRefill,
+          (unsigned long)[urls count]);
+  }
+  if (code != AS_NO_ERROR) {
+    self.pendingStreamErrorCode = code;
+  }
   BOOL streamerRetryScheduled = [stream retryScheduled];
   if (stopping) {
     return;
@@ -142,9 +156,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
       if ([self handleCatastrophicNetworkFailureForCode:code]) {
         return;
       }
-      [[NSNotificationCenter defaultCenter]
-            postNotificationName:ASStreamError
-                          object:self];
+      [self surfaceFatalStreamErrorWithCode:code];
 
     /* Otherwise, this might be because our authentication token is invalid, but
        just in case, retry the current song automatically a few times before we
@@ -162,15 +174,17 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 }
 
 - (void)retry {
-  static const NSInteger kMaxPlaylistRetries = 5;
+  static const NSInteger kMaxPlaylistRetries = 3;
   if (tries >= kMaxPlaylistRetries) {
     tries = 0;
     retrying = NO;
     if ([urls count] == 0) {
-      [[NSNotificationCenter defaultCenter]
-          postNotificationName:ASRunningOutOfSongs
-                        object:self];
+      [self surfaceFatalStreamErrorWithCode:self.pendingStreamErrorCode];
+      return;
     }
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:ASRunningOutOfSongs
+                      object:self];
     [self next];
     return;
   }
@@ -271,6 +285,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   if (code != AS_NETWORK_CONNECTION_FAILED && code != AS_TIMED_OUT) {
     self.catastrophicRecoveryStage = 0;
     self.awaitingPlaylistRefill = NO;
+    self.pendingStreamErrorCode = AS_NO_ERROR;
     return NO;
   }
 
@@ -299,6 +314,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   [self stop];
   [self clearSongList];
   [self play];
+  [self scheduleFatalSurfaceCheckIfNeeded];
 }
 
 - (void)skipSongAfterFailedReplacement {
@@ -310,6 +326,62 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
                       object:self];
   }
   [self next];
+  [self scheduleFatalSurfaceCheckIfNeeded];
+}
+
+#pragma mark - Failure surfacing
+
+- (void)scheduleFatalSurfaceCheckIfNeeded {
+  AudioStreamerErrorCode pendingCode = self.pendingStreamErrorCode;
+  if (pendingCode == AS_NO_ERROR) {
+    return;
+  }
+  NSLog(@"ASPlaylist scheduling fatal check stage=%lu awaiting=%d urls=%lu",
+        (unsigned long)self.catastrophicRecoveryStage,
+        self.awaitingPlaylistRefill,
+        (unsigned long)[urls count]);
+  __weak typeof(self) weakSelf = self;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)),
+                 dispatch_get_main_queue(), ^{
+                   __strong typeof(weakSelf) strongSelf = weakSelf;
+                   if (!strongSelf) {
+                     return;
+                   }
+                   BOOL awaitingRefill = strongSelf.awaitingPlaylistRefill &&
+                                         strongSelf.catastrophicRecoveryStage == 1;
+                   BOOL skipping = strongSelf.catastrophicRecoveryStage >= 2;
+                   if (!awaitingRefill && !skipping) {
+                     return;
+                   }
+                   if (strongSelf->stream != nil) {
+                     return;
+                   }
+                   if (awaitingRefill && [strongSelf->urls count] > 0) {
+                     return;
+                   }
+                   [strongSelf surfaceFatalStreamErrorWithCode:pendingCode];
+                 });
+}
+
+- (void)surfaceFatalStreamErrorWithCode:(AudioStreamerErrorCode)code {
+  AudioStreamerErrorCode emittedCode = (code == AS_NO_ERROR) ? AS_NETWORK_CONNECTION_FAILED : code;
+  NSMutableDictionary *userInfo = [@{
+    ASStreamErrorCodeKey : @(emittedCode),
+    ASStreamErrorIsTransientKey : @NO
+  } mutableCopy];
+  if (stream != nil) {
+    userInfo[@"stream"] = stream;
+  }
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSLog(@"ASPlaylist surfacing stream error code %d", emittedCode);
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:ASStreamError
+                      object:self
+                    userInfo:userInfo];
+  });
+  self.catastrophicRecoveryStage = 0;
+  self.awaitingPlaylistRefill = NO;
+  self.pendingStreamErrorCode = AS_NO_ERROR;
 }
 
 #ifdef DEBUG

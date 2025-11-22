@@ -1373,7 +1373,6 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
     
     LOG(@"buffer %d finished", idx);
     
-    [self.stateLock lock];
     BOOL shouldProcessCachedData = NO;
     UInt32 currentBuffersUsed = 0;
     BOOL hasQueuedPackets = NO;
@@ -1382,6 +1381,8 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
         currentBuffersUsed = bufferManager.buffersUsed;
         hasQueuedPackets = [bufferManager hasQueuedPackets];
     }
+    
+    [self.stateLock lock];
     AudioStreamerState currentState = state_;
     [self.stateLock unlock];
     
@@ -1394,12 +1395,13 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
         dataTask.state == NSURLSessionTaskStateCompleted) {
         AudioQueueStop(audioQueue, false);
     } else if (shouldProcessCachedData) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if ([self isDone]) return;
-            if (self->bufferManager != nil) {
-                [self->bufferManager processQueuedPackets];
-            }
-        });
+        // Process queued packets directly on this thread (AudioQueue thread)
+        // This avoids the latency of dispatching to the main thread and prevents
+        // starvation of the audio queue.
+        if ([self isDone]) return;
+        if (self->bufferManager != nil) {
+            [self->bufferManager processQueuedPackets];
+        }
     }
 }
 

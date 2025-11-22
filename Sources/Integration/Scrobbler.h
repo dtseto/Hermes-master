@@ -8,6 +8,8 @@
 #import "FMEngine/FMEngine.h"
 #import "Pandora/Song.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 typedef enum {
   NewSong,
   NowPlaying,
@@ -16,14 +18,31 @@ typedef enum {
 
 #define SCROBBLER [HMSAppDelegate scrobbler]
 
+@protocol ScrobblerEngine <NSObject>
+- (void)performMethod:(NSString * _Nonnull)method
+        withCallback:(FMCallback _Nonnull)callback
+      withParameters:(NSDictionary * _Nonnull)parameters
+        useSignature:(BOOL)useSignature
+          httpMethod:(NSString * _Nonnull)httpMethod;
+@end
+
+@protocol ScrobblerCredentialStore <NSObject>
+- (nullable NSString *)fetchSessionToken;
+- (BOOL)storeSessionToken:(nullable NSString *)token;
+@end
+
 @interface Scrobbler : NSObject {
-  FMEngine *engine;
   NSString *requestToken;
-  NSString *sessionToken;
   BOOL inAuthorization;
 }
 
-- (void) setPreference: (Song*)song loved:(BOOL)loved;
-- (void) scrobble: (Song*) song state: (ScrobbleState) status;
+- (instancetype)initWithEngine:(id<ScrobblerEngine> _Nonnull)engine
+             credentialStore:(id<ScrobblerCredentialStore> _Nonnull)credentialStore NS_DESIGNATED_INITIALIZER;
+- (instancetype)init;
+
+- (void) setPreference: (Song * _Nonnull)song loved:(BOOL)loved;
+- (void) scrobble: (Song * _Nonnull) song state: (ScrobbleState) status;
 
 @end
+
+NS_ASSUME_NONNULL_END

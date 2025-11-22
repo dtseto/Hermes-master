@@ -936,7 +936,12 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
     return;
   }
   
-  if ([self pause]){
+  BOOL didPause = [self pause];
+  if (!didPause && playing != nil) {
+    [playing pause];
+    didPause = YES;
+  }
+  if (didPause) {
     self.pausedByScreenLock = YES;
   }
 }

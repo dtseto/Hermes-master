@@ -10,32 +10,37 @@
 - (id) init {
   self = [super init]; // Fix: Call super init
   if (self) {
-    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    _notificationCenter = [NSNotificationCenter defaultCenter];
 
-    [notificationCenter
+    [self.notificationCenter
       addObserver:self
       selector:@selector(authenticationSucceeded:)
       name:PandoraDidAuthenticateNotification
       object:nil];
 
-    [notificationCenter
-     addObserver:self
-     selector:@selector(controlTextDidChange:)
-     name:NSControlTextDidChangeNotification
-     object:username];
-
-    [notificationCenter
-     addObserver:self
-     selector:@selector(controlTextDidChange:)
-     name:NSControlTextDidChangeNotification
-     object:password];
   }
   return self;
 }
 
+- (void)awakeFromNib {
+  [super awakeFromNib];
+
+  [self.notificationCenter addObserver:self
+                              selector:@selector(handleCredentialFieldDidChange:)
+                                  name:NSControlTextDidChangeNotification
+                                object:username];
+
+  [self.notificationCenter addObserver:self
+                              selector:@selector(handleCredentialFieldDidChange:)
+                                  name:NSControlTextDidChangeNotification
+                                object:password];
+
+  [self updateLoginButtonState];
+}
+
 // Fix: Add dealloc to remove observers
 - (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
+  [self.notificationCenter removeObserver:self];
 }
 
 // Fix: Extract login validation logic to separate method
@@ -72,7 +77,7 @@
 
   HermesAppDelegate *delegate = HMSAppDelegate;
   if (![[username stringValue] isEqualToString:@""]) {
-    [delegate saveUsername:[username stringValue] password:[password stringValue]];
+    [[self credentialStore] saveUsername:[username stringValue] password:[password stringValue]];
   }
 
   [[delegate stations] show];
@@ -86,9 +91,9 @@
   [spinner setHidden:NO];
   [spinner startAnimation: sender];
 
-  [[HMSAppDelegate pandora] authenticate:[username stringValue]
-                                  password:[password stringValue]
-                                   request:nil];
+  [[self pandoraClient] authenticate:[username stringValue]
+                            password:[password stringValue]
+                             request:nil];
   [login setEnabled:NO];
 }
 
@@ -104,13 +109,12 @@
 /* Log out the current session */
 - (IBAction) logout: (id) sender {
   [password setStringValue:@""];
-  HermesAppDelegate *delegate = HMSAppDelegate;
-  [[delegate pandora] logout];
+  [[self pandoraClient] logout];
 }
 
-//- (void)controlTextDidChange:(NSNotification *)obj {
-//  [self updateLoginButtonState];
-//}
+- (void)handleCredentialFieldDidChange:(NSNotification *)obj {
+  [self updateLoginButtonState];
+}
 
 // Fix: Replace deprecated validateMenuItem with validateUserInterfaceItem
 - (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item {
@@ -121,6 +125,27 @@
   }
 
   return YES;
+}
+
+- (NSNotificationCenter *)notificationCenter {
+  if (_notificationCenter == nil) {
+    _notificationCenter = [NSNotificationCenter defaultCenter];
+  }
+  return _notificationCenter;
+}
+
+- (id<AuthPandoraClient>)pandoraClient {
+  if (_pandoraClient == nil) {
+    _pandoraClient = (id<AuthPandoraClient>)[HMSAppDelegate pandora];
+  }
+  return _pandoraClient;
+}
+
+- (id<AuthCredentialStore>)credentialStore {
+  if (_credentialStore == nil) {
+    _credentialStore = (id<AuthCredentialStore>)HMSAppDelegate;
+  }
+  return _credentialStore;
 }
 
 @end

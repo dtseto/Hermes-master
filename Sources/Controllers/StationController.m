@@ -22,6 +22,7 @@
 
 - (id) init {
   NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+  _notificationCenter = center;
   [center addObserver:self
              selector:@selector(stationInfo:)
                  name:PandoraDidLoadStationInfoNotification
@@ -57,6 +58,10 @@
   return [super init];
 }
 
+- (void)dealloc {
+  [self.notificationCenter removeObserver:self];
+}
+
 /**
  * @brief Begin editing a station by displaying all the necessary dialogs
  *
@@ -71,7 +76,7 @@
   if (station != nil) {
     [progress setHidden:FALSE];
     [progress startAnimation:nil];
-    [[HMSAppDelegate pandora] fetchStationInfo: station];
+    [[self stationService] fetchStationInfo: station];
   }
   cur_station = station;
   station_url = nil;
@@ -160,7 +165,7 @@
 }
 
 - (IBAction) renameStation:(id)sender {
-  Pandora *pandora = [HMSAppDelegate pandora];
+  id<StationService> pandora = [self stationService];
   [pandora renameStation:[cur_station token] to:[stationName stringValue]];
   [cur_station setName:[stationName stringValue]];
   [self showSpinner];
@@ -188,7 +193,7 @@
 #pragma mark - Search for a seed
 
 - (IBAction) searchSeeds:(id)sender {
-  Pandora *pandora = [HMSAppDelegate pandora];
+  id<StationService> pandora = [self stationService];
   [self showSpinner];
   [pandora search:[seedSearch stringValue]];
 }
@@ -211,7 +216,7 @@
   // XXX - multiple selection is disabled in IB for this reason
   NSIndexSet *set = [seedsResults selectedRowIndexes];
   if ([set count] == 0) return;
-  Pandora *pandora = [HMSAppDelegate pandora];
+  id<StationService> pandora = [self stationService];
 
   [set enumerateIndexesUsingBlock: ^(NSUInteger idx, BOOL *stop) {
     id item = [self->seedsResults itemAtRow:idx];
@@ -246,7 +251,7 @@
   // XXX - multiple selection is disabled in IB for this reason
   NSIndexSet *set = [seedsCurrent selectedRowIndexes];
   if ([set count] == 0) return;
-  Pandora *pandora = [HMSAppDelegate pandora];
+  id<StationService> pandora = [self stationService];
   __block int removeRequests = 0;
 
   [set enumerateIndexesUsingBlock: ^(NSUInteger idx, BOOL *stop) {
@@ -323,7 +328,7 @@
     [dislikes setEnabled:NO];
     [progress setHidden:FALSE];
     [progress startAnimation:nil];
-    [[HMSAppDelegate pandora] fetchStationInfo:cur_station];
+    [[self stationService] fetchStationInfo:cur_station];
   }
 }
 
@@ -334,7 +339,7 @@
   if ([set count] == 0)
     return;
 
-  Pandora *pandora = [HMSAppDelegate pandora];
+  id<StationService> pandora = [self stationService];
   [set enumerateIndexesUsingBlock: ^(NSUInteger idx, BOOL *stop) {
     NSDictionary *song = feed[idx];
     [pandora deleteFeedback:song[@"feedbackId"]];
@@ -476,6 +481,20 @@
   else if (outlineView == seedsCurrent)
     button = seedDel;
   [button setEnabled:([outlineView numberOfSelectedRows] > 0)];
+}
+
+- (NSNotificationCenter *)notificationCenter {
+  if (_notificationCenter == nil) {
+    _notificationCenter = [NSNotificationCenter defaultCenter];
+  }
+  return _notificationCenter;
+}
+
+- (id<StationService>)stationService {
+  if (_stationService == nil) {
+    _stationService = (id<StationService>)[HMSAppDelegate pandora];
+  }
+  return _stationService;
 }
 
 @end

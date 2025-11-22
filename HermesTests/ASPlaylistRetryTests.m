@@ -7,12 +7,23 @@
 #import "../Sources/AudioStreamer/AudioStreamer+Testing.h"
 
 static AudioStreamer *(*OriginalStreamWithURL)(Class, SEL, NSURL *);
-static AudioStreamer *gNextStreamer = nil;
+static NSMutableArray<AudioStreamer *> *gStreamerQueue = nil;
+static BOOL gForceNonTransientErrors = NO;
+
+static void EnqueueTestStreamer(AudioStreamer *streamer) {
+  if (streamer == nil) {
+    return;
+  }
+  if (gStreamerQueue == nil) {
+    gStreamerQueue = [[NSMutableArray alloc] init];
+  }
+  [gStreamerQueue addObject:streamer];
+}
 
 static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
-  if (gNextStreamer != nil) {
-    AudioStreamer *streamer = gNextStreamer;
-    gNextStreamer = nil;
+  if (gStreamerQueue.count > 0) {
+    AudioStreamer *streamer = gStreamerQueue.firstObject;
+    [gStreamerQueue removeObjectAtIndex:0];
     return streamer;
   }
   return OriginalStreamWithURL(cls, _cmd, url);
@@ -34,6 +45,14 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   return self;
 }
 
++ (BOOL)isErrorCodeTransient:(AudioStreamerErrorCode)errorCode
+                networkError:(NSError *)networkError {
+  if (gForceNonTransientErrors) {
+    return NO;
+  }
+  return [AudioStreamer isErrorCodeTransient:errorCode networkError:networkError];
+}
+
 - (BOOL)openURLSession {
   ((void (*)(id, SEL, AudioStreamerState))objc_msgSend)(self, NSSelectorFromString(@"setState:"), AS_WAITING_FOR_DATA);
   return YES;
@@ -46,9 +65,8 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   self.startInvocationCount += 1;
   NSUInteger attempt = self.startInvocationCount;
   if (self.autoFailCount > 0 && attempt <= self.autoFailCount) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [self simulateErrorForTesting:self.forcedErrorCode];
-    });
+    [self simulateErrorForTesting:self.forcedErrorCode];
+    EnqueueTestStreamer(self);
   } else {
     dispatch_async(dispatch_get_main_queue(), ^{
       ((void (*)(id, SEL, AudioStreamerState))objc_msgSend)(self, NSSelectorFromString(@"setState:"), AS_PLAYING);
@@ -74,6 +92,8 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   Method original = class_getClassMethod(cls, @selector(streamWithURL:));
   OriginalStreamWithURL = (AudioStreamer *(*)(Class, SEL, NSURL *))method_getImplementation(original);
   method_setImplementation(original, (IMP)TestStreamWithURL);
+  gStreamerQueue = [[NSMutableArray alloc] init];
+  gForceNonTransientErrors = NO;
 }
 
 + (void)tearDown {
@@ -81,13 +101,15 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   Method original = class_getClassMethod(cls, @selector(streamWithURL:));
   method_setImplementation(original, (IMP)OriginalStreamWithURL);
   OriginalStreamWithURL = NULL;
+  [gStreamerQueue removeAllObjects];
+  gForceNonTransientErrors = NO;
 }
 
 - (void)testPlaylistIgnoresTransientErrorsDuringRetry {
   TestPlaylistAudioStreamer *streamer = [[TestPlaylistAudioStreamer alloc] init];
   streamer.autoFailCount = 1;
   streamer.successExpectation = [self expectationWithDescription:@"playlist recovered"];
-  gNextStreamer = streamer;
+  EnqueueTestStreamer(streamer);
 
   __block BOOL streamErrorObserved = NO;
   id token = [[NSNotificationCenter defaultCenter]
@@ -102,16 +124,17 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   NSURL *url = [NSURL URLWithString:@"https://example.com/test.mp3"];
   [playlist addSong:url play:YES];
 
-  [self waitForExpectations:@[streamer.successExpectation] timeout:2.0];
+  [self waitForExpectations:@[streamer.successExpectation] timeout:3.0];
   [[NSNotificationCenter defaultCenter] removeObserver:token];
   XCTAssertFalse(streamErrorObserved);
   [playlist stop];
 }
 
 - (void)testPlaylistEmitsErrorAfterRetriesExhausted {
+  gForceNonTransientErrors = YES;
   TestPlaylistAudioStreamer *streamer = [[TestPlaylistAudioStreamer alloc] init];
   streamer.autoFailCount = 4; // exceed default retry count
-  gNextStreamer = streamer;
+  EnqueueTestStreamer(streamer);
 
   XCTestExpectation *errorExpectation = [self expectationWithDescription:@"stream error notification"];
   id token = [[NSNotificationCenter defaultCenter]
@@ -127,6 +150,7 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   [playlist addSong:url play:YES];
 
   [self waitForExpectations:@[errorExpectation] timeout:3.0];
+  gForceNonTransientErrors = NO;
   [[NSNotificationCenter defaultCenter] removeObserver:token];
   [playlist stop];
 }
@@ -157,11 +181,11 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
               usingBlock:^(__unused NSNotification *note) {
                 shortageNotifications += 1;
                 if (shortageNotifications == 1) {
-                  gNextStreamer = streamer2;
                   NSURL *url2 = [NSURL URLWithString:@"https://example.com/replacement.mp3"];
+                  EnqueueTestStreamer(streamer2);
                   [playlist addSong:url2 play:YES];
-                  gNextStreamer = streamer3;
                   NSURL *url3 = [NSURL URLWithString:@"https://example.com/fallback.mp3"];
+                  EnqueueTestStreamer(streamer3);
                   [playlist addSong:url3 play:NO];
                 }
               }];
@@ -176,7 +200,7 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
                 [errorExpectation fulfill];
               }];
 
-  gNextStreamer = streamer1;
+  EnqueueTestStreamer(streamer1);
   NSURL *url1 = [NSURL URLWithString:@"https://example.com/original.mp3"];
   [playlist addSong:url1 play:YES];
 

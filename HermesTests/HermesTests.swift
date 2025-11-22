@@ -1,9 +1,8 @@
-import Foundation
-import Testing
+import XCTest
 
-struct HermesInfoPlistTests {
+final class HermesInfoPlistTests: XCTestCase {
 
-    @Test func inputMonitoringUsageDescriptionPresent() async throws {
+    func testInputMonitoringUsageDescriptionPresent() throws {
         let fileManager = FileManager.default
         let environment = ProcessInfo.processInfo.environment
 
@@ -22,12 +21,12 @@ struct HermesInfoPlistTests {
 
         guard let bundleURL = candidateURLs.first(where: { fileManager.fileExists(atPath: $0.path) }),
               let bundle = Bundle(url: bundleURL) else {
-            Issue.record("Unable to locate Hermes.app to inspect Info.plist for Input Monitoring usage description.")
+            XCTFail("Unable to locate Hermes.app to inspect Info.plist for Input Monitoring usage description.")
             return
         }
 
         let description = bundle.object(forInfoDictionaryKey: "NSInputMonitoringUsageDescription") as? String
-        #expect(description?.isEmpty == false, "Info.plist must define NSInputMonitoringUsageDescription.")
+        XCTAssertNotNil(description, "Info.plist must define NSInputMonitoringUsageDescription.")
+        XCTAssertFalse(description?.isEmpty ?? true, "Info.plist must define NSInputMonitoringUsageDescription.")
     }
-
 }
