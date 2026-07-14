@@ -414,9 +414,10 @@ static void DummyPacketsProc(void *inClientData,
     [history saveSongs];
 }
 
-// Optional: Handle window closing
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
-    return YES;  // App will quit when last window is closed
+    // When the Dock icon is hidden, the status item is Hermes' only visible UI.
+    // Otherwise, closing the last window should quit as expected.
+    return !PREF_KEY_BOOL(STATUS_BAR_ICON);
 }
 
 #pragma mark - NSWindow notification
