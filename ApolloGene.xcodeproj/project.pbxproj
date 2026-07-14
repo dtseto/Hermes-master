@@ -44,7 +44,7 @@
 		BF8C778833A4F74100F8BAA1 /* SUUpdaterStub.m in Sources */ = {isa = PBXBuildFile; fileRef = BF8C778733A4F74100F8BAA1 /* SUUpdaterStub.m */; };
 		E1200AA11CF2A4CC000D3215 /* LabelHoverShowField.m in Sources */ = {isa = PBXBuildFile; fileRef = E1200AA01CF2A4CC000D3215 /* LabelHoverShowField.m */; };
 		E1200AA41CF2B015000D3215 /* LabelHoverShowFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = E1200AA31CF2B015000D3215 /* LabelHoverShowFieldCell.m */; };
-		E124109A18EBAF6F007AF091 /* HermesApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E124109918EBAF6F007AF091 /* HermesApp.m */; };
+		E124109A18EBAF6F007AF091 /* ApolloGeneApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E124109918EBAF6F007AF091 /* ApolloGeneApp.m */; };
 		E1301AFB1D828FC100FF557D /* HermesVolumeSliderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = E1301AFA1D828FC100FF557D /* HermesVolumeSliderCell.m */; };
 		E145363D1D84CD4400DE7AFB /* HermesMainWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = E145363C1D84CD4400DE7AFB /* HermesMainWindow.m */; };
 		E14709D91E2AEEE400758888 /* NSDrawerWindow-HermesFirstResponderWorkaround.m in Sources */ = {isa = PBXBuildFile; fileRef = E14709D81E2AEEE400758888 /* NSDrawerWindow-HermesFirstResponderWorkaround.m */; };
@@ -134,7 +134,7 @@
 		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
 		256AC3D80F4B6AC300CF3369 /* HermesAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HermesAppDelegate.h; sourceTree = "<group>"; };
 		256AC3D90F4B6AC300CF3369 /* HermesAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HermesAppDelegate.m; sourceTree = "<group>"; wrapsLines = 0; };
-		256AC3F00F4B6AF500CF3369 /* Hermes_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Hermes_Prefix.pch; sourceTree = "<group>"; };
+		256AC3F00F4B6AF500CF3369 /* ApolloGene_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ApolloGene_Prefix.pch; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -155,7 +155,7 @@
 		7D8B2B5D2FCAF4F200729EEA /* HermesTests/StationsControllerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HermesTests/StationsControllerTests.m; sourceTree = SOURCE_ROOT; };
 		843B578919660680000898F2 /* NSObject+SPInvocationGrabbing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+SPInvocationGrabbing.h"; sourceTree = "<group>"; };
 		843B578A19660680000898F2 /* NSObject+SPInvocationGrabbing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+SPInvocationGrabbing.m"; sourceTree = "<group>"; };
-		8D1107310486CEB800E47090 /* Hermes-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Hermes-Info.plist"; sourceTree = "<group>"; };
+		8D1107310486CEB800E47090 /* ApolloGene-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ApolloGene-Info.plist"; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* ApolloGene.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ApolloGene.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		97177193159EAA7D00EE3355 /* cd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cd.png; sourceTree = "<group>"; };
 		97177196159EAF6F00EE3355 /* HistoryView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HistoryView.h; path = Views/HistoryView.h; sourceTree = "<group>"; };
@@ -180,8 +180,8 @@
 		E1200AA01CF2A4CC000D3215 /* LabelHoverShowField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LabelHoverShowField.m; path = Views/LabelHoverShowField.m; sourceTree = "<group>"; };
 		E1200AA21CF2B015000D3215 /* LabelHoverShowFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LabelHoverShowFieldCell.h; path = Views/LabelHoverShowFieldCell.h; sourceTree = "<group>"; };
 		E1200AA31CF2B015000D3215 /* LabelHoverShowFieldCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LabelHoverShowFieldCell.m; path = Views/LabelHoverShowFieldCell.m; sourceTree = "<group>"; };
-		E124109818EBAF6F007AF091 /* HermesApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HermesApp.h; sourceTree = "<group>"; };
-		E124109918EBAF6F007AF091 /* HermesApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HermesApp.m; sourceTree = "<group>"; };
+		E124109818EBAF6F007AF091 /* ApolloGeneApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ApolloGeneApp.h; sourceTree = "<group>"; };
+		E124109918EBAF6F007AF091 /* ApolloGeneApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ApolloGeneApp.m; sourceTree = "<group>"; };
 		E1301AF91D828FC100FF557D /* HermesVolumeSliderCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HermesVolumeSliderCell.h; path = Views/HermesVolumeSliderCell.h; sourceTree = "<group>"; };
 		E1301AFA1D828FC100FF557D /* HermesVolumeSliderCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = HermesVolumeSliderCell.m; path = Views/HermesVolumeSliderCell.m; sourceTree = "<group>"; };
 		E137BA0A2132E698002E513C /* RELEASING.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = RELEASING.md; sourceTree = SOURCE_ROOT; };
@@ -300,7 +300,7 @@
 		080E96DDFE201D6D7F000001 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				256AC3F00F4B6AF500CF3369 /* Hermes_Prefix.pch */,
+				256AC3F00F4B6AF500CF3369 /* ApolloGene_Prefix.pch */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
 				FACF0180149A713700D1FB73 /* AudioStreamer */,
 				0F795D392EB8AAA00009B05D /* AudioStreamerTests */,
@@ -314,8 +314,8 @@
 				FA2A3F90132BF9F50089AECC /* Pandora */,
 				256AC3D80F4B6AC300CF3369 /* HermesAppDelegate.h */,
 				256AC3D90F4B6AC300CF3369 /* HermesAppDelegate.m */,
-				E124109818EBAF6F007AF091 /* HermesApp.h */,
-				E124109918EBAF6F007AF091 /* HermesApp.m */,
+				E124109818EBAF6F007AF091 /* ApolloGeneApp.h */,
+				E124109918EBAF6F007AF091 /* ApolloGeneApp.m */,
 				9717719B159EBBBF00EE3355 /* FileReader.h */,
 				9717719C159EBBBF00EE3355 /* FileReader.m */,
 				44DFC8DE18FDFCBC007422DC /* Notifications.h */,
@@ -400,7 +400,7 @@
 				0F795D7A2EB7D51D0009B05D /* default.metallib */,
 				FA24435E136B3D6C00E126D3 /* CHANGELOG.md */,
 				FAD42FA3136790DE00E935CA /* dsa_pub.pem */,
-				8D1107310486CEB800E47090 /* Hermes-Info.plist */,
+				8D1107310486CEB800E47090 /* ApolloGene-Info.plist */,
 				FAEFFBFF132D620B007DC6FB /* Icons */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				1DDD58140DA1D0A300B32029 /* MainMenu.xib */,
@@ -767,7 +767,7 @@
 				44DFC8E018FDFCBC007422DC /* Notifications.m in Sources */,
 				BF8C778833A4F74100F8BAA1 /* SUUpdaterStub.m in Sources */,
 				0FD205422FCAF00000525B48 /* HermesUpdaterController.m in Sources */,
-				E124109A18EBAF6F007AF091 /* HermesApp.m in Sources */,
+				E124109A18EBAF6F007AF091 /* ApolloGeneApp.m in Sources */,
 				441C9F161CC86A74000A0302 /* AudioStreamer.m in Sources */,
 				4A88BD712FA22D77007A8C9F /* AudioStreamerStateController.m in Sources */,
 				4A5B5B6D2F9C3CEC00B1F7A3 /* AudioStreamerMetadata.m in Sources */,
@@ -859,7 +859,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hermes.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hermes";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ApolloGene.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ApolloGene";
 			};
 			name = Debug;
 		};
@@ -901,7 +901,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hermes.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hermes";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ApolloGene.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ApolloGene";
 			};
 			name = Release;
 		};
@@ -927,13 +927,13 @@
 					"\"$(SRCROOT)/Frameworks\"",
 					"$(PROJECT_DIR)/Frameworks",
 				);
-				GCC_PREFIX_HEADER = Sources/Hermes_Prefix.pch;
+				GCC_PREFIX_HEADER = Sources/ApolloGene_Prefix.pch;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)\"",
 					"\"$(SRCROOT)/Sources\"/**",
 					"\"$(SRCROOT)/ImportedSources\"",
 				);
-				INFOPLIST_FILE = "Resources/Hermes-Info.plist";
+				INFOPLIST_FILE = "Resources/ApolloGene-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = ApolloGene;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -982,13 +982,13 @@
 					"$(PROJECT_DIR)/Frameworks",
 				);
 				GCC_OPTIMIZATION_LEVEL = s;
-				GCC_PREFIX_HEADER = Sources/Hermes_Prefix.pch;
+				GCC_PREFIX_HEADER = Sources/ApolloGene_Prefix.pch;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)\"",
 					"\"$(SRCROOT)/Sources\"/**",
 					"\"$(SRCROOT)/ImportedSources\"",
 				);
-				INFOPLIST_FILE = "Resources/Hermes-Info.plist";
+				INFOPLIST_FILE = "Resources/ApolloGene-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = ApolloGene;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				LD_RUNPATH_SEARCH_PATHS = (

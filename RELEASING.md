@@ -43,7 +43,7 @@ Every time you distribute a new version of Hermes beyond the confines of your co
 
     Updating CFBundleVersion in Info.plist(s)...
 
-    Updated CFBundleVersion in "Hermes.xcodeproj/../Resources/Hermes-Info.plist" to 2041
+    Updated CFBundleVersion in "ApolloGene.xcodeproj/../Resources/ApolloGene-Info.plist" to 2041
 
 ## Making a private release
 
@@ -73,7 +73,7 @@ Pick a marketing version for your beta release and use `agvtool` to set it (in a
 
     Updating CFBundleShortVersionString in Info.plist(s)...
 
-    Updated CFBundleShortVersionString in "Hermes.xcodeproj/../Resources/Hermes-Info.plist" to 1.2.8b1
+    Updated CFBundleShortVersionString in "ApolloGene.xcodeproj/../Resources/ApolloGene-Info.plist" to 1.2.8b1
 
 Next, make sure the [changelog](https://github.com/HermesApp/Hermes/blob/master/CHANGELOG.md) is up to date.  Create a section for the next non-beta version if needed, include "unreleased" for the release date, link to the Git history between the last `v` tag and `HEAD` and document the meaningful changes (see an example [here](https://raw.githubusercontent.com/HermesApp/Hermes/308d81f7b16540742e6398371cde38e46b14755f/CHANGELOG.md)).
 

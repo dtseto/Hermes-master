@@ -4,12 +4,12 @@ XCB           = xcodebuild
 XCPIPE        =
 CONFIGURATION = Debug
 SCHEME        = Hermes
-HERMES        = ./build/$(CONFIGURATION)/Hermes.app/Contents/MacOS/Hermes
+HERMES        = ./build/$(CONFIGURATION)/ApolloGene.app/Contents/MacOS/ApolloGene
 DEBUGGER      = lldb
 
 # For some reason the project's SYMROOT setting is ignored when we specify an
 # explicit -project option. The -project option is required when using xctool.
-COMMON_OPTS   = -project Hermes.xcodeproj SYMROOT=build
+COMMON_OPTS   = -project ApolloGene.xcodeproj SYMROOT=build
 
 all: hermes
 
@@ -28,8 +28,8 @@ dbg: hermes
 
 install:
 	$(XCB) $(COMMON_OPTS) -configuration Release -scheme Hermes
-	rm -rf /Applications/Hermes.app
-	cp -a ./build/Release/Hermes.app /Applications/
+	rm -rf /Applications/ApolloGene.app
+	cp -a ./build/Release/ApolloGene.app /Applications/
 
 # Create an archive to share (for beta testing purposes).
 archive: CONFIGURATION = Release

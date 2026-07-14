@@ -17,7 +17,7 @@
                BlueprintIdentifier = "8D1107260486CEB800E47090"
                BuildableName = "Hermes.app"
                BlueprintName = "Hermes"
-               ReferencedContainer = "container:Hermes.xcodeproj">
+               ReferencedContainer = "container:ApolloGene.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,7 +33,7 @@
             BlueprintIdentifier = "8D1107260486CEB800E47090"
             BuildableName = "Hermes.app"
             BlueprintName = "Hermes"
-            ReferencedContainer = "container:Hermes.xcodeproj">
+            ReferencedContainer = "container:ApolloGene.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -45,7 +45,7 @@
                BlueprintIdentifier = "0FD206022ECA915800525B48"
                BuildableName = "HermesTests.xctest"
                BlueprintName = "HermesTests"
-               ReferencedContainer = "container:Hermes.xcodeproj">
+               ReferencedContainer = "container:ApolloGene.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -68,7 +68,7 @@
             BlueprintIdentifier = "8D1107260486CEB800E47090"
             BuildableName = "Hermes.app"
             BlueprintName = "Hermes"
-            ReferencedContainer = "container:Hermes.xcodeproj">
+            ReferencedContainer = "container:ApolloGene.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -85,7 +85,7 @@
             BlueprintIdentifier = "8D1107260486CEB800E47090"
             BuildableName = "Hermes.app"
             BlueprintName = "Hermes"
-            ReferencedContainer = "container:Hermes.xcodeproj">
+            ReferencedContainer = "container:ApolloGene.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

@@ -1,14 +1,14 @@
 //
-//  HermesApp.m
-//  Hermes
+//  ApolloGeneApp.m
+//  ApolloGene
 //
 //  Created by Nicholas Riley on 4/1/14.
 //
 //
 
-#import "HermesApp.h"
+#import "ApolloGeneApp.h"
 
-@implementation HermesApp
+@implementation ApolloGeneApp
 
 - (void)orderFrontStandardAboutPanelWithOptions:(NSDictionary *)optionsDictionary {
   // XXX work around bug in OS X 10.7–10.12 where the Credits text is not centered (r. 14829080)

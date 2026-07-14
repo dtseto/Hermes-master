@@ -22,7 +22,7 @@
                BlueprintIdentifier = "0FD206022ECA915800525B48"
                BuildableName = "HermesTests.xctest"
                BlueprintName = "HermesTests"
-               ReferencedContainer = "container:Hermes.xcodeproj">
+               ReferencedContainer = "container:ApolloGene.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
