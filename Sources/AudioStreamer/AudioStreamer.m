@@ -1309,6 +1309,17 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
   assert(inPacketDescriptions != NULL);
 
   const uint8_t *inputBytes = (const uint8_t *)inInputData;
+  if ([bufferManager shouldCacheIncomingPackets]) {
+    for (UInt32 index = 0; index < inNumberPackets; index++) {
+      AudioStreamPacketDescription desc = inPacketDescriptions[index];
+      const void *packetData = inputBytes + desc.mStartOffset;
+      [bufferManager cachePacketData:packetData
+                          packetSize:desc.mDataByteSize
+                         description:desc];
+    }
+    return;
+  }
+
   UInt32 i;
   for (i = 0; i < inNumberPackets; i++) {
     AudioStreamPacketDescription desc = inPacketDescriptions[i];

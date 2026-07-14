@@ -273,6 +273,15 @@ typedef struct queued_packet {
     }
 }
 
+- (BOOL)shouldCacheIncomingPackets {
+    [_lock lock];
+    @try {
+        return _waitingOnBuffer || _queuedHead != NULL;
+    } @finally {
+        [_lock unlock];
+    }
+}
+
 - (void)clearQueuedPackets {
     [_lock lock];
     @try {

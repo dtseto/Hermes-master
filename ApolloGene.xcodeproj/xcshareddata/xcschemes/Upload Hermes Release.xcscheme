@@ -17,7 +17,7 @@
                BlueprintIdentifier = "44B251CA18FE41D400D73344"
                BuildableName = "Upload Hermes Release"
                BlueprintName = "Upload Hermes Release"
-               ReferencedContainer = "container:Hermes.xcodeproj">
+               ReferencedContainer = "container:ApolloGene.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -47,7 +47,7 @@
             BlueprintIdentifier = "44B251CA18FE41D400D73344"
             BuildableName = "Upload Hermes Release"
             BlueprintName = "Upload Hermes Release"
-            ReferencedContainer = "container:Hermes.xcodeproj">
+            ReferencedContainer = "container:ApolloGene.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </LaunchAction>
