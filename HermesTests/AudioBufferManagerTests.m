@@ -111,6 +111,35 @@
     XCTAssertEqual(self.delegate.lastEnqueuedIndex, 0U);
 }
 
+- (void)testIncomingPacketsAreCachedWhileBacklogExists {
+    AudioStreamPacketDescription desc = {0};
+    desc.mDataByteSize = 4;
+    char data[4] = {0};
+
+    XCTAssertFalse([self.manager shouldCacheIncomingPackets]);
+    [self.manager cachePacketData:data packetSize:sizeof(data) description:desc];
+    XCTAssertTrue([self.manager shouldCacheIncomingPackets]);
+}
+
+- (void)testIncomingPacketsAreCachedWhileWaitingForInUseBuffer {
+    AudioBufferManager *singleBufferManager =
+      [[AudioBufferManager alloc] initWithBufferCount:1
+                                     packetBufferSize:4
+                                      maxPacketDescs:4
+                                       bufferInfinite:YES
+                                             delegate:self.delegate];
+    AudioStreamPacketDescription desc = {0};
+    desc.mDataByteSize = 4;
+    char data[4] = {0};
+
+    XCTAssertEqual([singleBufferManager handlePacketData:data description:desc],
+                   AudioBufferManagerEnqueueResultCommitted);
+    desc.mDataByteSize = 1;
+    XCTAssertEqual([singleBufferManager handlePacketData:data description:desc],
+                   AudioBufferManagerEnqueueResultBlocked);
+    XCTAssertTrue([singleBufferManager shouldCacheIncomingPackets]);
+}
+
 - (void)testCircularBuffering {
     AudioStreamPacketDescription desc = {0};
     char data[2048] = {0};

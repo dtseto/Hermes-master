@@ -54,6 +54,7 @@ typedef NS_ENUM(NSInteger, AudioBufferManagerEnqueueResult) {
               packetSize:(UInt32)packetSize
              description:(AudioStreamPacketDescription)desc;
 - (BOOL)hasQueuedPackets;
+- (BOOL)shouldCacheIncomingPackets;
 - (void)processQueuedPackets;
 - (void)clearQueuedPackets;
 - (void)abortPendingData;

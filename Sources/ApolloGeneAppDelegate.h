@@ -1,4 +1,4 @@
-//hermes app delegate .h
+// ApolloGene app delegate
 #import "Pandora.h"
 // add cocoa
 #import <Cocoa/Cocoa.h>
@@ -19,7 +19,6 @@
 @class PandoraRequest;
 //@class Growler;
 @class Scrobbler;
-@class SPMediaKeyTap;
 @class NetworkConnection;
 @class PreferencesController;
 
@@ -38,7 +37,6 @@
   NSTimer *autoRetry;
 
   IBOutlet NSWindow *newStationSheet;
-  IBOutlet NSToolbarItem *drawerToggle;
   IBOutlet NSMenu *statusBarMenu;
 
   /* Status bar menu */
@@ -94,8 +92,6 @@
 - (IBAction) updateStatusItemVisibility:(id)sender;
 - (IBAction) updateStatusItem:(id)sender;
 - (IBAction) updateAlwaysOnTop:(id)sender;
-- (void)refreshInputMonitoringReminder;
-
 /**
  * Log message to Hermes-specific logging facility.
  *

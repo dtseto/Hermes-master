@@ -1,6 +1,6 @@
 #ifdef __OBJC__
 #import <Cocoa/Cocoa.h>
-#import "HermesAppDelegate.h"
+#import "ApolloGeneAppDelegate.h"
 #include <libgen.h>
 
 #define NSLogd(fmt, args...) [(HermesAppDelegate *)HMSAppDelegate logMessage:[NSString stringWithFormat:@"%s:%d %s " fmt, basename(__FILE__), __LINE__, __PRETTY_FUNCTION__, ##args]];

@@ -60,11 +60,6 @@
   return self;
 }
 
-- (void) awakeFromNib {
-  [super awakeFromNib];
-  stationsScrollView.contentView.window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
-}
-
 // Replace the deprecated validateMenuItem: with validateUserInterfaceItem:
 - (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item {
   if (![[self pandora] isAuthenticated]) {

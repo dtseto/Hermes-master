@@ -15,10 +15,10 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <menu title="AMainMenu" systemMenu="main" id="29">
             <items>
-                <menuItem title="Hermes" id="56">
-                    <menu key="submenu" title="Hermes" systemMenu="apple" id="57">
+                <menuItem title="ApolloGene" id="56">
+                    <menu key="submenu" title="ApolloGene" systemMenu="apple" id="57">
                         <items>
-                            <menuItem title="About Hermes" id="58">
+                            <menuItem title="About ApolloGene" id="58">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="orderFrontStandardAboutPanel:" target="-2" id="142"/>
@@ -47,7 +47,7 @@
                             <menuItem isSeparatorItem="YES" id="144">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Hide Hermes" keyEquivalent="h" id="134">
+                            <menuItem title="Hide ApolloGene" keyEquivalent="h" id="134">
                                 <connections>
                                     <action selector="hide:" target="-1" id="367"/>
                                 </connections>
@@ -66,7 +66,7 @@
                             <menuItem isSeparatorItem="YES" id="149">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Quit Hermes" keyEquivalent="q" id="136">
+                            <menuItem title="Quit ApolloGene" keyEquivalent="q" id="136">
                                 <connections>
                                     <action selector="terminate:" target="-3" id="449"/>
                                 </connections>
@@ -285,7 +285,7 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Help" systemMenu="help" id="491">
                         <items>
-                            <menuItem title="Hermes Web Site" id="492">
+                            <menuItem title="ApolloGene Web Site" id="492">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="hermesHomepage:" target="494" id="EdS-Zz-Tbe"/>
@@ -304,7 +304,7 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="aMG-UP-yRH"/>
-                            <menuItem title="Hermes on GitHub" id="zJ5-sc-NCR">
+                            <menuItem title="ApolloGene on GitHub" id="zJ5-sc-NCR">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="hermesOnGitHub:" target="494" id="xwk-J2-CdM"/>
@@ -316,7 +316,7 @@
             </items>
             <point key="canvasLocation" x="162" y="496"/>
         </menu>
-        <window title="Hermes" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hasShadow="NO" releasedWhenClosed="NO" appearanceType="aqua" frameAutosaveName="Preferences" animationBehavior="default" tabbingMode="disallowed" toolbarStyle="expanded" id="371" userLabel="Main Window" customClass="HermesMainWindow">
+        <window title="ApolloGene" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hasShadow="NO" releasedWhenClosed="NO" frameAutosaveName="Preferences" animationBehavior="default" tabbingMode="disallowed" toolbarStyle="expanded" id="371" userLabel="Main Window" customClass="HermesMainWindow">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <rect key="contentRect" x="300" y="434" width="314" height="284"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="900"/>
@@ -337,7 +337,7 @@ MgA3AEkATABRAFMAXQBjAGwAcwB4AIAAlQCXAJkAmwCdAKcArACxALwAvwDBAMMAxQDKANUA3gDmAOkA
                     </caTransition>
                 </animations>
             </view>
-            <toolbar key="toolbar" implicitIdentifier="523691DA-3184-4F47-A885-9465F8ED1820" showsBaselineSeparator="NO" displayMode="iconAndLabel" sizeMode="regular" id="768">
+            <toolbar key="toolbar" implicitIdentifier="523691DA-3184-4F47-A885-9465F8ED1820" showsBaselineSeparator="NO" displayMode="iconOnly" sizeMode="regular" id="768">
                 <allowedToolbarItems>
                     <toolbarItem implicitItemIdentifier="93E09D6C-9E59-4A3C-A062-D1300904AE9D" label="Play" paletteLabel="Play/Pause" toolTip="Play/pause the current song" tag="-1" image="play" sizingBehavior="auto" id="776">
                         <connections>
@@ -347,11 +347,6 @@ MgA3AEkATABRAFMAXQBjAGwAcwB4AIAAlQCXAJkAmwCdAKcArACxALwAvwDBAMMAxQDKANUA3gDmAOkA
                     <toolbarItem implicitItemIdentifier="C1F73AAE-CA9B-4AE4-84F0-6FD469CA5403" label="Next Song" paletteLabel="Next Song" toolTip="Skip current song" tag="-1" image="fast_forward" sizingBehavior="auto" id="777">
                         <connections>
                             <action selector="next:" target="835" id="853"/>
-                        </connections>
-                    </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="63378708-9425-4BEA-BDC4-0A119EA2829F" label="History" paletteLabel="History/Stations" toolTip="Show playback history" tag="-1" image="history" sizingBehavior="auto" id="1328">
-                        <connections>
-                            <action selector="toggleDrawerContent:" target="494" id="2226"/>
                         </connections>
                     </toolbarItem>
                     <toolbarItem implicitItemIdentifier="A449647C-5E3D-4B0A-A7A9-25D95931BEAA" explicitItemIdentifier="like" label="Like" paletteLabel="Like" toolTip="Like current song" tag="-1" image="thumbup" sizingBehavior="auto" selectable="YES" id="818">
@@ -369,16 +364,21 @@ MgA3AEkATABRAFMAXQBjAGwAcwB4AIAAlQCXAJkAmwCdAKcArACxALwAvwDBAMMAxQDKANUA3gDmAOkA
                             <action selector="tired:" target="835" id="850"/>
                         </connections>
                     </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="B4CD5237-7F03-40E0-91C3-4B5E6C40FE1F" explicitItemIdentifier="songInfo" label="Info" paletteLabel="Song Info" toolTip="Show why this song was chosen" tag="-1" sizingBehavior="auto" id="HMS-song-info">
+                        <connections>
+                            <action selector="toggleSongInfo:" target="835" id="HMS-song-info-action"/>
+                        </connections>
+                    </toolbarItem>
                     <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="774"/>
                     <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="773"/>
                 </allowedToolbarItems>
                 <defaultToolbarItems>
                     <toolbarItem reference="776"/>
                     <toolbarItem reference="777"/>
-                    <toolbarItem reference="1328"/>
                     <toolbarItem reference="774"/>
                     <toolbarItem reference="818"/>
                     <toolbarItem reference="819"/>
+                    <toolbarItem reference="HMS-song-info"/>
                 </defaultToolbarItems>
             </toolbar>
             <userDefinedRuntimeAttributes>
@@ -387,7 +387,7 @@ MgA3AEkATABRAFMAXQBjAGwAcwB4AIAAlQCXAJkAmwCdAKcArACxALwAvwDBAMMAxQDKANUA3gDmAOkA
             <point key="canvasLocation" x="76" y="-308"/>
         </window>
         <customObject id="420" customClass="NSFontManager"/>
-        <customView appearanceType="aqua" id="701" userLabel="Stations Drawer" customClass="HermesBackgroundView">
+        <customView id="701" userLabel="Stations Drawer" customClass="HermesBackgroundView">
             <rect key="frame" x="0.0" y="0.0" width="303" height="297"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
@@ -529,7 +529,7 @@ DQ
             </subviews>
             <point key="canvasLocation" x="69" y="46"/>
         </customView>
-        <customView appearanceType="aqua" id="2155" userLabel="History Drawer" customClass="HermesBackgroundView">
+        <customView id="2155" userLabel="History Drawer" customClass="HermesBackgroundView">
             <rect key="frame" x="0.0" y="0.0" width="297" height="280"/>
             <autoresizingMask key="autoresizingMask"/>
             <subviews>
@@ -863,7 +863,7 @@ Gw
             <point key="canvasLocation" x="244" y="255.5"/>
         </window>
         <userDefaultsController representsSharedInstance="YES" id="979"/>
-        <window title="Preferences" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hasShadow="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" appearanceType="aqua" frameAutosaveName="Hermes Preferences" animationBehavior="default" toolbarStyle="expanded" id="1112" userLabel="Preferences Window">
+        <window title="Preferences" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hasShadow="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="Hermes Preferences" animationBehavior="default" toolbarStyle="expanded" id="1112" userLabel="Preferences Window">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <rect key="contentRect" x="0.0" y="0.0" width="362" height="451"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="900"/>
@@ -905,7 +905,6 @@ Gw
                 <outlet property="auth" destination="659" id="669"/>
                 <outlet property="currentArtist" destination="2319" id="2367"/>
                 <outlet property="currentSong" destination="2311" id="2366"/>
-                <outlet property="drawerToggle" destination="1328" id="2234"/>
                 <outlet property="errorButton" destination="1807" id="1809"/>
                 <outlet property="errorLabel" destination="1263" id="1266"/>
                 <outlet property="errorView" destination="1251" id="1265"/>
@@ -962,17 +961,21 @@ Gw
                 <outlet property="artistLabel" destination="1173" id="1243"/>
                 <outlet property="dislike" destination="819" id="2271"/>
                 <outlet property="explanationLabel" destination="Mwv-sA-ua1" id="pZX-OF-ZC6"/>
+                <outlet property="historyPanel" destination="wAm-n0-TIB" id="Cdx-yI-Hp1"/>
                 <outlet property="like" destination="818" id="847"/>
                 <outlet property="nextSong" destination="777" id="GyL-Fk-D4G"/>
                 <outlet property="playbackProgress" destination="7eu-hy-jM9" id="cdd-rs-hGP"/>
                 <outlet property="playbackView" destination="1155" id="1238"/>
                 <outlet property="playpause" destination="776" id="845"/>
                 <outlet property="progressLabel" destination="1156" id="1245"/>
+                <outlet property="songInfoToolbarItem" destination="HMS-song-info" id="HMS-song-info-outlet"/>
                 <outlet property="songLabel" destination="1172" id="1244"/>
                 <outlet property="songLoadingProgress" destination="1160" id="1246"/>
+                <outlet property="songStack" destination="2tX-eR-9Av" id="Cdx-yI-SS1"/>
                 <outlet property="stationModeLabel" destination="qrv-8Y-Uid" id="cG2-5B-PpC"/>
                 <outlet property="stationModesMenu" destination="GCI-gN-aTQ" id="dbR-CJ-l2Q"/>
                 <outlet property="stationModesMenuItem" destination="u95-GB-4fj" id="sVR-YT-EEz"/>
+                <outlet property="stationsPanel" destination="3m8-kZ-bMO" id="Cdx-yI-Sp1"/>
                 <outlet property="tiredOfSong" destination="820" id="nFf-SX-qEV"/>
                 <outlet property="toolbar" destination="768" id="844"/>
                 <outlet property="volume" destination="1158" id="1247"/>
@@ -981,8 +984,6 @@ Gw
         <customObject id="1114" userLabel="PreferencesController" customClass="PreferencesController">
             <connections>
                 <outlet property="general" destination="1610" id="1612"/>
-                <outlet property="mediaKeysCheckbox" destination="1117" id="cu6-2o-Ziw"/>
-                <outlet property="mediaKeysLabel" destination="1550" id="8dv-nE-yQs"/>
                 <outlet property="network" destination="1919" id="2026"/>
                 <outlet property="notificationEnabled" destination="1827" id="2294"/>
                 <outlet property="notificationType" destination="2288" id="2295"/>
@@ -1138,30 +1139,30 @@ DQ
             <rect key="frame" x="0.0" y="0.0" width="714" height="418"/>
             <autoresizingMask key="autoresizingMask"/>
             <subviews>
-                <stackView autoresizesSubviews="NO" distribution="fill" orientation="horizontal" alignment="top" spacing="0.0" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GqR-eM-x7f" userLabel="HStack View">
+                <stackView autoresizesSubviews="NO" distribution="fill" orientation="horizontal" alignment="top" spacing="0.0" horizontalStackHuggingPriority="1" horizontalCompressionResistancePriority="1" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GqR-eM-x7f" userLabel="Legacy Playback Row">
                     <rect key="frame" x="209" y="1" width="504" height="416"/>
                     <subviews>
                         <stackView autoresizesSubviews="NO" distribution="fill" orientation="vertical" alignment="leading" spacing="1" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" translatesAutoresizingMaskIntoConstraints="NO" id="2tX-eR-9Av" userLabel="VPlayback Song Stack View">
                             <rect key="frame" x="0.0" y="95" width="220" height="321"/>
                             <subviews>
-                                <button autoresizesSubviews="NO" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="12" placeholderIntrinsicHeight="120" translatesAutoresizingMaskIntoConstraints="NO" id="2436" userLabel="AlbumCoverSquare">
-                                    <rect key="frame" x="0.0" y="120" width="200" height="202"/>
-                                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" imagePosition="only" alignment="center" state="on" borderStyle="border" imageScaling="axesIndependently" inset="2" id="2437">
-                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                        <font key="font" metaFont="system" size="14"/>
-                                    </buttonCell>
-                                    <constraints>
-                                        <constraint firstAttribute="width" constant="200" id="3xZ-YG-gPR"/>
-                                        <constraint firstAttribute="height" constant="200" id="ECG-2X-yCe"/>
-                                        <constraint firstAttribute="width" secondItem="2436" secondAttribute="height" multiplier="1:1" id="hW2-kl-WMx"/>
-                                    </constraints>
-                                    <userDefinedRuntimeAttributes>
-                                        <userDefinedRuntimeAttribute type="boolean" keyPath="showsBorderOnlyWhileMouseInside" value="YES"/>
-                                    </userDefinedRuntimeAttributes>
-                                    <connections>
-                                        <action selector="quickLookArt:" target="835" id="2438"/>
-                                    </connections>
-                                </button>
+                                <customView translatesAutoresizingMaskIntoConstraints="NO" id="Cdx-yI-Art" userLabel="Centered Album Art Container" customClass="ArtworkContainerView">
+                                    <rect key="frame" x="0.0" y="120" width="220" height="202"/>
+                                    <subviews>
+                                        <button autoresizesSubviews="NO" placeholderIntrinsicWidth="12" placeholderIntrinsicHeight="120" translatesAutoresizingMaskIntoConstraints="NO" id="2436" userLabel="AlbumCoverSquare" customClass="ArtworkButton">
+                                            <rect key="frame" x="10" y="1" width="200" height="200"/>
+                                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" imagePosition="only" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyUpOrDown" inset="2" id="2437">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system" size="14"/>
+                                            </buttonCell>
+                                            <userDefinedRuntimeAttributes>
+                                                <userDefinedRuntimeAttribute type="boolean" keyPath="showsBorderOnlyWhileMouseInside" value="YES"/>
+                                            </userDefinedRuntimeAttributes>
+                                            <connections>
+                                                <action selector="quickLookArt:" target="835" id="2438"/>
+                                            </connections>
+                                        </button>
+                                    </subviews>
+                                </customView>
                                 <textField toolTip="Song Artist" focusRingType="none" horizontalHuggingPriority="300" verticalHuggingPriority="750" horizontalCompressionResistancePriority="999" verticalCompressionResistancePriority="999" allowsCharacterPickerTouchBarItem="YES" preferredMaxLayoutWidth="202" translatesAutoresizingMaskIntoConstraints="NO" id="1173" userLabel="Artist Label Hover Show Field" customClass="LabelHoverShowField">
                                     <rect key="frame" x="-2" y="105" width="35" height="15"/>
                                     <constraints>
@@ -1211,23 +1212,43 @@ DQ
                                     <rect key="frame" x="-2" y="59" width="202" height="15"/>
                                     <constraints>
                                         <constraint firstAttribute="height" constant="11" id="Hba-ua-w6D"/>
-                                        <constraint firstAttribute="width" constant="198" id="v5s-SS-FEH"/>
                                     </constraints>
                                     <shadow key="shadow">
                                         <color key="color" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                     </shadow>
                                     <sliderCell key="cell" controlSize="mini" alignment="left" maxValue="100" doubleValue="50" tickMarkPosition="above" sliderType="linear" id="9lo-wA-JHN" customClass="MusicProgressSliderCell"/>
                                 </slider>
+                                <textField toolTip="Playback Progress" focusRingType="none" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1156" userLabel="PlaybackTime 0:00/0:00">
+                                    <rect key="frame" x="-2" y="45" width="48" height="11"/>
+                                    <constraints>
+                                        <constraint firstAttribute="width" priority="1" constant="212" id="xkV-OU-ALp"/>
+                                    </constraints>
+                                    <textFieldCell key="cell" controlSize="mini" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="0:00/0:00" id="1188">
+                                        <font key="font" metaFont="miniSystem"/>
+                                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                    </textFieldCell>
+                                </textField>
                                 <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="qrv-8Y-Uid">
-                                    <rect key="frame" x="-2" y="45" width="76" height="15"/>
+                                    <rect key="frame" x="-2" y="30" width="76" height="15"/>
                                     <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="StationMode" id="1Rp-aE-lqI">
                                         <font key="font" metaFont="cellTitle"/>
                                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     </textFieldCell>
                                 </textField>
-                                <textField identifier="explanationLabel" focusRingType="none" horizontalHuggingPriority="300" verticalHuggingPriority="750" horizontalCompressionResistancePriority="800" translatesAutoresizingMaskIntoConstraints="NO" id="Mwv-sA-ua1">
-                                    <rect key="frame" x="-2" y="29" width="100" height="15"/>
+                                <slider toolTip="Volume Control" wantsLayer="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="1158" userLabel="Volume Horizontal Slider">
+                                    <rect key="frame" x="-2" y="10" width="202" height="20"/>
+                                    <sliderCell key="cell" controlSize="small" continuous="YES" state="on" alignment="left" maxValue="100" doubleValue="50" tickMarkPosition="above" sliderType="linear" id="1186" customClass="HermesVolumeSliderCell"/>
+                                    <connections>
+                                        <action selector="volumeChanged:" target="835" id="1189"/>
+                                    </connections>
+                                </slider>
+                                <customView hidden="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Cdx-yI-Cfs" userLabel="Chosen For Flexible Spacer">
+                                    <rect key="frame" x="0.0" y="15" width="1" height="95"/>
+                                </customView>
+                                <textField hidden="YES" identifier="explanationLabel" focusRingType="none" horizontalHuggingPriority="300" verticalHuggingPriority="750" horizontalCompressionResistancePriority="800" translatesAutoresizingMaskIntoConstraints="NO" id="Mwv-sA-ua1">
+                                    <rect key="frame" x="-2" y="0.0" width="100" height="15"/>
                                     <constraints>
                                         <constraint firstAttribute="height" relation="lessThanOrEqual" constant="110" id="eqe-B1-AYM"/>
                                         <constraint firstAttribute="width" relation="lessThanOrEqual" constant="202" id="jNs-aG-Ng8"/>
@@ -1238,32 +1259,14 @@ DQ
                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     </textFieldCell>
                                 </textField>
-                                <slider toolTip="Volume Control" wantsLayer="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="1158" userLabel="Volume Horizontal Slider">
-                                    <rect key="frame" x="-2" y="10" width="202" height="20"/>
-                                    <constraints>
-                                        <constraint firstAttribute="width" constant="198" id="sB5-1F-HT7"/>
-                                    </constraints>
-                                    <sliderCell key="cell" controlSize="small" continuous="YES" state="on" alignment="left" maxValue="100" doubleValue="50" tickMarkPosition="above" sliderType="linear" id="1186" customClass="HermesVolumeSliderCell"/>
-                                    <connections>
-                                        <action selector="volumeChanged:" target="835" id="1189"/>
-                                    </connections>
-                                </slider>
-                                <textField toolTip="Playback Progress" focusRingType="none" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1156" userLabel="PlaybackTime 0:00/0:00">
-                                    <rect key="frame" x="-2" y="0.0" width="48" height="11"/>
-                                    <constraints>
-                                        <constraint firstAttribute="width" priority="1" constant="212" id="xkV-OU-ALp"/>
-                                    </constraints>
-                                    <textFieldCell key="cell" controlSize="mini" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="0:00/0:00" id="1188">
-                                        <font key="font" metaFont="miniSystem"/>
-                                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                    </textFieldCell>
-                                </textField>
                             </subviews>
                             <constraints>
-                                <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="220" id="hiR-sk-OLS"/>
+                                <constraint firstItem="Cdx-yI-Art" firstAttribute="width" secondItem="2tX-eR-9Av" secondAttribute="width" id="Cdx-yI-Aw2"/>
+                                <constraint firstItem="7eu-hy-jM9" firstAttribute="width" secondItem="Cdx-yI-Art" secondAttribute="width" id="Cdx-yI-Pw1"/>
+                                <constraint firstItem="1158" firstAttribute="width" secondItem="Cdx-yI-Art" secondAttribute="width" id="Cdx-yI-Vw1"/>
                             </constraints>
                             <visibilityPriorities>
+                                <integer value="1000"/>
                                 <integer value="1000"/>
                                 <integer value="1000"/>
                                 <integer value="1000"/>
@@ -1284,16 +1287,17 @@ DQ
                                 <real value="3.4028234663852886e+38"/>
                                 <real value="3.4028234663852886e+38"/>
                                 <real value="3.4028234663852886e+38"/>
+                                <real value="3.4028234663852886e+38"/>
                             </customSpacing>
                         </stackView>
-                        <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="0.0" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wAm-n0-TIB" userLabel="HistoryStack View">
+                        <stackView distribution="fill" orientation="vertical" alignment="width" spacing="0.0" horizontalStackHuggingPriority="1" horizontalCompressionResistancePriority="1" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wAm-n0-TIB" userLabel="HistoryStack View">
                             <rect key="frame" x="220" y="1" width="284" height="414"/>
                             <subviews>
-                                <collectionView maxNumberOfRows="11" maxNumberOfColumns="1" selectable="YES" allowsMultipleSelection="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7eQ-hl-E1A" customClass="HistoryCollectionView">
+                                <collectionView maxNumberOfRows="11" maxNumberOfColumns="1" selectable="YES" allowsMultipleSelection="YES" horizontalHuggingPriority="1" horizontalCompressionResistancePriority="1" translatesAutoresizingMaskIntoConstraints="NO" id="7eQ-hl-E1A" customClass="HistoryCollectionView">
                                     <rect key="frame" x="0.0" y="0.0" width="198" height="414"/>
                                     <constraints>
-                                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="180" id="Gee-qw-5mn"/>
-                                        <constraint firstAttribute="width" constant="198" id="Jt2-lc-IVY"/>
+                                        <constraint firstAttribute="height" relation="greaterThanOrEqual" priority="250" constant="180" id="Gee-qw-5mn"/>
+                                        <constraint firstAttribute="width" priority="250" constant="198" id="Cdx-yI-Hcw"/>
                                     </constraints>
                                     <color key="primaryBackgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <color key="secondaryBackgroundColor" name="controlAlternatingRowColor" catalog="System" colorSpace="catalog"/>
@@ -1314,19 +1318,20 @@ DQ
                         </stackView>
                     </subviews>
                     <constraints>
+                        <constraint firstAttribute="bottom" secondItem="2tX-eR-9Av" secondAttribute="bottom" id="Cdx-yI-Cfb"/>
                         <constraint firstItem="wAm-n0-TIB" firstAttribute="top" secondItem="GqR-eM-x7f" secondAttribute="top" constant="1" id="Dsj-Hh-enp"/>
                         <constraint firstAttribute="bottom" secondItem="wAm-n0-TIB" secondAttribute="bottom" constant="1" id="xhf-c1-DXJ"/>
                     </constraints>
                     <visibilityPriorities>
                         <integer value="1000"/>
-                        <real value="900"/>
+                        <integer value="1000"/>
                     </visibilityPriorities>
                     <customSpacing>
                         <real value="3.4028234663852886e+38"/>
                         <real value="3.4028234663852886e+38"/>
                     </customSpacing>
                 </stackView>
-                <scrollView autoresizesSubviews="NO" toolTip="Station list" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="128" placeholderIntrinsicHeight="416" autohidesScrollers="YES" horizontalLineScroll="25" horizontalPageScroll="10" verticalLineScroll="25" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3m8-kZ-bMO">
+                <scrollView autoresizesSubviews="NO" toolTip="Station list" horizontalHuggingPriority="1" verticalHuggingPriority="250" horizontalCompressionResistancePriority="1" verticalCompressionResistancePriority="250" placeholderIntrinsicWidth="128" placeholderIntrinsicHeight="416" autohidesScrollers="YES" horizontalLineScroll="25" horizontalPageScroll="10" verticalLineScroll="25" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3m8-kZ-bMO">
                     <rect key="frame" x="1" y="1" width="198" height="416"/>
                     <clipView key="contentView" id="PDw-fH-Y5P">
                         <rect key="frame" x="1" y="1" width="196" height="414"/>
@@ -1377,7 +1382,7 @@ DQ
                         <edgeInsets key="contentInsets" left="0.0" right="0.0" top="0.0" bottom="0.0"/>
                     </clipView>
                     <constraints>
-                        <constraint firstAttribute="width" constant="198" id="Mv2-yX-VNP"/>
+                        <constraint firstAttribute="width" priority="250" constant="198" id="Mv2-yX-VNP"/>
                     </constraints>
                     <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="dFf-4P-oQs">
                         <rect key="frame" x="1" y="393" width="126" height="16"/>
@@ -1500,30 +1505,9 @@ DQ
             </connections>
         </arrayController>
         <customView id="1610" userLabel="General Preferences View">
-            <rect key="frame" x="0.0" y="0.0" width="362" height="380"/>
+            <rect key="frame" x="0.0" y="0.0" width="362" height="315"/>
             <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
             <subviews>
-                <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1117">
-                    <rect key="frame" x="18" y="344" width="326" height="18"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="check" title="Control playback with media keys" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="1118">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections>
-                        <action selector="bindMediaChanged:" target="1114" id="P25-fs-chR"/>
-                        <binding destination="979" name="value" keyPath="values.pleaseBindMedia" id="1978"/>
-                    </connections>
-                </button>
-                <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" allowsCharacterPickerTouchBarItem="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1550">
-                    <rect key="frame" x="36" y="314" width="308" height="28"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Use play/pause and next track keys to control Hermes from any application." id="1551">
-                        <font key="font" metaFont="system" size="11"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
                 <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2338">
                     <rect key="frame" x="18" y="281" width="326" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1539,7 +1523,7 @@ DQ
                 <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" allowsCharacterPickerTouchBarItem="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2354">
                     <rect key="frame" x="36" y="251" width="308" height="28"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="When checked, control Hermes with the keyboard or its menu on the right side of the menu bar." id="2355">
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="When checked, control ApolloGene with the keyboard or its menu on the right side of the menu bar." id="2355">
                         <font key="font" metaFont="system" size="11"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -1581,7 +1565,7 @@ DQ
                 <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sIX-RA-vSL">
                     <rect key="frame" x="156" y="203" width="188" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="radio" title="Color Hermes icon only" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="i1p-bV-vfc">
+                    <buttonCell key="cell" type="radio" title="Color ApolloGene icon only" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="i1p-bV-vfc">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
@@ -1618,7 +1602,7 @@ DQ
                 <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2369">
                     <rect key="frame" x="18" y="78" width="326" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="check" title="Keep Hermes on top of all other windows" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="2370">
+                    <buttonCell key="cell" type="check" title="Keep ApolloGene on top of all other windows" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="2370">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
@@ -2431,7 +2415,7 @@ DQ
         </window>
         <menu title="Title" id="2308" userLabel="Status bar menu">
             <items>
-                <menuItem title="Show Hermes" id="2313">
+                <menuItem title="Show ApolloGene" id="2313">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="activate:" target="494" id="2330"/>
@@ -2479,7 +2463,7 @@ DQ
                     <modifierMask key="keyEquivalentModifierMask"/>
                 </menuItem>
                 <menuItem isSeparatorItem="YES" id="2322"/>
-                <menuItem title="About Hermes" id="Qwq-0z-jUK">
+                <menuItem title="About ApolloGene" id="Qwq-0z-jUK">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="orderFrontStandardAboutPanel:" target="-2" id="twq-VT-q9u"/>
@@ -2492,13 +2476,13 @@ DQ
                     </connections>
                 </menuItem>
                 <menuItem isSeparatorItem="YES" id="fLS-rf-56B"/>
-                <menuItem title="Hermes Preferences…" id="2325">
+                <menuItem title="ApolloGene Preferences…" id="2325">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="show:" target="1114" id="2336"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Quit Hermes" id="2323">
+                <menuItem title="Quit ApolloGene" id="2323">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="terminate:" target="-3" id="2324"/>

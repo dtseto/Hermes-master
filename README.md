@@ -12,6 +12,13 @@ Also new feature includes pandora station modes. (on 1.32b5 and b6 not stable ye
 
 A [Pandora](http://www.pandora.com/) client for macOS Intel and Apple Silicon.
 
+**Known issues and fixes:**
+
+The 2.0.0b1 audio-buffer refactor introduced an ordering bug that could write
+newly downloaded packets ahead of an existing backlog, occasionally
+overwriting an in-use queue buffer and causing audible skips. This is fixed in
+the current source by preserving packet order until cached audio is drained.
+
 ### THIS PROJECT IS MAINTAINED BUT VOLUNTEERS TO TEST ARE WELCOME
 
 This means that bugs are documented and workarounds can be attempted.
@@ -101,9 +108,8 @@ ways you can develop against Hermes if you really want to.
         # Build with the 'Release' configuration instead of 'Debug'
         make CONFIGURATION=Release [run|dbg]
 
-   Please note that Media Key shortcuts
-   [will not work](https://github.com/nevyn/SPMediaKeyTap/blob/master/SPMediaKeyTap.m#L108)
-   if compiled with `CONFIGURATION=Debug` (the default).
+   Media-key shortcuts use macOS Now Playing controls and are available in
+   both Debug and Release builds.
 
 ## License
 

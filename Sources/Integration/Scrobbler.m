@@ -253,8 +253,8 @@ typedef void(^ScrobblerCallback)(NSDictionary*);
  */
 - (void) requestAuthorization {
   NSAlert *alert = [NSAlert new];
-  alert.messageText = @"Allow Hermes to scrobble on Last.fm";
-  alert.informativeText = @"Click “Authorize” to give Hermes permission to access your Last.fm account.\n\nHermes will not try to use Last.fm for at least 30 seconds to give you time to grant permission.\n\nClick “Don’t Scrobbleʺ to stop Hermes from trying to use Last.fm.";
+  alert.messageText = @"Allow ApolloGene to scrobble on Last.fm";
+  alert.informativeText = @"Click “Authorize” to give ApolloGene permission to access your Last.fm account.\n\nApolloGene will not try to use Last.fm for at least 30 seconds to give you time to grant permission.\n\nClick “Don’t Scrobbleʺ to stop ApolloGene from trying to use Last.fm.";
   [alert addButtonWithTitle:@"Authorize"];
   [alert addButtonWithTitle:@"Don’t Scrobble"];
   [alert beginSheetModalForWindow:[HMSAppDelegate window] completionHandler:^(NSModalResponse returnCode) {

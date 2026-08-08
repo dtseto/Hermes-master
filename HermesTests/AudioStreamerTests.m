@@ -35,14 +35,14 @@
     
     // Manually initialize bufferManager to avoid AudioQueue dependency
     AudioBufferManager *mgr = [[AudioBufferManager alloc] initWithBufferCount:16
-                                                             packetBufferSize:2048
+                                                             packetBufferSize:8192
                                                               maxPacketDescs:512
                                                               bufferInfinite:NO
                                                                     delegate:self];
     [self setValue:mgr forKey:@"bufferManager"];
     
     // Set packetBufferSize
-    [self setValue:@(2048) forKey:@"packetBufferSize"];
+    [self setValue:@(8192) forKey:@"packetBufferSize"];
     
     // Set dummy audioQueue to pass NULL check
     [self setAudioQueueForTesting:(AudioQueueRef)1];
@@ -95,6 +95,18 @@
 @end
 
 @implementation AudioStreamerTests
+
+- (void)testPlaybackBufferSizePreservesConfiguredReserve {
+  XCTAssertEqual([AudioStreamer playbackBufferSizeForMaximumPacketSize:1024
+                                                     minimumBufferSize:8192],
+                 8192U);
+}
+
+- (void)testPlaybackBufferSizeStillFitsOversizedPacket {
+  XCTAssertEqual([AudioStreamer playbackBufferSizeForMaximumPacketSize:12288
+                                                     minimumBufferSize:8192],
+                 12288U);
+}
 
 - (void)setUp {
     [super setUp];

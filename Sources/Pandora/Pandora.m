@@ -686,6 +686,43 @@ static NSString *hierrs[] = {
   return [self sendAuthenticatedRequest:req];
 }
 
+- (BOOL)setMode:(NSString *)modeIdentifier forStation:(Station *)station {
+  if (station == nil || station.stationId.length == 0 || modeIdentifier.length == 0) {
+    return NO;
+  }
+
+  NSMutableDictionary *requestDictionary = [self defaultRequestDictionary];
+  requestDictionary[@"stationId"] = station.stationId;
+  requestDictionary[@"modeId"] = modeIdentifier;
+
+  PandoraRequest *req = [self defaultRequestWithMethod:@"interactiveradio.v1.setAndGetAvailableModes"];
+  req.request = requestDictionary;
+  __weak typeof(self) weakSelf = self;
+  req.callback = ^(NSDictionary *response) {
+    NSDictionary *result = response[@"result"];
+    NSString *currentIdentifier = nil;
+    NSArray<HMSStationMode *> *modes = [StationModeParser modesFromResultDictionary:result
+                                                             currentModeIdentifier:&currentIdentifier];
+    NSMutableArray<NSDictionary *> *serializedModes = [NSMutableArray arrayWithCapacity:modes.count];
+    for (HMSStationMode *mode in modes) {
+      [serializedModes addObject:@{
+        @"identifier": mode.identifier,
+        @"name": mode.name,
+        @"current": @(mode.isCurrent)
+      }];
+    }
+    NSDictionary *payload = @{
+      @"stationId": station.stationId,
+      @"modes": [serializedModes copy],
+      @"currentModeId": currentIdentifier ?: @""
+    };
+    [weakSelf postNotification:PandoraDidLoadStationModesNotification
+                        request:station
+                         result:payload];
+  };
+  return [self sendAuthenticatedRequest:req];
+}
+
 #pragma mark Seed & Feedback Management (see also Song Manipulation)
 
 - (BOOL) deleteFeedback: (NSString*)feedbackId {

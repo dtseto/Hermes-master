@@ -38,13 +38,12 @@
 
 /* Default number and size of audio queue buffers */
 #define kDefaultNumAQBufs 16
-#define kDefaultAQDefaultBufSize 2048
+#define kDefaultAQDefaultBufSize (8 * 1024)
 #define HMS_MAX_TRANSIENT_RETRIES_DEFAULT 5
 #define HMS_RETRY_BACKOFF_DEFAULT 1.0
 #define HMS_RETRY_BACKOFF_MAX 5.0
 #define kMaxFormatSniffBytes (256 * 1024)
 #define kStartupBufferSeconds 5.0
-#define kStartupBufferMinimumBuffers 6
 #define kContentLengthToleranceFraction 0.02
 #define kContentLengthToleranceMinimum (32 * 1024)
 
@@ -181,6 +180,11 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
     return stream;
 }
 
++ (UInt32)playbackBufferSizeForMaximumPacketSize:(UInt32)maximumPacketSize
+                               minimumBufferSize:(UInt32)minimumBufferSize {
+  return MAX(maximumPacketSize, minimumBufferSize);
+}
+
 - (id)init {
     if (self = [super init]) {
         self.stateLock = [[NSLock alloc] init];
@@ -230,8 +234,8 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
         NSLog(@"Increased buffer count to %u for better performance", bufferCnt);
     }
     
-    if (bufferSize < 4096) {
-        bufferSize = 4096;  // Increase from default 2048
+    if (bufferSize < kDefaultAQDefaultBufSize) {
+        bufferSize = kDefaultAQDefaultBufSize;
         NSLog(@"Increased buffer size to %u for better performance", bufferSize);
     }
 }
@@ -1178,7 +1182,7 @@ didCompleteWithError:(NSError *)error {
     NSLog(@"AudioQueueAddPropertyListener result: %d", (int)err);
     CHECK_ERR(err, AS_AUDIO_QUEUE_ADD_LISTENER_FAILED);
     
-    // Get packet size properties
+    // Get the maximum compressed packet size.
     UInt32 sizeOfUInt32 = sizeof(UInt32);
     err = AudioFileStreamGetProperty(audioFileStream,
                                      kAudioFileStreamProperty_PacketSizeUpperBound, &sizeOfUInt32,
@@ -1188,10 +1192,19 @@ didCompleteWithError:(NSError *)error {
         err = AudioFileStreamGetProperty(audioFileStream,
                                          kAudioFileStreamProperty_MaximumPacketSize, &sizeOfUInt32,
                                          &packetBufferSize);
-        if (err || packetBufferSize == 0) {
-            packetBufferSize = bufferSize;
+        if (err) {
+            packetBufferSize = 0;
         }
     }
+
+    /*
+     * Packet-size properties describe only one compressed packet. Keep that
+     * value as a lower bound, but retain enough capacity for several packets
+     * so routine scheduling delays cannot drain the queue between refills.
+     */
+    packetBufferSize = [[self class]
+      playbackBufferSizeForMaximumPacketSize:packetBufferSize
+                           minimumBufferSize:bufferSize];
     
     // Allocate audio queue buffers
     buffers = malloc(bufferCnt * sizeof(buffers[0]));
@@ -1309,6 +1322,17 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
   assert(inPacketDescriptions != NULL);
 
   const uint8_t *inputBytes = (const uint8_t *)inInputData;
+  if ([bufferManager shouldCacheIncomingPackets]) {
+    for (UInt32 index = 0; index < inNumberPackets; index++) {
+      AudioStreamPacketDescription desc = inPacketDescriptions[index];
+      const void *packetData = inputBytes + desc.mStartOffset;
+      [bufferManager cachePacketData:packetData
+                          packetSize:desc.mDataByteSize
+                         description:desc];
+    }
+    return;
+  }
+
   UInt32 i;
   for (i = 0; i < inNumberPackets; i++) {
     AudioStreamPacketDescription desc = inPacketDescriptions[i];
@@ -1474,15 +1498,11 @@ packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
     return NO;
   }
   if (!self.startupBufferSatisfied) {
-    UInt32 requiredBuffers = bufferCnt < kStartupBufferMinimumBuffers
-      ? bufferCnt
-      : kStartupBufferMinimumBuffers;
-    if (requiredBuffers == 0) {
-      requiredBuffers = 1;
-    }
-    NSLog(@"[Debug] startupBufferedDuration: %f, kStartupBufferSeconds: %f, buffersUsed: %u, required: %u", self.startupBufferedDuration, kStartupBufferSeconds, (unsigned int)manager.buffersUsed, (unsigned int)requiredBuffers);
-    if (self.startupBufferedDuration >= kStartupBufferSeconds &&
-        manager.buffersUsed >= requiredBuffers) {
+    UInt32 capacityThreshold = bufferCnt > 1 ? bufferCnt - 1 : bufferCnt;
+    BOOL ringNearCapacity = capacityThreshold > 0 &&
+      manager.buffersUsed >= capacityThreshold;
+    if (self.startupBufferedDuration >= kStartupBufferSeconds ||
+        ringNearCapacity) {
       self.startupBufferSatisfied = YES;
     } else {
       return NO;

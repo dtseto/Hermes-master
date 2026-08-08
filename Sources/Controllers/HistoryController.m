@@ -29,7 +29,6 @@
 
 - (void) awakeFromNib {
   [super awakeFromNib];
- // drawersTable.contentView.window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
   // Legacy NSDrawer objects were removed; clear any dangling connections.
   drawer = nil;
 }

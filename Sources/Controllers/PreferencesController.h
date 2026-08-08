@@ -10,8 +10,6 @@
 
 
 
-#define PLEASE_BIND_MEDIA          @"pleaseBindMedia"
-#define INPUT_MONITORING_REMINDER_ENABLED @"inputMonitoringReminderEnabled"
 #define PLEASE_SCROBBLE            @"pleaseScrobble"
 #define PLEASE_SCROBBLE_LIKES      @"pleaseScrobbleLikes"
 #define ONLY_SCROBBLE_LIKED        @"onlyScrobbleLiked"
@@ -30,6 +28,9 @@
 #define PROXY_SOCKS_PORT           @"socksProxyPort"
 #define PROXY_AUDIO                @"proxyAudio"
 #define OPEN_DRAWER                @"openDrawer"
+#define STATIONS_PANEL_VISIBLE     @"stationsPanelVisible"
+#define HISTORY_PANEL_VISIBLE      @"historyPanelVisible"
+#define SONG_INFO_VISIBLE          @"songInfoVisible"
 #define SORT_STATIONS              @"sortStations"
 #define GROWL_TYPE                 @"notificationType"
 #define DOCK_ICON_ALBUM_ART        @"dockIconAlbumArt"
@@ -83,10 +84,6 @@
   //IBOutlet NSButton *notificationEnabled;
 
   
-  IBOutlet NSButton *mediaKeysCheckbox;
-  IBOutlet NSTextField *mediaKeysLabel;
-  NSButton *inputMonitoringReminderButton;
-
   IBOutlet NSButton *statusItemShowColorIcon;
   IBOutlet NSButton *statusItemShowBlackAndWhiteIcon;
   IBOutlet NSButton *statusItemShowAlbumArt;
@@ -107,7 +104,6 @@
 - (IBAction) showNetwork: (id) sender;
 
 - (IBAction) statusItemIconChanged:(id)sender;
-- (IBAction) bindMediaChanged: (id) sender;
 - (IBAction) show: (id) sender;
 
 @end

@@ -161,7 +161,7 @@ extern NSString * const ASStreamErrorUnderlyingErrorKey;
   int             proxyPort;
   int             proxyType;  /* defaults to whatever the system says */
   AudioFileTypeID fileType;
-  UInt32          bufferSize; /* attempted to be guessed, but fallback here */
+  UInt32          bufferSize; /* minimum audio queue buffer capacity */
   UInt32          bufferCnt;
   BOOL            bufferInfinite;
   int             timeoutInterval;

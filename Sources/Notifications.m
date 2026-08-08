@@ -39,3 +39,4 @@ NSString * const PandoraDidLoadSearchResultsNotification             = @"Pandora
 NSString * const PandoraDidLoadGenreStationsNotification             = @"PandoraDidLoadGenreStationsNotification";
 
 NSString * const StationDidPlaySongNotification                      = @"StationDidPlaySongNotification";
+NSString * const PlaybackArtworkDidChangeNotification                = @"PlaybackArtworkDidChangeNotification";

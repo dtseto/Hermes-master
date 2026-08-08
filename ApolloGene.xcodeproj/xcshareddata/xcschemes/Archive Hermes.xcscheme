@@ -17,7 +17,7 @@
                BlueprintIdentifier = "44B251C418FE415900D73344"
                BuildableName = "Archive Hermes"
                BlueprintName = "Archive Hermes"
-               ReferencedContainer = "container:Hermes.xcodeproj">
+               ReferencedContainer = "container:ApolloGene.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,7 +46,7 @@
             BlueprintIdentifier = "44B251C418FE415900D73344"
             BuildableName = "Archive Hermes"
             BlueprintName = "Archive Hermes"
-            ReferencedContainer = "container:Hermes.xcodeproj">
+            ReferencedContainer = "container:ApolloGene.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </LaunchAction>

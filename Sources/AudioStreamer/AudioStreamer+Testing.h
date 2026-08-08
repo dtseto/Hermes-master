@@ -12,6 +12,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface AudioStreamer (Testing)
 
+/// Returns the queue-buffer capacity selected for a compressed packet size.
++ (UInt32)playbackBufferSizeForMaximumPacketSize:(UInt32)maximumPacketSize
+                               minimumBufferSize:(UInt32)minimumBufferSize;
+
 /// Triggers the same failure path the streamer would take when a real error
 /// occurs. Only intended for unit tests.
 - (void)simulateErrorForTesting:(AudioStreamerErrorCode)code;

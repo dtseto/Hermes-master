@@ -64,9 +64,9 @@
   NSRectFill(rightBarRect);
 }
 
-// colors from iTunes 12.4
-- (NSColor *)knobColor { return [NSColor blackColor]; }
-- (NSColor *)leftBarColor { return [NSColor colorWithGenericGamma22White:112/255. alpha:1]; }
-- (NSColor *)rightBarColor { return [NSColor colorWithGenericGamma22White:188/255. alpha:1]; }
+// Semantic colors preserve the original subdued hierarchy in both appearances.
+- (NSColor *)knobColor { return [NSColor labelColor]; }
+- (NSColor *)leftBarColor { return [NSColor secondaryLabelColor]; }
+- (NSColor *)rightBarColor { return [NSColor separatorColor]; }
 
 @end

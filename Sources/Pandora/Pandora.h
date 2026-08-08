@@ -243,6 +243,17 @@ typedef void(^PandoraCallback)(NSDictionary*);
  */
 - (BOOL) fetchStationModesForStation:(Station *)station;
 
+/**
+ * @brief Change the active mode for the provided station.
+ *
+ * Fires PandoraDidLoadStationModesNotification with the updated list of modes
+ * when the request completes.
+ *
+ * @param modeIdentifier the Pandora identifier of the mode to activate.
+ * @param station the station whose mode should be changed.
+ */
+- (BOOL)setMode:(NSString *)modeIdentifier forStation:(Station *)station;
+
 #pragma mark Seed & Feedback Management (see also Song Manipulation)
 
 /**

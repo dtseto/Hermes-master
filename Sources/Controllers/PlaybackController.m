@@ -8,9 +8,7 @@
  * to these actions as well
  */
 
-#import <SPMediaKeyTap/SPMediaKeyTap.h>
 #import <MediaPlayer/MediaPlayer.h>
-#import <ApplicationServices/ApplicationServices.h>
 //#import "Integration/Growler.h"
 #import "HistoryController.h"
 #import "ImageLoader.h"
@@ -18,30 +16,43 @@
 #import "StationsController.h"
 #import "PreferencesController.h"
 #import "Notifications.h"
+#import "Views/PlaybackSplitView.h"
 
 BOOL playOnStart = YES;
 
-static HMSInputMonitoringAccessFunction HermesPreflightListenEventAccess = NULL;
-static HMSInputMonitoringAccessFunction HermesRequestListenEventAccess = NULL;
-
-void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction preflight,
-                                             HMSInputMonitoringAccessFunction request) {
-  HermesPreflightListenEventAccess = preflight;
-  HermesRequestListenEventAccess = request;
-}
+static const CGFloat HermesSongDetailsHorizontalPadding = 10.0;
+static const CGFloat HermesSongDetailsBottomPadding = 8.0;
+static const CGFloat HermesSongDetailsSpacing = 4.0;
 
 @interface NSToolbarItem ()
 - (void)_setAllPossibleLabelsToFit:(NSArray *)toolbarItemLabels;
 @end
 
 @interface PlaybackController ()
+- (void)configureTitlebarSidebarControlsForWindow:(NSWindow *)window;
+- (NSButton *)titlebarButtonWithSystemSymbol:(NSString *)symbolName
+                                       label:(NSString *)label
+                                     toolTip:(NSString *)toolTip
+                                      action:(SEL)action;
+- (void)toggleStationsPanelFromTitlebar:(id)sender;
+- (void)toggleHistoryPanelFromTitlebar:(id)sender;
+- (void)updateTitlebarSidebarToolTips;
+- (void)restoreSongInfoVisibility;
+- (void)updateSongInfoToolbarItem;
+- (void)configureSongDetailsLayout;
+- (void)configurePlaybackSplitView;
+- (void)restoreSidebarVisibility;
+- (void)presentPlaybackView;
+- (void)configureRemoteCommands;
+- (MPRemoteCommandHandlerStatus)performRemoteCommandAction:(BOOL (^)(void))action;
 @end
 
 @implementation PlaybackController
 
 @synthesize playing;
 @synthesize lastImg;
-@synthesize remoteCommandCenter, mediaKeyTap;
+@synthesize remoteCommandCenter;
+@synthesize stationModeService = _stationModeService;
 
 + (void) setPlayOnStart: (BOOL)play {
   playOnStart = play;
@@ -49,131 +60,6 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 
 + (BOOL) playOnStart {
   return playOnStart;
-}
-
-- (BOOL)hasInputMonitoringAccess {
-  if (@available(macOS 10.15, *)) {
-    if (HermesPreflightListenEventAccess == NULL) {
-      HermesPreflightListenEventAccess = CGPreflightListenEventAccess;
-    }
-    if (HermesPreflightListenEventAccess != NULL) {
-      return HermesPreflightListenEventAccess();
-    }
-  }
-  return YES;
-}
-
-- (BOOL)requestInputMonitoringAccessIfNeeded {
-  if (@available(macOS 10.15, *)) {
-    if (HermesPreflightListenEventAccess == NULL) {
-      HermesPreflightListenEventAccess = CGPreflightListenEventAccess;
-    }
-    if (HermesRequestListenEventAccess == NULL) {
-      HermesRequestListenEventAccess = CGRequestListenEventAccess;
-    }
-    if (HermesPreflightListenEventAccess && HermesPreflightListenEventAccess()) {
-      [self notifyInputMonitoringReminderUpdate];
-      return YES;
-    }
-    BOOL granted = HermesRequestListenEventAccess ? HermesRequestListenEventAccess() : YES;
-    if (!granted) {
-      [self presentInputMonitoringInstructions];
-    } else {
-      presentedInputMonitoringAlert = NO;
-    }
-    BOOL hasAccess = HermesPreflightListenEventAccess ? HermesPreflightListenEventAccess() : granted;
-    [self notifyInputMonitoringReminderUpdate];
-    return hasAccess;
-  }
-  return YES;
-}
-
-- (void)presentInputMonitoringInstructions {
-  if (!PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED)) {
-    presentedInputMonitoringAlert = NO;
-    return;
-  }
-  if (presentedInputMonitoringAlert) {
-    return;
-  }
-  presentedInputMonitoringAlert = YES;
-  __weak typeof(self) weakSelf = self;
-  dispatch_block_t presentBlock = ^{
-    __strong typeof(weakSelf) strongSelf = weakSelf;
-    if (!strongSelf) {
-      return;
-    }
-    [strongSelf presentInputMonitoringInstructionsAlert];
-  };
-  if ([NSThread isMainThread]) {
-    presentBlock();
-  } else {
-    dispatch_async(dispatch_get_main_queue(), presentBlock);
-  }
-}
-
-- (void)presentInputMonitoringInstructionsAllowingRepeat {
-  __weak typeof(self) weakSelf = self;
-  dispatch_block_t presentBlock = ^{
-    __strong typeof(weakSelf) strongSelf = weakSelf;
-    if (!strongSelf) {
-      return;
-    }
-    [strongSelf presentInputMonitoringInstructionsAlert];
-  };
-  if ([NSThread isMainThread]) {
-    presentBlock();
-  } else {
-    dispatch_async(dispatch_get_main_queue(), presentBlock);
-  }
-}
-
-- (void)openInputMonitoringPreferences {
-  NSURL *settingsURL = [NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"];
-  if (settingsURL != nil) {
-    [[NSWorkspace sharedWorkspace] openURL:settingsURL];
-  } else {
-    NSLog(@"Hermes: Unable to construct Input Monitoring settings URL.");
-  }
-}
-
-- (BOOL)shouldSurfaceInputMonitoringReminder {
-  if (@available(macOS 10.15, *)) {
-    if (self.mediaKeyTap != nil && PREF_KEY_BOOL(PLEASE_BIND_MEDIA) && PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED)) {
-      return ![self hasInputMonitoringAccess];
-    }
-  }
-  return NO;
-}
-
-- (void)notifyInputMonitoringReminderUpdate {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [HMSAppDelegate refreshInputMonitoringReminder];
-  });
-}
-
-- (void)requestInputMonitoringReminderIfNeeded {
-  if ([self shouldSurfaceInputMonitoringReminder]) {
-    [self presentInputMonitoringInstructions];
-  }
-  [self notifyInputMonitoringReminderUpdate];
-}
-
-- (void)presentInputMonitoringInstructionsAlert {
-  NSAlert *alert = [[NSAlert alloc] init];
-  alert.messageText = @"Enable Media Keys";
-  alert.informativeText = @"Hermes needs permission in System Settings → Privacy & Security → Input Monitoring to react to media keys. Enable Hermes in Input Monitoring so Play/Pause continues working.";
-  [alert addButtonWithTitle:@"Open System Settings"];
-  [alert addButtonWithTitle:@"Not Now"];
-  [alert addButtonWithTitle:@"Don't Remind Me Again"];
-  NSModalResponse response = [alert runModal];
-  if (response == NSAlertFirstButtonReturn) {
-    [self openInputMonitoringPreferences];
-  } else if (response == NSAlertThirdButtonReturn) {
-    PREF_KEY_SET_BOOL(INPUT_MONITORING_REMINDER_ENABLED, NO);
-    presentedInputMonitoringAlert = NO;
-  }
-  [self notifyInputMonitoringReminderUpdate];
 }
 
 - (void)handleSongExplanation:(NSNotification *)notification {
@@ -186,12 +72,14 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
         // Update the existing explanation label
         [explanationLabel setStringValue:explanation];
         [explanationLabel setToolTip:explanation]; // Optional: also set as tooltip
+        [self updateSongInfoToolbarItem];
         
         NSLog(@"🎵 Updated explanationLabel with: %@", explanation);
     } else {
         NSLog(@"❌ Missing song or explanation data");
         // Clear the label if no explanation
         [explanationLabel setStringValue:@""];
+        [self updateSongInfoToolbarItem];
     }
 }
 
@@ -284,79 +172,394 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   // This has been SPI forever, but will stop the toolbar icons from sliding around.
   if ([playpause respondsToSelector:@selector(_setAllPossibleLabelsToFit:)])
     [playpause _setAllPossibleLabelsToFit:@[@"Play", @"Pause"]];
+
+  // Let AppKit move controls into the toolbar overflow menu as the window
+  // narrows. Toolbar items must not expand the window back to their combined
+  // ideal width after a user resize.
+  for (NSToolbarItem *item in toolbar.items) {
+    item.visibilityPriority = NSToolbarItemVisibilityPriorityLow;
+  }
+  playpause.visibilityPriority = NSToolbarItemVisibilityPriorityHigh;
+
+  [self updateSongInfoToolbarItem];
   
   // prevent dragging the progress slider
   [playbackProgress setEnabled:NO];
   [self configureStationModesUI];
+  [self configureSongDetailsLayout];
+  [self configurePlaybackSplitView];
 
-  // Media keys
-  if ([MPRemoteCommandCenter class] != nil) {
-    remoteCommandCenter = [MPRemoteCommandCenter sharedCommandCenter];
-    // remoteCommandCenter.previousTrackCommand.enabled = NO;
-    [remoteCommandCenter.playCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent * _Nonnull event) {
-      return [self play] ? MPRemoteCommandHandlerStatusSuccess : MPRemoteCommandHandlerStatusCommandFailed;
-    }];
-    [remoteCommandCenter.pauseCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent * _Nonnull event) {
-      return [self pause] ? MPRemoteCommandHandlerStatusSuccess : MPRemoteCommandHandlerStatusCommandFailed;
-    }];
-    // XXX Doesn't show up in the Touch Bar as of 10.12.2 unless there is a previousTrackCommand registered
-    [remoteCommandCenter.nextTrackCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent * _Nonnull event) {
-      [self next:self];
-      return MPRemoteCommandHandlerStatusSuccess;
-    }];
-#ifndef MPREMOTECOMMANDCENTER_MEDIA_KEYS_BROKEN
-    // XXX This gets triggered seemingly at random.
-    [remoteCommandCenter.togglePlayPauseCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent * _Nonnull event) {
-      [self playpause:self];
-      return MPRemoteCommandHandlerStatusSuccess;
-    }];
-#endif
-    [remoteCommandCenter.likeCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent * _Nonnull event) {
-      [self like:self];
-      return MPRemoteCommandHandlerStatusSuccess;
-    }];
-    [remoteCommandCenter.dislikeCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent * _Nonnull event) {
-      [self dislike:self];
-      return MPRemoteCommandHandlerStatusSuccess;
-    }];
+  [playbackView layoutSubtreeIfNeeded];
+  stationsPanelVisible = playbackSplitView.leadingPaneVisible;
+  historyPanelVisible = playbackSplitView.trailingPaneVisible;
+  historyPanel.wantsLayer = YES;
+  historyPanel.layer.masksToBounds = YES;
+  [self configureTitlebarSidebarControlsForWindow:window];
+
+  // Content constraints may express their natural size, but they must not
+  // become an AppKit window-resize guardrail.
+  window.contentMinSize = NSZeroSize;
+
+  [self configureRemoteCommands];
+}
+
+- (MPRemoteCommandHandlerStatus)performRemoteCommandAction:(BOOL (^)(void))action {
+  __block BOOL handled = NO;
+  dispatch_block_t actionOnMainThread = ^{
+    handled = action();
+  };
+  if ([NSThread isMainThread]) {
+    actionOnMainThread();
+  } else {
+    dispatch_sync(dispatch_get_main_queue(), actionOnMainThread);
   }
-#ifndef DEBUG
-#ifndef MPREMOTECOMMANDCENTER_MEDIA_KEYS_BROKEN
-  else {
-#endif
-   mediaKeyTap = [[SPMediaKeyTap alloc] initWithDelegate:self];
-    if (PREF_KEY_BOOL(PLEASE_BIND_MEDIA)) {
-      BOOL canTapMediaKeys = [self requestInputMonitoringAccessIfNeeded];
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 1090
-      BOOL hasAccessibilityTrust = YES;
-      if (@available(macOS 10.15, *)) {
-        hasAccessibilityTrust = YES;
-      } else if (@available(macOS 10.9, *)) {
-        if (!AXIsProcessTrusted()) {
-          NSDictionary *options = @{(__bridge id)kAXTrustedCheckOptionPrompt: @YES};
-          AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
-          hasAccessibilityTrust = AXIsProcessTrusted();
-        }
+  return handled ? MPRemoteCommandHandlerStatusSuccess : MPRemoteCommandHandlerStatusNoSuchContent;
+}
+
+- (void)configureRemoteCommands {
+  remoteCommandCenter = [MPRemoteCommandCenter sharedCommandCenter];
+  __weak typeof(self) weakSelf = self;
+
+  remoteCommandCenter.playCommand.enabled = YES;
+  [remoteCommandCenter.playCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (strongSelf == nil) {
+      return MPRemoteCommandHandlerStatusCommandFailed;
+    }
+    return [strongSelf performRemoteCommandAction:^BOOL{
+      if (strongSelf->playing == nil) {
+        return NO;
       }
-      canTapMediaKeys = canTapMediaKeys && hasAccessibilityTrust;
-#endif
-      if (canTapMediaKeys) {
-        [mediaKeyTap startWatchingMediaKeys];
-      } else {
-        NSLog(@"Hermes: Input Monitoring permission missing; media keys disabled until granted.");
-        if ([self hasInputMonitoringAccess] == NO) {
-          [self presentInputMonitoringInstructions];
-        }
+      return [strongSelf play] || [strongSelf->playing isPlaying];
+    }];
+  }];
+
+  remoteCommandCenter.pauseCommand.enabled = YES;
+  [remoteCommandCenter.pauseCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (strongSelf == nil) {
+      return MPRemoteCommandHandlerStatusCommandFailed;
+    }
+    return [strongSelf performRemoteCommandAction:^BOOL{
+      return [strongSelf pause] || [strongSelf->playing isPaused];
+    }];
+  }];
+
+  remoteCommandCenter.togglePlayPauseCommand.enabled = YES;
+  [remoteCommandCenter.togglePlayPauseCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (strongSelf == nil) {
+      return MPRemoteCommandHandlerStatusCommandFailed;
+    }
+    return [strongSelf performRemoteCommandAction:^BOOL{
+      if (strongSelf->playing == nil) {
+        return NO;
+      }
+      [strongSelf playpause:nil];
+      return YES;
+    }];
+  }];
+
+  remoteCommandCenter.nextTrackCommand.enabled = YES;
+  [remoteCommandCenter.nextTrackCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (strongSelf == nil) {
+      return MPRemoteCommandHandlerStatusCommandFailed;
+    }
+    return [strongSelf performRemoteCommandAction:^BOOL{
+      if (strongSelf->playing == nil) {
+        return NO;
+      }
+      [strongSelf next:nil];
+      return YES;
+    }];
+  }];
+
+  [remoteCommandCenter.likeCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (strongSelf == nil) {
+      return MPRemoteCommandHandlerStatusCommandFailed;
+    }
+    return [strongSelf performRemoteCommandAction:^BOOL{
+      if (strongSelf->playing == nil || [strongSelf->playing playingSong] == nil) {
+        return NO;
+      }
+      [strongSelf like:nil];
+      return YES;
+    }];
+  }];
+  [remoteCommandCenter.dislikeCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *event) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (strongSelf == nil) {
+      return MPRemoteCommandHandlerStatusCommandFailed;
+    }
+    return [strongSelf performRemoteCommandAction:^BOOL{
+      if (strongSelf->playing == nil || [strongSelf->playing playingSong] == nil) {
+        return NO;
+      }
+      [strongSelf dislike:nil];
+      return YES;
+    }];
+  }];
+}
+
+- (void)configureTitlebarSidebarControlsForWindow:(NSWindow *)window {
+  if (window == nil || stationsTitlebarButton != nil || historyTitlebarButton != nil) {
+    return;
+  }
+
+  NSButton *closeButton = [window standardWindowButton:NSWindowCloseButton];
+  NSButton *zoomButton = [window standardWindowButton:NSWindowZoomButton];
+  NSView *titlebarView = closeButton.superview;
+  if (titlebarView == nil || zoomButton == nil) {
+    return;
+  }
+
+  stationsTitlebarButton = [self titlebarButtonWithSystemSymbol:@"sidebar.left"
+                                                          label:NSLocalizedString(@"Station list", nil)
+                                                        toolTip:NSLocalizedString(@"Show or hide station list", nil)
+                                                         action:@selector(toggleStationsPanelFromTitlebar:)];
+  historyTitlebarButton = [self titlebarButtonWithSystemSymbol:@"sidebar.right"
+                                                         label:NSLocalizedString(@"Playback history", nil)
+                                                       toolTip:NSLocalizedString(@"Show or hide playback history", nil)
+                                                        action:@selector(toggleHistoryPanelFromTitlebar:)];
+  titlebarTitleLabel = [NSTextField labelWithString:window.title ?: @""];
+  titlebarTitleLabel.alignment = NSTextAlignmentLeft;
+  titlebarTitleLabel.font = [NSFont systemFontOfSize:[NSFont systemFontSize]
+                                             weight:NSFontWeightSemibold];
+  titlebarTitleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+  titlebarTitleLabel.maximumNumberOfLines = 1;
+  titlebarTitleLabel.translatesAutoresizingMaskIntoConstraints = NO;
+  [titlebarTitleLabel setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
+                                               forOrientation:NSLayoutConstraintOrientationHorizontal];
+
+  window.titleVisibility = NSWindowTitleHidden;
+  [titlebarView addSubview:stationsTitlebarButton];
+  [titlebarView addSubview:historyTitlebarButton];
+  [titlebarView addSubview:titlebarTitleLabel];
+  NSLayoutConstraint *titleLeadingConstraint =
+    [titlebarTitleLabel.leadingAnchor constraintEqualToAnchor:stationsTitlebarButton.trailingAnchor
+                                                constant:10.0];
+  NSLayoutConstraint *titleTrailingConstraint =
+    [titlebarTitleLabel.trailingAnchor constraintLessThanOrEqualToAnchor:historyTitlebarButton.leadingAnchor
+                                                           constant:-4.0];
+  titleLeadingConstraint.priority = NSLayoutPriorityRequired - 1.0;
+  [NSLayoutConstraint activateConstraints:@[
+    [stationsTitlebarButton.leadingAnchor constraintEqualToAnchor:zoomButton.trailingAnchor constant:12.0],
+    [stationsTitlebarButton.centerYAnchor constraintEqualToAnchor:closeButton.centerYAnchor],
+    [stationsTitlebarButton.widthAnchor constraintEqualToConstant:28.0],
+    [stationsTitlebarButton.heightAnchor constraintEqualToConstant:24.0],
+    [historyTitlebarButton.trailingAnchor constraintEqualToAnchor:titlebarView.trailingAnchor constant:-10.0],
+    [historyTitlebarButton.centerYAnchor constraintEqualToAnchor:closeButton.centerYAnchor],
+    [historyTitlebarButton.widthAnchor constraintEqualToConstant:28.0],
+    [historyTitlebarButton.heightAnchor constraintEqualToConstant:24.0],
+    titleLeadingConstraint,
+    titleTrailingConstraint,
+    [titlebarTitleLabel.centerYAnchor constraintEqualToAnchor:closeButton.centerYAnchor]
+  ]];
+  [titlebarTitleLabel bind:NSValueBinding
+                  toObject:window
+               withKeyPath:@"title"
+                   options:nil];
+  [self updateTitlebarSidebarToolTips];
+}
+
+- (void)configureSongDetailsLayout {
+  songStack.edgeInsets = NSEdgeInsetsMake(0.0,
+                                          HermesSongDetailsHorizontalPadding,
+                                          HermesSongDetailsBottomPadding,
+                                          HermesSongDetailsHorizontalPadding);
+  songStack.alignment = NSLayoutAttributeCenterX;
+  songStack.spacing = HermesSongDetailsSpacing;
+
+  NSView *artContainer = art.superview;
+  for (NSLayoutConstraint *constraint in songStack.constraints) {
+    if (constraint.firstItem == artContainer &&
+        constraint.firstAttribute == NSLayoutAttributeWidth &&
+        constraint.secondItem == songStack &&
+        constraint.secondAttribute == NSLayoutAttributeWidth) {
+      constraint.constant = -(HermesSongDetailsHorizontalPadding * 2.0);
+      break;
+    }
+  }
+
+  NSArray<NSTextField *> *detailLabels = @[
+    artistLabel,
+    albumLabel,
+    songLabel,
+    stationModeLabel,
+    progressLabel,
+    explanationLabel
+  ];
+  NSSet<NSTextField *> *singleLineLabels = [NSSet setWithArray:@[
+    artistLabel,
+    albumLabel,
+    songLabel,
+    stationModeLabel,
+    progressLabel
+  ]];
+  NSMutableArray<NSLayoutConstraint *> *detailWidthConstraints = [NSMutableArray array];
+  for (NSTextField *detailLabel in detailLabels) {
+    detailLabel.alignment = NSTextAlignmentCenter;
+    detailLabel.preferredMaxLayoutWidth = 0.0;
+    if ([singleLineLabels containsObject:detailLabel]) {
+      detailLabel.maximumNumberOfLines = 1;
+      detailLabel.cell.wraps = NO;
+      detailLabel.cell.scrollable = YES;
+      detailLabel.cell.lineBreakMode = NSLineBreakByTruncatingTail;
+      [detailLabel setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
+                                            forOrientation:NSLayoutConstraintOrientationHorizontal];
+    }
+    for (NSLayoutConstraint *constraint in [detailLabel.constraints copy]) {
+      if (constraint.firstItem == detailLabel &&
+          constraint.firstAttribute == NSLayoutAttributeWidth &&
+          constraint.relation == NSLayoutRelationLessThanOrEqual &&
+          constraint.secondItem == nil) {
+        constraint.active = NO;
       }
     }
-#ifndef MPREMOTECOMMANDCENTER_MEDIA_KEYS_BROKEN
+    [detailWidthConstraints addObject:
+      [detailLabel.widthAnchor constraintEqualToAnchor:songStack.widthAnchor
+                                              constant:-(HermesSongDetailsHorizontalPadding * 2.0)]];
   }
-#endif
-#endif
+  [NSLayoutConstraint activateConstraints:detailWidthConstraints];
+}
 
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self requestInputMonitoringReminderIfNeeded];
-  });
+- (void)configurePlaybackSplitView {
+  NSStackView *legacyPlaybackRow = (NSStackView *)songStack.superview;
+  if (![legacyPlaybackRow isKindOfClass:[NSStackView class]]) {
+    return;
+  }
+
+  [NSLayoutConstraint deactivateConstraints:[playbackView.constraints copy]];
+  for (NSLayoutConstraint *constraint in [stationsPanel.constraints copy]) {
+    if (constraint.firstItem == stationsPanel &&
+        constraint.firstAttribute == NSLayoutAttributeWidth) {
+      constraint.active = NO;
+    }
+  }
+
+  [legacyPlaybackRow removeArrangedSubview:songStack];
+  [songStack removeFromSuperview];
+  [legacyPlaybackRow removeArrangedSubview:historyPanel];
+  [historyPanel removeFromSuperview];
+  [stationsPanel removeFromSuperview];
+  [legacyPlaybackRow removeFromSuperview];
+
+  playbackSplitView = [[PlaybackSplitView alloc] initWithFrame:playbackView.bounds];
+  playbackSplitView.translatesAutoresizingMaskIntoConstraints = NO;
+  playbackSplitView.preferredLeadingPaneWidth = 198.0;
+  playbackSplitView.preferredTrailingPaneWidth = 198.0;
+  [playbackSplitView setLeadingPane:stationsPanel
+                        centerPane:songStack
+                      trailingPane:historyPanel];
+  [playbackView addSubview:playbackSplitView];
+  [NSLayoutConstraint activateConstraints:@[
+    [playbackSplitView.leadingAnchor constraintEqualToAnchor:playbackView.leadingAnchor],
+    [playbackSplitView.trailingAnchor constraintEqualToAnchor:playbackView.trailingAnchor],
+    [playbackSplitView.topAnchor constraintEqualToAnchor:playbackView.topAnchor],
+    [playbackSplitView.bottomAnchor constraintEqualToAnchor:playbackView.bottomAnchor]
+  ]];
+}
+
+- (NSButton *)titlebarButtonWithSystemSymbol:(NSString *)symbolName
+                                       label:(NSString *)label
+                                     toolTip:(NSString *)toolTip
+                                      action:(SEL)action {
+  NSImage *image = [NSImage imageWithSystemSymbolName:symbolName
+                             accessibilityDescription:label];
+  NSButton *button = [NSButton buttonWithImage:image target:self action:action];
+  button.bezelStyle = NSBezelStyleToolbar;
+  button.imagePosition = NSImageOnly;
+  button.imageScaling = NSImageScaleProportionallyDown;
+  button.toolTip = toolTip;
+  button.translatesAutoresizingMaskIntoConstraints = NO;
+  return button;
+}
+
+- (void)toggleStationsPanelFromTitlebar:(id)sender {
+  [self toggleStationsPanel];
+}
+
+- (void)toggleHistoryPanelFromTitlebar:(id)sender {
+  [self toggleHistoryPanel];
+}
+
+- (void)updateTitlebarSidebarToolTips {
+  stationsTitlebarButton.toolTip = stationsPanelVisible
+    ? NSLocalizedString(@"Hide Station List", nil)
+    : NSLocalizedString(@"Show Station List", nil);
+  historyTitlebarButton.toolTip = historyPanelVisible
+    ? NSLocalizedString(@"Hide Playback History", nil)
+    : NSLocalizedString(@"Show Playback History", nil);
+}
+
+- (void)restoreSidebarVisibility {
+  stationsPanelVisible = PREF_KEY_BOOL(STATIONS_PANEL_VISIBLE);
+  historyPanelVisible = PREF_KEY_BOOL(HISTORY_PANEL_VISIBLE);
+  playbackSplitView.leadingPaneVisible = stationsPanelVisible;
+  playbackSplitView.trailingPaneVisible = historyPanelVisible;
+  [playbackView layoutSubtreeIfNeeded];
+  [self updateTitlebarSidebarToolTips];
+}
+
+- (void)setHistoryPanelVisible:(BOOL)visible {
+  if (historyPanel == nil || historyPanelVisible == visible) {
+    return;
+  }
+
+  historyPanelVisible = visible;
+  PREF_KEY_SET_BOOL(HISTORY_PANEL_VISIBLE, visible);
+  playbackSplitView.trailingPaneVisible = visible;
+  [playbackView layoutSubtreeIfNeeded];
+  [self updateTitlebarSidebarToolTips];
+}
+
+- (void)setStationsPanelVisible:(BOOL)visible {
+  if (stationsPanel == nil || stationsPanelVisible == visible) {
+    return;
+  }
+
+  stationsPanelVisible = visible;
+  PREF_KEY_SET_BOOL(STATIONS_PANEL_VISIBLE, visible);
+  playbackSplitView.leadingPaneVisible = visible;
+  [playbackView layoutSubtreeIfNeeded];
+  [self updateTitlebarSidebarToolTips];
+}
+
+- (void)toggleStationsPanel {
+  [self setStationsPanelVisible:!stationsPanelVisible];
+}
+
+- (void)toggleHistoryPanel {
+  [self setHistoryPanelVisible:!historyPanelVisible];
+}
+
+- (void)showHistoryPanel {
+  [self setHistoryPanelVisible:YES];
+}
+
+- (void)restoreSongInfoVisibility {
+  explanationLabel.hidden = !PREF_KEY_BOOL(SONG_INFO_VISIBLE);
+  [self updateSongInfoToolbarItem];
+  [playbackView layoutSubtreeIfNeeded];
+}
+
+- (void)updateSongInfoToolbarItem {
+  BOOL infoVisible = !explanationLabel.hidden;
+  NSString *symbolName = infoVisible ? @"info.circle.fill" : @"info.circle";
+  songInfoToolbarItem.image = [NSImage imageWithSystemSymbolName:symbolName
+                                        accessibilityDescription:@"Song information"];
+  songInfoToolbarItem.toolTip = infoVisible
+                                  ? @"Hide why this song was chosen"
+                                  : @"Show why this song was chosen";
+}
+
+- (IBAction)toggleSongInfo:(id)sender {
+  explanationLabel.hidden = !explanationLabel.hidden;
+  PREF_KEY_SET_BOOL(SONG_INFO_VISIBLE, !explanationLabel.hidden);
+  [self updateSongInfoToolbarItem];
+  [playbackView layoutSubtreeIfNeeded];
 }
 
 - (void)showToolbar {
@@ -386,35 +589,6 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   progressUpdateTimer = timer;
 }
 
-/* see https://github.com/nevyn/SPMediaKeyTap */
-- (void) mediaKeyTap:(SPMediaKeyTap*)keyTap
-      receivedMediaKeyEvent:(NSEvent*)event {
-  assert([event type] == NSEventTypeSystemDefined &&
-         [event subtype] == SPSystemDefinedEventMediaKeys);
-
-  int keyCode = (([event data1] & 0xFFFF0000) >> 16);
-  int keyFlags = ([event data1] & 0x0000FFFF);
-  int keyState = (((keyFlags & 0xFF00) >> 8)) == 0xA;
-  if (keyState != 1) return;
-
-  switch (keyCode) {
-
-    case NX_KEYTYPE_PLAY:
-      [self playpause:nil];
-      return;
-
-    case NX_KEYTYPE_FAST:
-    case NX_KEYTYPE_NEXT:
-      [self next:nil];
-      return;
-
-    case NX_KEYTYPE_REWIND:
-    case NX_KEYTYPE_PREVIOUS:
-      [NSApp activateIgnoringOtherApps:NO];
-      return;
-  }
-}
-
 - (void) prepareFirst {
   NSInteger saved = [[NSUserDefaults standardUserDefaults]
                      integerForKey:@"hermes.volume"];
@@ -422,10 +596,20 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
     saved = 100;
   }
   [self setIntegerVolume:saved];
+
+  [self restoreSongInfoVisibility];
+  [self restoreSidebarVisibility];
 }
 
 - (Pandora*) pandora {
   return [HMSAppDelegate pandora];
+}
+
+- (id<PlaybackStationModeService>)stationModeService {
+  if (_stationModeService != nil) {
+    return _stationModeService;
+  }
+  return (id<PlaybackStationModeService>)[self pandora];
 }
 
 - (void) reset {
@@ -436,7 +620,12 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 }
 
 - (void) show {
+  [self presentPlaybackView];
+}
+
+- (void)presentPlaybackView {
   [HMSAppDelegate setCurrentView:playbackView];
+  [playbackView layoutSubtreeIfNeeded];
 }
 
 - (void) showSpinner {
@@ -510,7 +699,9 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 
 // nil = no image available
 - (void)setArtImage:(NSImage *)artImage {
+  Song *song = [playing playingSong];
   self->_artImage = artImage;
+  self->_artImageSong = song;
   [art setImage:artImage ? artImage : [NSImage imageNamed:@"missing-album"]];
   if (artImage != nil) {
     artImage.accessibilityDescription = [[playing playingSong] title];
@@ -527,6 +718,15 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   [artLoading setHidden:YES];
   [artLoading stopAnimation:nil];
   [self updateQuickLookPreviewWithArt:artImage != nil];
+
+  NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObject:artImage ?: [NSNull null]
+                                                                      forKey:@"artwork"];
+  if (song != nil) {
+    userInfo[@"song"] = song;
+  }
+  [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackArtworkDidChangeNotification
+                                                      object:self
+                                                    userInfo:userInfo];
 }
 
 - (void)updateQuickLookPreviewWithArt:(BOOL)hasArt {
@@ -556,7 +756,7 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   song.playDate = [NSDate date];
 
   /* Prevent a flicker by not loading the same image twice */
-  if ([song art] != lastImgSrc) {
+  if (lastImgSrc == nil || ![lastImgSrc isEqualToString:[song art]]) {
     if ([song art] == nil || [[song art] isEqual: @""]) {
       [self setArtImage:nil];
       if (![self->playing isPaused])
@@ -570,6 +770,11 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
       lastImg = nil;
       [[ImageLoader loader] loadImageURL:lastImgSrc
                                 callback:^(NSData *data) {
+        // A cancelled request can still finish while the next track is starting.
+        // Never let that late callback replace the current track's artwork.
+        if ([self->playing playingSong] != song) {
+          return;
+        }
         NSImage *image = nil;
         self->lastImg = data;
         if (data != nil) {
@@ -586,9 +791,12 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
     }
   } else {
     NSLogd(@"Skipping loading image");
+    // The same album image can legitimately be shared by consecutive tracks.
+    // Re-associate it so Now Playing can safely publish it for the new song.
+    [self setArtImage:self.artImage];
   }
 
-  [HMSAppDelegate setCurrentView:playbackView];
+  [self presentPlaybackView];
 
   [songLabel setStringValue: [song title]];
   [songLabel setToolTip:[song title]];
@@ -717,10 +925,10 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 
 /* Toggle between playing and pausing */
 - (IBAction)playpause: (id) sender {
-  if ([playing isPaused]) {
-    [self play];
-  } else {
+  if ([playing isPlaying]) {
     [self pause];
+  } else {
+    [self play];
   }
 }
 
@@ -766,7 +974,7 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 /* Load more songs manually */
 - (IBAction)loadMore: (id)sender {
   [self showSpinner];
-  [HMSAppDelegate setCurrentView:playbackView];
+  [self presentPlaybackView];
 
   if ([playing playingSong] != nil) {
     [playing retry];
@@ -830,7 +1038,9 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   stationModeLabel.hidden = NO;
   stationModeLabel.textColor = [NSColor secondaryLabelColor];
   stationModeLabel.stringValue = @"Station Mode: Loading…";
-  [[self pandora] fetchStationModesForStation:station];
+  if (![[self stationModeService] fetchStationModesForStation:station]) {
+    [self showStationModesUnavailable];
+  }
 }
 
 - (void)handleStationModesLoaded:(NSNotification *)notification {
@@ -856,12 +1066,19 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   NSString *currentModeName = nil;
   for (NSDictionary *entry in entries) {
     NSString *name = [entry[@"name"] isKindOfClass:[NSString class]] ? entry[@"name"] : nil;
-    if (name.length == 0) {
+    NSString *identifier = [entry[@"identifier"] isKindOfClass:[NSString class]]
+                               ? entry[@"identifier"]
+                               : nil;
+    if (name.length == 0 || identifier.length == 0) {
       continue;
     }
     BOOL isCurrent = [entry[@"current"] boolValue];
-    NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:name action:NULL keyEquivalent:@""];
-    item.enabled = NO;
+    NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:name
+                                                  action:@selector(selectStationMode:)
+                                           keyEquivalent:@""];
+    item.target = self;
+    item.representedObject = identifier;
+    item.enabled = YES;
     item.state = isCurrent ? NSControlStateValueOn : NSControlStateValueOff;
     [stationModesMenu addItem:item];
     if (isCurrent) {
@@ -877,6 +1094,30 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
   NSString *displayName = currentModeName.length > 0 ? currentModeName : @"—";
   stationModeLabel.stringValue = [NSString stringWithFormat:@"Station Mode: %@", displayName];
   [stationModesMenuItem setEnabled:YES];
+}
+
+- (IBAction)selectStationMode:(id)sender {
+  NSString *modeIdentifier = [sender isKindOfClass:[NSMenuItem class]]
+                               ? [(NSMenuItem *)sender representedObject]
+                               : nil;
+  Station *station = playing;
+  id<PlaybackStationModeService> service = [self stationModeService];
+  if (![modeIdentifier isKindOfClass:[NSString class]] ||
+      modeIdentifier.length == 0 ||
+      station.stationId.length == 0 ||
+      ![service isAuthenticated]) {
+    return;
+  }
+
+  if (![service setMode:modeIdentifier forStation:station]) {
+    return;
+  }
+
+  stationModeLabel.hidden = NO;
+  stationModeLabel.textColor = [NSColor secondaryLabelColor];
+  stationModeLabel.stringValue = @"Station Mode: Loading…";
+  [station clearSongList];
+  [self next:sender];
 }
 
 - (void)showStationModesUnavailable {
@@ -980,13 +1221,22 @@ void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction pr
 }
 
 - (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item {
-  if (![[self pandora] isAuthenticated]) {
+  if (![[self stationModeService] isAuthenticated]) {
     return NO;
   }
 
   SEL action = [item action];
 
   NSObject *validatedObject = (NSObject *)item;
+
+  if (action == @selector(selectStationMode:)) {
+    NSString *modeIdentifier = [validatedObject isKindOfClass:[NSMenuItem class]]
+                                 ? [(NSMenuItem *)validatedObject representedObject]
+                                 : nil;
+    return playing.stationId.length > 0 &&
+           [modeIdentifier isKindOfClass:[NSString class]] &&
+           modeIdentifier.length > 0;
+  }
 
   if (action == @selector(playpause:)) {
     BOOL hasPlayableStation = (playing != nil);

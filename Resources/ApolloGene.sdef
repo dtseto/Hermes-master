@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
-<dictionary title="Hermes Terminology">
+<dictionary title="ApolloGene Terminology">
 	<suite name="Standard Suite" code="????" description="Common classes and commands for most applications.">
 		<cocoa name="NSCoreSuite"/>
 		<command name="count" code="corecnte" description="Return the number of elements of a particular class within an object.">
@@ -34,8 +34,8 @@
 			</parameter>
 		</command>
 	</suite>
-	<suite name="Hermes Suite" code="HeRM" description="Hermes specific classes and commands.">
-		<enumeration name="player states" code="esta" description="Hermes playback states">
+	<suite name="ApolloGene Suite" code="HeRM" description="ApolloGene-specific classes and commands.">
+		<enumeration name="player states" code="esta" description="ApolloGene playback states">
 			<enumerator name="stopped" code="stop" description="Player is stopped"/>
 			<enumerator name="playing" code="play" description="Player is playing"/>
 			<enumerator name="paused" code="paus" description="Player is paused"/>

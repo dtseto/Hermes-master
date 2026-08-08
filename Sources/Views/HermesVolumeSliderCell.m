@@ -23,11 +23,11 @@
   leftRect.size.width = leftWidth;
   
   NSBezierPath *bar = [NSBezierPath bezierPathWithRoundedRect:rect xRadius:radius yRadius:radius];
-  [[NSColor colorWithGenericGamma22White:171/255. alpha:1] setFill];
+  [[NSColor quaternaryLabelColor] setFill];
   [bar fill];
   
   NSBezierPath *barLeft = [NSBezierPath bezierPathWithRoundedRect: leftRect xRadius:radius yRadius:radius];
-  [[NSColor colorWithGenericGamma22White:103/255. alpha:1] setFill];
+  [[NSColor secondaryLabelColor] setFill];
   [barLeft fill];
 }
 

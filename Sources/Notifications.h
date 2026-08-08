@@ -41,5 +41,7 @@ extern NSString * const PandoraDidLoadSearchResultsNotification; // object: sear
 extern NSString * const PandoraDidLoadGenreStationsNotification; // userInfo: result
 
 extern NSString * const StationDidPlaySongNotification;
+// object: PlaybackController, userInfo: song and artwork (NSNull when unavailable)
+extern NSString * const PlaybackArtworkDidChangeNotification;
 
 #endif

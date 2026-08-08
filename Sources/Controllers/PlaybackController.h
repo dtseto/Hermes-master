@@ -6,9 +6,13 @@
 
 @class Song;
 @class MPRemoteCommandCenter;
+@class PlaybackSplitView;
 
-// XXX macOS 10.12.2 exposes media keys; 10.12.3 doesn't
-#define MPREMOTECOMMANDCENTER_MEDIA_KEYS_BROKEN 1
+@protocol PlaybackStationModeService <NSObject>
+- (BOOL)isAuthenticated;
+- (BOOL)fetchStationModesForStation:(Station *)station;
+- (BOOL)setMode:(NSString *)modeIdentifier forStation:(Station *)station;
+@end
 
 @interface PlaybackController : NSObject <QLPreviewPanelDataSource, QLPreviewPanelDelegate, QLPreviewItem, NSUserInterfaceValidations> {
   IBOutlet NSProgressIndicator *songLoadingProgress;
@@ -32,6 +36,10 @@
   IBOutlet NSTextField *stationModeLabel;
   IBOutlet NSMenu *stationModesMenu;
   IBOutlet NSMenuItem *stationModesMenuItem;
+  IBOutlet NSStackView *songStack;
+  IBOutlet NSScrollView *stationsPanel;
+  IBOutlet NSStackView *historyPanel;
+  PlaybackSplitView *playbackSplitView;
 
   // Playback related items
   IBOutlet NSToolbarItem *like;
@@ -39,24 +47,32 @@
   IBOutlet NSToolbarItem *playpause;
   IBOutlet NSToolbarItem *nextSong;
   IBOutlet NSToolbarItem *tiredOfSong;
+  IBOutlet NSToolbarItem *songInfoToolbarItem;
   IBOutlet NSSlider *volume;
   IBOutlet NSToolbar *toolbar;
+
+  NSButton *stationsTitlebarButton;
+  NSButton *historyTitlebarButton;
+  NSTextField *titlebarTitleLabel;
 
   NSTimer *progressUpdateTimer;
   BOOL scrobbleSent;
   NSString *lastImgSrc;
   NSData *lastImg;
-  BOOL presentedInputMonitoringAlert;
+  BOOL stationsPanelVisible;
+  BOOL historyPanelVisible;
+  id<PlaybackStationModeService> _stationModeService;
 }
 
 @property (readonly) Station *playing;
 @property (readonly) NSData *lastImg;
 @property (nonatomic, retain) NSImage *artImage;
+@property (nonatomic, readonly) Song *artImageSong;
 @property BOOL pausedByScreensaver;
 @property BOOL pausedByScreenLock;
 
 @property (readonly) MPRemoteCommandCenter *remoteCommandCenter;
-@property (readonly) SPMediaKeyTap *mediaKeyTap;
+@property (nonatomic, strong) id<PlaybackStationModeService> stationModeService;
 
 + (void) setPlayOnStart: (BOOL)play;
 + (BOOL) playOnStart;
@@ -86,6 +102,8 @@
 - (IBAction)like: (id) sender;
 - (IBAction)dislike: (id) sender;
 - (IBAction)tired: (id) sender;
+- (IBAction)selectStationMode:(id)sender;
+- (IBAction)toggleSongInfo:(id)sender;
 - (IBAction)loadMore: (id)sender;
 - (IBAction)songURL: (id)sender;
 - (IBAction)artistURL: (id)sender;
@@ -94,14 +112,8 @@
 - (IBAction)increaseVolume:(id)sender;
 - (IBAction)decreaseVolume:(id)sender;
 - (IBAction)quickLookArt:(id)sender;
-- (BOOL)hasInputMonitoringAccess;
-- (void)presentInputMonitoringInstructions;
-- (void)presentInputMonitoringInstructionsAllowingRepeat;
-- (void)openInputMonitoringPreferences;
-- (void)requestInputMonitoringReminderIfNeeded;
-
-typedef bool (*HMSInputMonitoringAccessFunction)(void);
-void HMSSetListenEventAccessFunctionPointers(HMSInputMonitoringAccessFunction preflight,
-                                             HMSInputMonitoringAccessFunction request);
+- (void)toggleStationsPanel;
+- (void)toggleHistoryPanel;
+- (void)showHistoryPanel;
 
 @end

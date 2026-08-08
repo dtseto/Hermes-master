@@ -1,14 +1,13 @@
 /**
- * @file HermesAppDelegate.m
- * @brief Implementation of the AppDelegate for Hermes
+ * @file ApolloGeneAppDelegate.m
+ * @brief Implementation of the AppDelegate for ApolloGene
  *
  * Contains startup routines, and other interfaces with the OS
  */
 
-#import <SPMediaKeyTap/SPMediaKeyTap.h>
 #import <MediaPlayer/MediaPlayer.h>
 
-#import "HermesAppDelegate.h"
+#import "ApolloGeneAppDelegate.h"
 // Add this to the top with other imports:
 #import <AudioToolbox/AudioToolbox.h>
 
@@ -32,8 +31,9 @@
 
 @property (readonly) NSString *hermesLogFile;
 @property (readonly, nonatomic) FILE *hermesLogFileHandle;
-@property (strong, nonatomic) NSMenuItem *inputMonitoringMenuItem;
-@property (strong, nonatomic) NSMenuItem *inputMonitoringSeparator;
++ (MPMediaItemArtwork *)mediaItemArtworkForImage:(NSImage *)image;
+- (void)updateNowPlayingInfoForPlaybackState:(MPNowPlayingPlaybackState)playbackState;
+- (void)playbackArtworkChanged:(NSNotification *)notification;
 
 @end
 
@@ -198,6 +198,12 @@ static void DummyPacketsProc(void *inClientData,
 - (void) setCurrentView:(NSView *)view {
   NSView *superview = [window contentView];
 
+  // Content screens are swapped into the window rather than managed by a view
+  // controller, so they need to follow the content view's frame explicitly.
+  // Apply this before installing the view to avoid preserving a stale nib size.
+  [view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+  [view setFrame:[superview bounds]];
+
   if ([[superview subviews] count] > 0) {
     NSView *prev_view = [superview subviews][0];
     if (prev_view == view) {
@@ -210,18 +216,11 @@ static void DummyPacketsProc(void *inClientData,
     [superview addSubview:view];
   }
 
-  NSRect frame = [view frame];
-  NSRect superFrame = [superview frame];
-  frame.size.width = superFrame.size.width;
-  frame.size.height = superFrame.size.height;
-  [view setFrame:frame];
-
   [self updateWindowTitle];
 }
 
 - (void) migrateDefaults:(NSUserDefaults*) defaults {
   NSDictionary *map = @{
-    @"hermes.please-bind-media":        PLEASE_BIND_MEDIA,
     @"hermes.please-scrobble":          PLEASE_SCROBBLE,
     @"hermes.please-scrobble-likes":    PLEASE_SCROBBLE_LIKES,
     @"hermes.only-scrobble-likes":      ONLY_SCROBBLE_LIKED,
@@ -265,7 +264,6 @@ static void DummyPacketsProc(void *inClientData,
   // Must do this before the app is activated, or the menu bar doesn't draw.
   // <http://stackoverflow.com/questions/7596643/>
   [self updateStatusItemVisibility:nil];
-  [self refreshInputMonitoringReminder];
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
@@ -309,6 +307,9 @@ static void DummyPacketsProc(void *inClientData,
   [notificationCenter addObserver:self selector:@selector(playbackStateChanged:)
                              name:ASStatusChangedNotification object:nil];
 
+  [notificationCenter addObserver:self selector:@selector(playbackArtworkChanged:)
+                             name:PlaybackArtworkDidChangeNotification object:playback];
+
   // See http://developer.apple.com/mac/library/qa/qa2004/qa1340.html
   [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver: self
       selector: @selector(receiveSleepNote:)
@@ -332,18 +333,17 @@ static void DummyPacketsProc(void *inClientData,
     PLEASE_GROWL:               @"1",
     PLEASE_GROWL_PLAY:          @"0",
     PLEASE_GROWL_NEW:           @"1",
-    PLEASE_BIND_MEDIA:          @"1",
-    INPUT_MONITORING_REMINDER_ENABLED: @"1",
     PLEASE_CLOSE_DRAWER:        @"0",
     ENABLED_PROXY:              @PROXY_SYSTEM,
     PROXY_AUDIO:                @"0",
     DESIRED_QUALITY:            @QUALITY_MED,
     OPEN_DRAWER:                @DRAWER_STATIONS,
+    STATIONS_PANEL_VISIBLE:     @YES,
+    HISTORY_PANEL_VISIBLE:      @YES,
+    SONG_INFO_VISIBLE:         @NO,
     HIST_DRAWER_WIDTH:          @150,
     DRAWER_WIDTH:               @130,
-    GROWL_TYPE:                 @GROWL_TYPE_OSX,
-    kMediaKeyUsingBundleIdentifiersDefaultsKey:
-        [SPMediaKeyTap defaultMediaKeyUserBundleIdentifiers]
+    GROWL_TYPE:                 @GROWL_TYPE_OSX
   };
 
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -354,7 +354,6 @@ static void DummyPacketsProc(void *inClientData,
   [self addDeleteStationMenuItemIfNeeded];
 
   [self updateAlwaysOnTop:nil];
-  [self refreshInputMonitoringReminder];
 }
 
 /**
@@ -414,9 +413,10 @@ static void DummyPacketsProc(void *inClientData,
     [history saveSongs];
 }
 
-// Optional: Handle window closing
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
-    return YES;  // App will quit when last window is closed
+    // When the Dock icon is hidden, the status item is Hermes' only visible UI.
+    // Otherwise, closing the last window should quit as expected.
+    return !PREF_KEY_BOOL(STATUS_BAR_ICON);
 }
 
 #pragma mark - NSWindow notification
@@ -548,11 +548,11 @@ static void DummyPacketsProc(void *inClientData,
 #pragma mark - Drawer management
 
 - (IBAction)toggleDrawerContent:(id)sender {
-  NSLog(@"toggleDrawerContent: ignored (drawer UI deprecated on macOS 11+).");
+  [playback toggleHistoryPanel];
 }
 
 - (IBAction)toggleDrawerVisible:(id)sender {
-  NSLog(@"toggleDrawerVisible: ignored (drawer UI deprecated on macOS 11+).");
+  [playback toggleHistoryPanel];
 }
 
 - (IBAction)showStationsDrawer:(id)sender {
@@ -564,8 +564,8 @@ static void DummyPacketsProc(void *inClientData,
 }
 
 - (IBAction)showHistoryDrawer:(id)sender {
-  NSLog(@"showHistoryDrawer: redirecting to history list (drawer UI deprecated).");
   [self activate:nil];
+  [playback showHistoryPanel];
   [[self history] updateUI];
 }
 
@@ -662,64 +662,6 @@ static void DummyPacketsProc(void *inClientData,
 
 */
 
-#pragma mark - Input Monitoring Reminder
-
-- (BOOL)shouldShowInputMonitoringReminder {
-  if (@available(macOS 10.15, *)) {
-    PlaybackController *playbackController = self.playback;
-    if (playbackController == nil) {
-      return NO;
-    }
-    if (playbackController.mediaKeyTap == nil) {
-      return NO;
-    }
-    if (!PREF_KEY_BOOL(PLEASE_BIND_MEDIA)) {
-      return NO;
-    }
-    if (!PREF_KEY_BOOL(INPUT_MONITORING_REMINDER_ENABLED)) {
-      return NO;
-    }
-    return ![playbackController hasInputMonitoringAccess];
-  }
-  return NO;
-}
-
-- (void)ensureInputMonitoringMenuItem {
-  if (statusBarMenu == nil || self.inputMonitoringMenuItem != nil) {
-    return;
-  }
-
-  NSMenuItem *separator = [NSMenuItem separatorItem];
-  self.inputMonitoringSeparator = separator;
-  [statusBarMenu addItem:separator];
-
-  NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Enable Media Keys (Input Monitoring)…"
-                                                    action:@selector(showInputMonitoringReminderFromStatusItem:)
-                                             keyEquivalent:@""];
-  menuItem.target = self;
-  menuItem.hidden = YES;
-  self.inputMonitoringMenuItem = menuItem;
-  [statusBarMenu addItem:menuItem];
-}
-
-- (void)refreshInputMonitoringReminder {
-  if (statusBarMenu == nil) {
-    return;
-  }
-  [self ensureInputMonitoringMenuItem];
-  BOOL shouldShow = [self shouldShowInputMonitoringReminder];
-  self.inputMonitoringMenuItem.hidden = !shouldShow;
-  self.inputMonitoringMenuItem.target = self;
-  self.inputMonitoringMenuItem.action = @selector(showInputMonitoringReminderFromStatusItem:);
-  if (self.inputMonitoringSeparator != nil) {
-    self.inputMonitoringSeparator.hidden = !shouldShow;
-  }
-}
-
-- (void)showInputMonitoringReminderFromStatusItem:(id)sender {
-  [[self playback] presentInputMonitoringInstructionsAllowingRepeat];
-}
-
 #pragma mark - Status item display
 
 - (IBAction) updateStatusItemVisibility:(id)sender {
@@ -758,7 +700,8 @@ static void DummyPacketsProc(void *inClientData,
     return;
   }
 
-  window.collectionBehavior = NSWindowCollectionBehaviorMoveToActiveSpace | NSWindowCollectionBehaviorTransient;
+  // Keep the agent app's main window in Mission Control while following the active Space.
+  window.collectionBehavior = NSWindowCollectionBehaviorMoveToActiveSpace | NSWindowCollectionBehaviorManaged;
 
   if (sender != nil) {
     /* If we're not executing at process launch, then the menu bar will remain visible
@@ -779,7 +722,6 @@ static void DummyPacketsProc(void *inClientData,
   statusItem = [[NSStatusBar systemStatusBar]
                     statusItemWithLength:NSVariableStatusItemLength];
   statusItem.menu = statusBarMenu;
-  [self refreshInputMonitoringReminder];
   [statusItem.button addConstraint:
    [NSLayoutConstraint constraintWithItem:statusItem.button
                                 attribute:NSLayoutAttributeWidth
@@ -910,49 +852,95 @@ static void DummyPacketsProc(void *inClientData,
     currentArtist.hidden = YES;
     statusItem.button.toolTip = nil;
   }
+
+  MPNowPlayingInfoCenter *nowPlayingInfoCenter = [MPNowPlayingInfoCenter defaultCenter];
+  [self updateNowPlayingInfoForPlaybackState:nowPlayingInfoCenter.playbackState];
+}
+
++ (MPMediaItemArtwork *)mediaItemArtworkForImage:(NSImage *)image {
+  if (image == nil || image.size.width <= 0 || image.size.height <= 0) {
+    return nil;
+  }
+
+  NSImage *sourceImage = [image copy];
+  return [[MPMediaItemArtwork alloc]
+      initWithBoundsSize:sourceImage.size
+          requestHandler:^NSImage *(CGSize requestedSize) {
+    if (requestedSize.width <= 0 || requestedSize.height <= 0) {
+      return sourceImage;
+    }
+
+    NSImage *requestedImage = [sourceImage copy];
+    requestedImage.size = NSSizeFromCGSize(requestedSize);
+    return requestedImage;
+  }];
+}
+
+- (void)updateNowPlayingInfoForPlaybackState:(MPNowPlayingPlaybackState)nowPlayingState {
+  if (![MPNowPlayingInfoCenter class]) {
+    return;
+  }
+
+  MPNowPlayingInfoCenter *nowPlayingInfoCenter = [MPNowPlayingInfoCenter defaultCenter];
+  Station *playing = [playback playing];
+  Song *song = [playing playingSong];
+  if (song == nil) {
+    nowPlayingInfoCenter.playbackState = MPNowPlayingPlaybackStateUnknown;
+    nowPlayingInfoCenter.nowPlayingInfo = nil;
+    return;
+  }
+
+  double progress = 0, duration = 0;
+  [playing progress:&progress];
+  [playing duration:&duration];
+
+  NSMutableDictionary *nowPlayingInfo = [@{
+    MPNowPlayingInfoPropertyMediaType: @(MPNowPlayingInfoMediaTypeAudio),
+    MPMediaItemPropertyArtist: song.artist ?: @"",
+    MPMediaItemPropertyAlbumTitle: song.album ?: @"",
+    MPMediaItemPropertyTitle: song.title ?: @"",
+    MPNowPlayingInfoPropertyElapsedPlaybackTime: @(progress),
+    MPNowPlayingInfoPropertyPlaybackRate: @(nowPlayingState == MPNowPlayingPlaybackStatePlaying ? 1. : 0.),
+    MPMediaItemPropertyPlaybackDuration: @(duration)
+  } mutableCopy];
+
+  if (playback.artImage != nil && playback.artImageSong == song) {
+    MPMediaItemArtwork *artwork = [[self class] mediaItemArtworkForImage:playback.artImage];
+    if (artwork != nil) {
+      nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork;
+    }
+  }
+
+  nowPlayingInfoCenter.nowPlayingInfo = nowPlayingInfo;
+  nowPlayingInfoCenter.playbackState = nowPlayingState;
+}
+
+- (void)playbackArtworkChanged:(NSNotification *)notification {
+  Song *artworkSong = notification.userInfo[@"song"];
+  if (artworkSong != playback.playing.playingSong) {
+    return;
+  }
+
+  MPNowPlayingInfoCenter *nowPlayingInfoCenter = [MPNowPlayingInfoCenter defaultCenter];
+  [self updateNowPlayingInfoForPlaybackState:nowPlayingInfoCenter.playbackState];
 }
 
 - (void)playbackStateChanged:(NSNotification*) not {
   AudioStreamer *stream = [not object];
   BOOL streamIsPlaying = [stream isPlaying];
-  if (streamIsPlaying) {
-    [playbackState setTitle:@"Pause"];
-  } else {
-    [playbackState setTitle:@"Play"];
-  }
+  [playbackState setTitle:streamIsPlaying ? @"Pause" : @"Play"];
   [self updateWindowTitle];
   [self updateStatusItem:nil];
 
-  if ([MPNowPlayingInfoCenter class]) {
-    MPNowPlayingInfoCenter *nowPlayingInfoCenter = [MPNowPlayingInfoCenter defaultCenter];
-    if (streamIsPlaying) {
-      Station *playing = [playback playing];
-      Song *song = [playing playingSong];
-      if (song == nil) {
-        nowPlayingInfoCenter.playbackState = MPNowPlayingPlaybackStateUnknown;
-        nowPlayingInfoCenter.nowPlayingInfo = nil;
-        return;
-      }
-      double progress = 0, duration = 0;
-      [playing progress:&progress];
-      [playing duration:&duration];
-      nowPlayingInfoCenter.playbackState = MPNowPlayingPlaybackStatePlaying;
-      nowPlayingInfoCenter.nowPlayingInfo = @{
-        MPNowPlayingInfoPropertyMediaType: @(MPNowPlayingInfoMediaTypeAudio),
-        MPMediaItemPropertyArtist: song.artist ?: @"",
-        MPMediaItemPropertyAlbumTitle: song.album ?: @"",
-        MPMediaItemPropertyTitle: song.title ?: @"",
-        MPNowPlayingInfoPropertyElapsedPlaybackTime: @(progress),
-        MPNowPlayingInfoPropertyPlaybackRate: @(1.),
-        @"playbackDuration": @(duration) // XXX MPMediaItemPropertyPlaybackDuration not exposed in 10.12 SDK
-      };
-    } else if ([stream isPaused])
-      nowPlayingInfoCenter.playbackState = MPNowPlayingPlaybackStatePaused;
-    else if ([stream isDone])
-      nowPlayingInfoCenter.playbackState = MPNowPlayingPlaybackStateStopped;
-    else
-      nowPlayingInfoCenter.playbackState = MPNowPlayingPlaybackStateUnknown;
-  }
+  MPNowPlayingPlaybackState nowPlayingState = MPNowPlayingPlaybackStateUnknown;
+  if (streamIsPlaying)
+    nowPlayingState = MPNowPlayingPlaybackStatePlaying;
+  else if ([stream isPaused])
+    nowPlayingState = MPNowPlayingPlaybackStatePaused;
+  else if ([stream isDone])
+    nowPlayingState = MPNowPlayingPlaybackStateStopped;
+
+  [self updateNowPlayingInfoForPlaybackState:nowPlayingState];
 }
 
 - (void) receiveSleepNote: (NSNotification*) note {
@@ -1147,7 +1135,7 @@ static void DummyPacketsProc(void *inClientData,
   if (playback.playing != nil) {
     [window setTitle:[NSString stringWithFormat:@"%@%@", debugTitlePrefix, playback.playing.name]];
   } else {
-    [window setTitle:[NSString stringWithFormat:@"%@Hermes", debugTitlePrefix]];
+    [window setTitle:[NSString stringWithFormat:@"%@ApolloGene", debugTitlePrefix]];
   }
 }
 
