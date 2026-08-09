@@ -86,8 +86,9 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   
   if (self.autoFailCount > 0 && attempt <= self.autoFailCount) {
     LogToTmp(@"Simulating error for attempt %lu", (unsigned long)attempt);
-    [self simulateErrorForTesting:self.forcedErrorCode];
-    EnqueueTestStreamer(self);
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self simulateErrorForTesting:self.forcedErrorCode];
+    });
   } else {
     LogToTmp(@"Simulating success for attempt %lu", (unsigned long)attempt);
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -121,6 +122,12 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   gForceNonTransientErrors = NO;
 }
 
+- (void)setUp {
+  [super setUp];
+  [gStreamerQueue removeAllObjects];
+  gForceNonTransientErrors = NO;
+}
+
 + (void)tearDown {
   Class cls = objc_getClass("AudioStreamer");
   Method original = class_getClassMethod(cls, @selector(streamWithURL:));
@@ -133,23 +140,19 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
 - (void)testPlaylistIgnoresTransientErrorsDuringRetry {
   TestPlaylistAudioStreamer *streamer = [[TestPlaylistAudioStreamer alloc] init];
   streamer.autoFailCount = 1;
-  // streamer.successExpectation = [self expectationWithDescription:@"playlist recovered"]; // Don't use expectation
   EnqueueTestStreamer(streamer);
 
-  __block BOOL success = NO;
-  // We need to know when success happens.
-  // TestPlaylistAudioStreamer fulfills expectation.
-  // We can subclass it or modify it to set a flag?
-  // Or just observe ASStatusChangedNotification for AS_PLAYING?
-  
+  XCTestExpectation *successExpectation = [self expectationWithDescription:@"playlist recovered"];
+  __block BOOL recovered = NO;
   id successToken = [[NSNotificationCenter defaultCenter]
       addObserverForName:ASStatusChangedNotification
                   object:streamer
                    queue:[NSOperationQueue mainQueue]
               usingBlock:^(__unused NSNotification *note) {
-                  if ([streamer isPlaying]) {
-                      success = YES;
-                  }
+                if (!recovered && [streamer isPlaying]) {
+                  recovered = YES;
+                  [successExpectation fulfill];
+                }
               }];
 
   __block BOOL streamErrorObserved = NO;
@@ -165,16 +168,11 @@ static AudioStreamer *TestStreamWithURL(Class cls, SEL _cmd, NSURL *url) {
   NSURL *url = [NSURL URLWithString:@"https://example.com/test.mp3"];
   [playlist addSong:url play:YES];
 
-  // Manual wait loop
-  NSDate *timeoutDate = [NSDate dateWithTimeIntervalSinceNow:3.0];
-  while (!success && [timeoutDate timeIntervalSinceNow] > 0) {
-      [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-  }
+  [self waitForExpectations:@[successExpectation] timeout:3.0];
   
   [[NSNotificationCenter defaultCenter] removeObserver:token];
   [[NSNotificationCenter defaultCenter] removeObserver:successToken];
   
-  XCTAssertTrue(success, @"Streamer should have recovered to AS_PLAYING");
   XCTAssertFalse(streamErrorObserved);
   [playlist stop];
 }

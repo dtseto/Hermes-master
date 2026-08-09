@@ -400,11 +400,7 @@
   }
 
   if (!self.hasPresentedStationsView) {
-    if (hasActiveStation) {
-      [[HMSAppDelegate playback] show];
-    } else {
-      [self presentStationsChooser];
-    }
+    [self presentStationsChooser];
   } else if (!hasActiveStation) {
     [self presentStationsChooser];
   }

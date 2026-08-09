@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C0D3A70130C0000000000001 /* ArtworkButton.m in Sources */ = {isa = PBXBuildFile; fileRef = C0D3A70130C0000000000003 /* ArtworkButton.m */; };
-		C0D3A70230C0000000000001 /* PlaybackSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = C0D3A70230C0000000000003 /* PlaybackSplitView.m */; };
 		0F795D352EB711670009B05D /* AudioBufferManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F795D342EB711670009B05D /* AudioBufferManager.m */; };
 		0F795D7B2EB7D51D0009B05D /* default.metallib in Resources */ = {isa = PBXBuildFile; fileRef = 0F795D7A2EB7D51D0009B05D /* default.metallib */; };
 		0F828EA42CD93B7200C35281 /* NotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F828EA32CD93A5900C35281 /* NotificationManager.m */; };
@@ -42,6 +40,8 @@
 		97E0DA35159EDF7C00BEA465 /* radio.png in Resources */ = {isa = PBXBuildFile; fileRef = 97E0DA34159EDF7C00BEA465 /* radio.png */; };
 		B2A26AEF1AE39E9B00ADD460 /* MusicProgressSliderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B2A26AEE1AE39E9B00ADD460 /* MusicProgressSliderCell.m */; };
 		BF8C778833A4F74100F8BAA1 /* SUUpdaterStub.m in Sources */ = {isa = PBXBuildFile; fileRef = BF8C778733A4F74100F8BAA1 /* SUUpdaterStub.m */; };
+		C0D3A70130C0000000000001 /* ArtworkButton.m in Sources */ = {isa = PBXBuildFile; fileRef = C0D3A70130C0000000000003 /* ArtworkButton.m */; };
+		C0D3A70230C0000000000001 /* PlaybackSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = C0D3A70230C0000000000003 /* PlaybackSplitView.m */; };
 		E1200AA11CF2A4CC000D3215 /* LabelHoverShowField.m in Sources */ = {isa = PBXBuildFile; fileRef = E1200AA01CF2A4CC000D3215 /* LabelHoverShowField.m */; };
 		E1200AA41CF2B015000D3215 /* LabelHoverShowFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = E1200AA31CF2B015000D3215 /* LabelHoverShowFieldCell.m */; };
 		E124109A18EBAF6F007AF091 /* ApolloGeneApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E124109918EBAF6F007AF091 /* ApolloGeneApp.m */; };
@@ -115,10 +115,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		C0D3A70130C0000000000002 /* ArtworkButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ArtworkButton.h; path = Views/ArtworkButton.h; sourceTree = "<group>"; };
-		C0D3A70130C0000000000003 /* ArtworkButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ArtworkButton.m; path = Views/ArtworkButton.m; sourceTree = "<group>"; };
-		C0D3A70230C0000000000002 /* PlaybackSplitView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlaybackSplitView.h; path = Views/PlaybackSplitView.h; sourceTree = "<group>"; };
-		C0D3A70230C0000000000003 /* PlaybackSplitView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlaybackSplitView.m; path = Views/PlaybackSplitView.m; sourceTree = "<group>"; };
 		0F6DE6172E257EB80025AB31 /* Hermes.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hermes.entitlements; sourceTree = "<group>"; };
 		0F795D2F2EB6F2B00009B05D /* HermesTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "HermesTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		0F795D342EB711670009B05D /* AudioBufferManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioBufferManager.m; sourceTree = "<group>"; };
@@ -176,6 +172,10 @@
 		B2A26AED1AE39E9B00ADD460 /* MusicProgressSliderCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MusicProgressSliderCell.h; path = Views/MusicProgressSliderCell.h; sourceTree = "<group>"; };
 		B2A26AEE1AE39E9B00ADD460 /* MusicProgressSliderCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MusicProgressSliderCell.m; path = Views/MusicProgressSliderCell.m; sourceTree = "<group>"; };
 		BF8C778733A4F74100F8BAA1 /* SUUpdaterStub.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = SUUpdaterStub.m; path = Support/SUUpdaterStub.m; sourceTree = "<group>"; };
+		C0D3A70130C0000000000002 /* ArtworkButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ArtworkButton.h; path = Views/ArtworkButton.h; sourceTree = "<group>"; };
+		C0D3A70130C0000000000003 /* ArtworkButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ArtworkButton.m; path = Views/ArtworkButton.m; sourceTree = "<group>"; };
+		C0D3A70230C0000000000002 /* PlaybackSplitView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlaybackSplitView.h; path = Views/PlaybackSplitView.h; sourceTree = "<group>"; };
+		C0D3A70230C0000000000003 /* PlaybackSplitView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlaybackSplitView.m; path = Views/PlaybackSplitView.m; sourceTree = "<group>"; };
 		E1200A9F1CF2A4CC000D3215 /* LabelHoverShowField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LabelHoverShowField.h; path = Views/LabelHoverShowField.h; sourceTree = "<group>"; };
 		E1200AA01CF2A4CC000D3215 /* LabelHoverShowField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LabelHoverShowField.m; path = Views/LabelHoverShowField.m; sourceTree = "<group>"; };
 		E1200AA21CF2B015000D3215 /* LabelHoverShowFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LabelHoverShowFieldCell.h; path = Views/LabelHoverShowFieldCell.h; sourceTree = "<group>"; };
@@ -934,7 +934,7 @@
 				);
 				LLVM_LTO = YES_THIN;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 2.0.0b6;
+				MARKETING_VERSION = 2.0.1b1;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.alexcrichton.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = ApolloGene;
@@ -989,7 +989,7 @@
 				);
 				LLVM_LTO = YES_THIN;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 2.0.0b6;
+				MARKETING_VERSION = 2.0.1b1;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.alexcrichton.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = ApolloGene;

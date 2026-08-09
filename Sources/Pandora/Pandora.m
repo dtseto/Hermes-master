@@ -951,6 +951,7 @@ static NSString *hierrs[] = {
 - (BOOL) sendRequest: (PandoraRequest*) request {
   NSLog(@"[DEBUG] Starting sendRequest for method: %@", request.method);
 
+  NSString *authTokenLogValue = request.authToken.length > 0 ? @"<redacted>" : @"missing";
   NSString *url  = [NSString stringWithFormat:
                     @"http%s://%@" PANDORA_API_PATH
                     @"?method=%@&partner_id=%@&auth_token=%@&user_id=%@",
@@ -960,7 +961,14 @@ static NSString *hierrs[] = {
                     [request partnerId],
                     [[request authToken] urlEncoded],
                     [request userId]];
-  NSLogd(@"%@", url);
+  // Auth tokens are bearer credentials, so never log full Pandora request URLs.
+  NSLogd(@"Pandora request method=%@ tls=%d host=%@ partner_id=%@ user_id=%@ auth_token=%@",
+         [request method],
+         [request tls],
+         self.device[kPandoraDeviceAPIHost],
+         [request partnerId].length > 0 ? @"present" : @"missing",
+         [request userId].length > 0 ? @"present" : @"missing",
+         authTokenLogValue);
   
   /* Prepare the request */
   NSURL *nsurl = [NSURL URLWithString:url];

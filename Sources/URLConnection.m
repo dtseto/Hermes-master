@@ -1,5 +1,6 @@
 #import "PreferencesController.h"
 #import "URLConnection.h"
+#include <netdb.h>
 
 NSString * const URLConnectionProxyValidityChangedNotification = @"URLConnectionProxyValidityChangedNotification";
 static const NSTimeInterval kURLConnectionTimeoutSeconds = 15.0;
@@ -280,12 +281,24 @@ static void PostProxyValidity(BOOL isValid) {
     }
 
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
-        NSHost *proxyHost = [NSHost hostWithName:trimmedHost];
-        BOOL isValid = (proxyHost.address != nil);
+        struct addrinfo hints;
+        memset(&hints, 0, sizeof(hints));
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+
+        char service[6];
+        snprintf(service, sizeof(service), "%ld", (long)port);
+
+        struct addrinfo *result = NULL;
+        int lookupResult = getaddrinfo(trimmedHost.UTF8String, service, &hints, &result);
+        BOOL isValid = (lookupResult == 0);
+        if (result != NULL) {
+            freeaddrinfo(result);
+        }
         if (!isValid) {
-            NSLog(@"Cannot resolve proxy host: %@", trimmedHost);
+            NSLog(@"Cannot resolve proxy host: %@ (%s)", trimmedHost, gai_strerror(lookupResult));
         } else {
-            NSLog(@"Proxy host resolved to: %@", proxyHost.address);
+            NSLog(@"Proxy host resolved: %@", trimmedHost);
         }
         PostProxyValidity(isValid);
     });
