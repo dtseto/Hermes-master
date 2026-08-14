@@ -21,8 +21,11 @@
 - (void)tired:(id)sender;
 - (void)next:(id)sender;
 - (void)toggleSongInfo:(id)sender;
+- (void)toggleStationsPanel;
 - (void)toggleHistoryPanel;
+- (void)showStationsPanel;
 - (void)restoreSongInfoVisibility;
+- (void)restoreSidebarVisibility;
 - (void)startUpdatingProgress;
 - (void)stopUpdatingProgress;
 - (void)configureRemoteCommands;
@@ -159,6 +162,8 @@ static id StubImageLoaderLoader(id self, SEL _cmd) {
 - (void)setUp {
   [super setUp];
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:SONG_INFO_VISIBLE];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:STATIONS_PANEL_VISIBLE];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:HISTORY_PANEL_VISIBLE];
   gCancelledArt = [NSMutableArray array];
   self.stubLoader = [[StubImageLoader alloc] init];
   gStubImageLoader = self.stubLoader;
@@ -172,6 +177,8 @@ static id StubImageLoaderLoader(id self, SEL _cmd) {
 
 - (void)tearDown {
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:SONG_INFO_VISIBLE];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:STATIONS_PANEL_VISIBLE];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:HISTORY_PANEL_VISIBLE];
   Class loaderClass = NSClassFromString(@"ImageLoader");
   Method loaderMethod = class_getClassMethod(loaderClass, @selector(loader));
   if (self.originalImageLoaderLoaderIMP != NULL) {
@@ -281,6 +288,61 @@ static id StubImageLoaderLoader(id self, SEL _cmd) {
   XCTAssertFalse(historyPanel.hidden);
   XCTAssertEqualWithAccuracy(NSWidth(historyPanel.frame), 173.0, 0.01);
   XCTAssertTrue(NSEqualRects(window.frame, originalFrame));
+}
+
+- (void)testShowStationsPanelRestoresHiddenLeadingPaneAndPersistsVisibility {
+  TestPlaybackController *controller = [[TestPlaybackController alloc] init];
+  NSView *playbackView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 640, 420)];
+  PlaybackSplitView *splitView =
+      [[PlaybackSplitView alloc] initWithFrame:playbackView.bounds];
+  NSView *stationsPanel = [[NSView alloc] initWithFrame:NSZeroRect];
+  NSView *songColumn = [[NSView alloc] initWithFrame:NSZeroRect];
+  NSStackView *historyPanel = [[NSStackView alloc] initWithFrame:NSZeroRect];
+  [splitView setLeadingPane:stationsPanel
+                 centerPane:songColumn
+               trailingPane:historyPanel];
+  [playbackView addSubview:splitView];
+
+  [controller setValue:playbackView forKey:@"playbackView"];
+  [controller setValue:stationsPanel forKey:@"stationsPanel"];
+  [controller setValue:splitView forKey:@"playbackSplitView"];
+  [controller setValue:@NO forKey:@"stationsPanelVisible"];
+  splitView.leadingPaneVisible = NO;
+  [[NSUserDefaults standardUserDefaults] setBool:NO forKey:STATIONS_PANEL_VISIBLE];
+
+  [controller showStationsPanel];
+
+  XCTAssertTrue([[controller valueForKey:@"stationsPanelVisible"] boolValue]);
+  XCTAssertTrue(splitView.leadingPaneVisible);
+  XCTAssertFalse(stationsPanel.hidden);
+  XCTAssertTrue([[NSUserDefaults standardUserDefaults] boolForKey:STATIONS_PANEL_VISIBLE]);
+}
+
+- (void)testRestoreSidebarVisibilityAppliesSavedStationPaneState {
+  TestPlaybackController *controller = [[TestPlaybackController alloc] init];
+  NSView *playbackView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 640, 420)];
+  PlaybackSplitView *splitView =
+      [[PlaybackSplitView alloc] initWithFrame:playbackView.bounds];
+  NSView *stationsPanel = [[NSView alloc] initWithFrame:NSZeroRect];
+  NSView *songColumn = [[NSView alloc] initWithFrame:NSZeroRect];
+  NSStackView *historyPanel = [[NSStackView alloc] initWithFrame:NSZeroRect];
+  [splitView setLeadingPane:stationsPanel
+                 centerPane:songColumn
+               trailingPane:historyPanel];
+  [playbackView addSubview:splitView];
+
+  [controller setValue:playbackView forKey:@"playbackView"];
+  [controller setValue:splitView forKey:@"playbackSplitView"];
+  [[NSUserDefaults standardUserDefaults] setBool:NO forKey:STATIONS_PANEL_VISIBLE];
+  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:HISTORY_PANEL_VISIBLE];
+
+  [controller restoreSidebarVisibility];
+
+  XCTAssertFalse([[controller valueForKey:@"stationsPanelVisible"] boolValue]);
+  XCTAssertFalse(splitView.leadingPaneVisible);
+  XCTAssertTrue(stationsPanel.hidden);
+  XCTAssertTrue([[controller valueForKey:@"historyPanelVisible"] boolValue]);
+  XCTAssertTrue(splitView.trailingPaneVisible);
 }
 
 - (void)testArtworkImageNeverDefinesTheContainerLayoutSize {

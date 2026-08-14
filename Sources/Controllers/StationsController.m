@@ -399,9 +399,7 @@
     hasActiveStation = [self playSavedStation];
   }
 
-  if (!self.hasPresentedStationsView) {
-    [self presentStationsChooser];
-  } else if (!hasActiveStation) {
+  if (!hasActiveStation) {
     [self presentStationsChooser];
   }
   [self showDrawer];

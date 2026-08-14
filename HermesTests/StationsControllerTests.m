@@ -88,14 +88,24 @@
   XCTAssertTrue(controller.presentChooserCalled, @"Chooser view should be presented when nothing is playing and no saved station restores.");
 }
 
-- (void)testStationsLoadedShowsChooserWhenSavedStationRestores {
+- (void)testStationsLoadedDoesNotFlashChooserWhenSavedStationRestores {
   TestableStationsController *controller = [self makeController];
   controller.stubPlayingStation = nil;
   controller.playSavedStationResult = YES;
 
   [controller stationsLoaded:nil];
 
-  XCTAssertTrue(controller.presentChooserCalled, @"Chooser view should be presented even when playSavedStation recovers playback.");
+  XCTAssertFalse(controller.presentChooserCalled, @"Saved station restore should let playback take over without briefly flashing the chooser.");
+  XCTAssertFalse(controller.hasPresentedStationsView);
+}
+
+- (void)testStationsLoadedDoesNotShowChooserWhenStationAlreadyActive {
+  TestableStationsController *controller = [self makeController];
+  controller.stubPlayingStation = [[Station alloc] init];
+
+  [controller stationsLoaded:nil];
+
+  XCTAssertFalse(controller.presentChooserCalled, @"Station reload should not replace active playback with the chooser.");
 }
 
 - (void)testStationsLoadedDoesNotReShowChooserOncePresentedAndStationActive {

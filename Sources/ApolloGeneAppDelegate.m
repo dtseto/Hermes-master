@@ -558,6 +558,7 @@ static void DummyPacketsProc(void *inClientData,
 - (IBAction)showStationsDrawer:(id)sender {
   NSLog(@"showStationsDrawer: redirecting to stations list (drawer UI deprecated).");
   [self activate:nil];
+  [playback showStationsPanel];
   if ([stations respondsToSelector:@selector(focus)]) {
     [stations focus];
   }

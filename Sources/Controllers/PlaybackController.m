@@ -535,6 +535,10 @@ static const CGFloat HermesSongDetailsSpacing = 4.0;
   [self setHistoryPanelVisible:!historyPanelVisible];
 }
 
+- (void)showStationsPanel {
+  [self setStationsPanelVisible:YES];
+}
+
 - (void)showHistoryPanel {
   [self setHistoryPanelVisible:YES];
 }

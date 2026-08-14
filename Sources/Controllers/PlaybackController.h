@@ -114,6 +114,7 @@
 - (IBAction)quickLookArt:(id)sender;
 - (void)toggleStationsPanel;
 - (void)toggleHistoryPanel;
+- (void)showStationsPanel;
 - (void)showHistoryPanel;
 
 @end
