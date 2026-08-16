@@ -60,6 +60,56 @@
   }
 }
 
+- (void)testPandoraMenuDefinesStationManagementItems {
+  NSError *error = nil;
+  NSXMLDocument *document = [self mainMenuDocumentWithError:&error];
+  XCTAssertNotNil(document);
+  XCTAssertNil(error);
+
+  NSDictionary<NSString *, NSString *> *expectedActions = @{
+    @"Delete Station…": @"deleteSelected:",
+    @"Sort Stations by Name": @"sortStationsByName:",
+    @"Sort Stations by Date": @"sortStationsByDate:"
+  };
+
+  for (NSString *title in expectedActions) {
+    NSString *xpath = [NSString stringWithFormat:@"//menu[@id='873']/items/menuItem[@title='%@']/connections/action[@selector='%@' and @target='537']",
+                       title,
+                       expectedActions[title]];
+    NSArray<NSXMLNode *> *nodes = [document nodesForXPath:xpath error:&error];
+    XCTAssertNil(error);
+    XCTAssertEqual(nodes.count, 1, @"Pandora menu item %@ should be wired to StationsController", title);
+  }
+
+  NSArray<NSXMLNode *> *sortSeparator =
+      [document nodesForXPath:@"//menu[@id='873']/items/menuItem[@id='AGD-sort-sep' and @isSeparatorItem='YES']"
+                        error:&error];
+  XCTAssertNil(error);
+  XCTAssertEqual(sortSeparator.count, 1,
+                 @"Pandora menu should separate destructive station actions from sorting actions");
+}
+
+- (void)testViewMenuDefinesPlaybackSidebarItems {
+  NSError *error = nil;
+  NSXMLDocument *document = [self mainMenuDocumentWithError:&error];
+  XCTAssertNotNil(document);
+  XCTAssertNil(error);
+
+  NSDictionary<NSString *, NSString *> *expectedActions = @{
+    @"Show/Hide Station List": @"toggleStationsPanel:",
+    @"Show/Hide Playback History": @"togglePlaybackHistoryPanel:"
+  };
+
+  for (NSString *title in expectedActions) {
+    NSString *xpath = [NSString stringWithFormat:@"//menu[@id='296']/items/menuItem[@title='%@']/connections/action[@selector='%@' and @target='494']",
+                       title,
+                       expectedActions[title]];
+    NSArray<NSXMLNode *> *nodes = [document nodesForXPath:xpath error:&error];
+    XCTAssertNil(error);
+    XCTAssertEqual(nodes.count, 1, @"View menu item %@ should be wired to the app delegate", title);
+  }
+}
+
 - (void)testMainMenuNibDoesNotForceAquaAppearance {
   NSError *error = nil;
   NSXMLDocument *document = [self mainMenuDocumentWithError:&error];

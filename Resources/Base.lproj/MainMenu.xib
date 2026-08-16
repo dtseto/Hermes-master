@@ -157,6 +157,16 @@
                                     <action selector="showStationsDrawer:" target="494" id="2233"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Show/Hide Station List" id="AGD-view-stations">
+                                <connections>
+                                    <action selector="toggleStationsPanel:" target="494" id="AGD-view-stations-act"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Show/Hide Playback History" id="AGD-view-history">
+                                <connections>
+                                    <action selector="togglePlaybackHistoryPanel:" target="494" id="AGD-view-history-act"/>
+                                </connections>
+                            </menuItem>
                             <menuItem isSeparatorItem="YES" id="lTt-cM-grR"/>
                             <menuItem title="Show Toolbar" keyEquivalent="t" id="297">
                                 <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
@@ -184,6 +194,22 @@
                             <menuItem title="Edit Selected Station" keyEquivalent="D" id="1805">
                                 <connections>
                                     <action selector="editSelected:" target="537" id="1806"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Delete Station…" id="AGD-del-sta">
+                                <connections>
+                                    <action selector="deleteSelected:" target="537" id="AGD-del-act"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="AGD-sort-sep"/>
+                            <menuItem title="Sort Stations by Name" id="AGD-sort-name">
+                                <connections>
+                                    <action selector="sortStationsByName:" target="537" id="AGD-name-act"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Sort Stations by Date" id="AGD-sort-date">
+                                <connections>
+                                    <action selector="sortStationsByDate:" target="537" id="AGD-date-act"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Reload Stations" keyEquivalent="r" id="874">

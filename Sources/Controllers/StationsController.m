@@ -12,6 +12,8 @@
 @interface StationsController ()
 @property (nonatomic, assign) BOOL hasPresentedStationsView;
 - (void)presentStationsChooser;
+- (void)updateSortControl;
+- (void)applySortMode:(NSInteger)sortMode;
 @end
 
 @implementation StationsController
@@ -404,13 +406,18 @@
   }
   [self showDrawer];
 
+  [self updateSortControl];
+}
+
+- (void)updateSortControl {
   BOOL isAscending = YES;
-  NSInteger otherSegment = SORT_DATE;
+  NSInteger selectedSegment = SORT_DATE;
+  NSInteger otherSegment = SORT_NAME;
   switch (PREF_KEY_INT(SORT_STATIONS)) {
     case SORT_NAME_DSC:
       isAscending = NO;
     case SORT_NAME_ASC:
-      [sort setSelectedSegment:SORT_NAME];
+      selectedSegment = SORT_NAME;
       otherSegment = SORT_DATE;
       break;
 
@@ -418,13 +425,20 @@
       isAscending = NO;
     case SORT_DATE_ASC:
     default:
-      [sort setSelectedSegment:SORT_DATE];
+      selectedSegment = SORT_DATE;
       otherSegment = SORT_NAME;
       break;
   }
+  [sort setSelectedSegment:selectedSegment];
   [sort setImage:nil forSegment:otherSegment];
   [sort setImage:
-   [NSImage imageNamed:isAscending ? @"NSAscendingSortIndicator" : @"NSDescendingSortIndicator"] forSegment:[sort selectedSegment]];
+   [NSImage imageNamed:isAscending ? @"NSAscendingSortIndicator" : @"NSDescendingSortIndicator"] forSegment:selectedSegment];
+}
+
+- (void)applySortMode:(NSInteger)sortMode {
+  PREF_KEY_SET_INT(SORT_STATIONS, sortMode);
+  [self sortStations];
+  [self updateSortControl];
 }
 
 /* Called whenever search results are received */
@@ -590,26 +604,23 @@
 
 - (IBAction) toggleSort:(id)sender {
   NSInteger cur = PREF_KEY_INT(SORT_STATIONS);
-  NSInteger otherSegment = SORT_NAME;
-  BOOL isAscending = NO;
   switch ([sender selectedSegment]) {
     case SORT_NAME:
       cur = (cur == SORT_NAME_ASC) ? SORT_NAME_DSC : SORT_NAME_ASC;
-      isAscending = (cur == SORT_NAME_ASC);
-      otherSegment = SORT_DATE;
       break;
     case SORT_DATE:
       cur = (cur == SORT_DATE_ASC) ? SORT_DATE_DSC : SORT_DATE_ASC;
-      otherSegment = SORT_NAME;
-      isAscending = (cur == SORT_DATE_ASC);
       break;
   }
-  PREF_KEY_SET_INT(SORT_STATIONS, cur);
-  [sender setImage:nil forSegment:otherSegment];
-  [sender setImage:
-   [NSImage imageNamed:isAscending ? @"NSAscendingSortIndicator" : @"NSDescendingSortIndicator"] forSegment:[sender selectedSegment]];
-  [self sortStations];
-  [stationsTable reloadData];
+  [self applySortMode:cur];
+}
+
+- (IBAction)sortStationsByName:(id)sender {
+  [self applySortMode:SORT_NAME_ASC];
+}
+
+- (IBAction)sortStationsByDate:(id)sender {
+  [self applySortMode:SORT_DATE_ASC];
 }
 
 @end

@@ -341,6 +341,7 @@ static void DummyPacketsProc(void *inClientData,
     STATIONS_PANEL_VISIBLE:     @YES,
     HISTORY_PANEL_VISIBLE:      @NO,
     SONG_INFO_VISIBLE:         @NO,
+    SORT_STATIONS:              @SORT_NAME_ASC,
     HIST_DRAWER_WIDTH:          @150,
     DRAWER_WIDTH:               @130,
     GROWL_TYPE:                 @GROWL_TYPE_OSX
@@ -351,41 +352,7 @@ static void DummyPacketsProc(void *inClientData,
   [self migrateDefaults:defaults];
   [playback prepareFirst];
 
-  [self addDeleteStationMenuItemIfNeeded];
-
   [self updateAlwaysOnTop:nil];
-}
-
-/**
- * Ensure the Pandora menu exposes a "Delete Station…" option alongside Add/Edit.
- * Inserted at runtime so we avoid nib edits and duplicate entries.
- */
-- (void)addDeleteStationMenuItemIfNeeded {
-  NSMenu *mainMenu = [NSApp mainMenu];
-  if (!mainMenu) return;
-
-  NSMenuItem *pandoraMenuItem = [mainMenu itemWithTitle:@"Pandora"];
-  if (!pandoraMenuItem) return;
-
-  NSMenu *pandoraMenu = pandoraMenuItem.submenu;
-  if (!pandoraMenu) return;
-
-  if ([pandoraMenu itemWithTitle:@"Delete Station…"] != nil) return;
-
-  NSInteger editIndex = [pandoraMenu indexOfItemWithTarget:self.stations
-                                                andAction:@selector(editSelected:)];
-
-  NSMenuItem *deleteItem =
-      [[NSMenuItem alloc] initWithTitle:@"Delete Station…"
-                                 action:@selector(deleteSelected:)
-                          keyEquivalent:@""];
-  deleteItem.target = self.stations;
-
-  if (editIndex != -1 && editIndex + 1 <= pandoraMenu.numberOfItems) {
-    [pandoraMenu insertItem:deleteItem atIndex:editIndex + 1];
-  } else {
-    [pandoraMenu addItem:deleteItem];
-  }
 }
 
 // Required for macOS 10.15+ (Catalina and later)
@@ -552,6 +519,14 @@ static void DummyPacketsProc(void *inClientData,
 }
 
 - (IBAction)toggleDrawerVisible:(id)sender {
+  [playback toggleHistoryPanel];
+}
+
+- (IBAction)toggleStationsPanel:(id)sender {
+  [playback toggleStationsPanel];
+}
+
+- (IBAction)togglePlaybackHistoryPanel:(id)sender {
   [playback toggleHistoryPanel];
 }
 

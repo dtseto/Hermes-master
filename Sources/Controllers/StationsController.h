@@ -49,6 +49,8 @@
 - (IBAction)editSelected: (id)sender;
 - (IBAction)refreshList: (id)sender;
 - (IBAction)addStation: (id)sender;
+- (IBAction)sortStationsByName: (id)sender;
+- (IBAction)sortStationsByDate: (id)sender;
 
 // Actions from new station sheet
 - (IBAction)search: (id)sender;

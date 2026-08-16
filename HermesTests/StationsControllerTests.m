@@ -1,5 +1,6 @@
 #import <XCTest/XCTest.h>
 
+#import "PreferencesController.h"
 #import "StationsController.h"
 #import "Pandora/Station.h"
 
@@ -10,6 +11,8 @@
 
 @interface StubPandoraForStations : NSObject
 @property (nonatomic, strong) NSArray *stations;
+@property (nonatomic, assign) NSInteger lastSortMode;
+@property (nonatomic, assign) NSInteger sortCallCount;
 @end
 
 @implementation StubPandoraForStations
@@ -26,7 +29,8 @@
 }
 
 - (void)sortStations:(NSInteger)mode {
-  // No-op for tests; the controller only cares that the selector exists.
+  self.lastSortMode = mode;
+  self.sortCallCount += 1;
 }
 
 @end
@@ -65,6 +69,16 @@
 @end
 
 @implementation StationsControllerTests
+
+- (void)setUp {
+  [super setUp];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:SORT_STATIONS];
+}
+
+- (void)tearDown {
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:SORT_STATIONS];
+  [super tearDown];
+}
 
 - (TestableStationsController *)makeController {
   TestableStationsController *controller = [[TestableStationsController alloc] init];
@@ -135,6 +149,30 @@
 
   XCTAssertTrue(controller.presentChooserCalled);
   XCTAssertTrue(controller.presentChooserCalledOnMainThread, @"UI work must occur on the main thread.");
+}
+
+- (void)testSortStationsByNameActionSelectsAlphabeticalAscending {
+  TestableStationsController *controller = [self makeController];
+  [[NSUserDefaults standardUserDefaults] setInteger:SORT_DATE_ASC
+                                             forKey:SORT_STATIONS];
+
+  [controller sortStationsByName:nil];
+
+  XCTAssertEqual([[NSUserDefaults standardUserDefaults] integerForKey:SORT_STATIONS], SORT_NAME_ASC);
+  XCTAssertEqual(controller.stubPandora.lastSortMode, SORT_NAME_ASC);
+  XCTAssertEqual(controller.stubPandora.sortCallCount, 1);
+}
+
+- (void)testSortStationsByDateActionSelectsDateAscending {
+  TestableStationsController *controller = [self makeController];
+  [[NSUserDefaults standardUserDefaults] setInteger:SORT_NAME_ASC
+                                             forKey:SORT_STATIONS];
+
+  [controller sortStationsByDate:nil];
+
+  XCTAssertEqual([[NSUserDefaults standardUserDefaults] integerForKey:SORT_STATIONS], SORT_DATE_ASC);
+  XCTAssertEqual(controller.stubPandora.lastSortMode, SORT_DATE_ASC);
+  XCTAssertEqual(controller.stubPandora.sortCallCount, 1);
 }
 
 @end
