@@ -29,6 +29,7 @@ static const CGFloat HermesSongDetailsSpacing = 4.0;
 @end
 
 @interface PlaybackController ()
+- (void)configurePlaybackToolbarImages;
 - (void)configureTitlebarSidebarControlsForWindow:(NSWindow *)window;
 - (NSButton *)titlebarButtonWithSystemSymbol:(NSString *)symbolName
                                        label:(NSString *)label
@@ -173,6 +174,8 @@ static const CGFloat HermesSongDetailsSpacing = 4.0;
   if ([playpause respondsToSelector:@selector(_setAllPossibleLabelsToFit:)])
     [playpause _setAllPossibleLabelsToFit:@[@"Play", @"Pause"]];
 
+  [self configurePlaybackToolbarImages];
+
   // Let AppKit move controls into the toolbar overflow menu as the window
   // narrows. Toolbar items must not expand the window back to their combined
   // ideal width after a user resize.
@@ -201,6 +204,21 @@ static const CGFloat HermesSongDetailsSpacing = 4.0;
   window.contentMinSize = NSZeroSize;
 
   [self configureRemoteCommands];
+}
+
+- (void)configurePlaybackToolbarImages {
+  for (NSToolbarItem *item in @[playpause, nextSong, like, dislike, tiredOfSong]) {
+    NSImage *image = item.image;
+    if (image == nil) {
+      continue;
+    }
+
+    // Keep the PNG assets reusable elsewhere while letting AppKit tint toolbar
+    // glyphs for the current system appearance.
+    NSImage *templateImage = [image copy];
+    templateImage.template = YES;
+    item.image = templateImage;
+  }
 }
 
 - (MPRemoteCommandHandlerStatus)performRemoteCommandAction:(BOOL (^)(void))action {
