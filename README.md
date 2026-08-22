@@ -33,6 +33,20 @@ You can also make pull requests and add to issues and I will try to reply.
 
 - On newer MAC OS download the app, extract if needed, double click to open, on warning message, open again, go to system settings, privacy and security, scroll to the bottom and click open anyways, open the app enter your password should open normally after.
 
+### Install with Homebrew
+
+Install the current universal release (Intel and Apple Silicon) with:
+
+```sh
+brew tap dtseto/hermes-master https://github.com/dtseto/Hermes-master.git
+brew trust --cask dtseto/hermes-master/apollogene
+brew install --cask dtseto/hermes-master/apollogene
+```
+
+Homebrew installs the application as `ApolloGene.app`. To upgrade or uninstall
+it later, run `brew upgrade --cask dtseto/hermes-master/apollogene` or
+`brew uninstall --cask dtseto/hermes-master/apollogene`.
+
 If you would like to compile Hermes, continue reading.
 
 ### Develop against ApolloGenome
