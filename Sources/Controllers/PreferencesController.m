@@ -139,7 +139,7 @@
     proxyServerErrorMessage.hidden = YES;
   }
 
-  if (enabledProxy == PROXY_SYSTEM && lastEnabledProxy != PROXY_SYSTEM) {
+  if (enabledProxy != lastEnabledProxy || sender != nil) {
     [URLConnection resetCachedProxySessions];
   }
   lastEnabledProxy = enabledProxy;

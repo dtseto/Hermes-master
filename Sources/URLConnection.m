@@ -174,8 +174,15 @@ static void PostProxyValidity(BOOL isValid) {
     
     // Create session configuration
     NSURLSessionConfiguration *config = [self sessionConfiguration];
-    [self setHermesProxy:config];  // Use the class method to set proxy
-    c->session = [self sessionWithConfiguration:config delegate:nil];
+    if (![self applyHermesProxyToConfiguration:config trafficKind:HMSProxyTrafficKindControl]) {
+        c->configurationError = [NSError errorWithDomain:NSURLErrorDomain
+                                                    code:NSURLErrorBadURL
+                                                userInfo:@{ NSLocalizedDescriptionKey:
+                                                              NSLocalizedString(@"Invalid proxy configuration.",
+                                                                                @"Invalid proxy settings error") }];
+        return c;
+    }
+    c->session = [self sessionWithConfiguration:config delegate:c];
     URLConnectionRegisterSession(c->session);
     c->dataTask = [c dataTaskForSession:c->session request:request];
     
@@ -183,6 +190,14 @@ static void PostProxyValidity(BOOL isValid) {
 }
 
 - (void)start {
+    if (configurationError != nil) {
+        URLConnectionCallback callback = cb;
+        cb = nil;
+        if (callback) {
+            callback(nil, configurationError);
+        }
+        return;
+    }
     started = YES;
     [self beginTimeout];
     [dataTask resume];
@@ -201,6 +216,26 @@ static void PostProxyValidity(BOOL isValid) {
         }
         session = nil;
     }
+}
+
+- (void)URLSession:(NSURLSession *)sessionInstance
+              task:(NSURLSessionTask *)task
+didFinishCollectingMetrics:(NSURLSessionTaskMetrics *)metrics {
+  NSURLSessionTaskTransactionMetrics *transaction = metrics.transactionMetrics.lastObject;
+  NSInteger status = [(NSHTTPURLResponse *)task.response statusCode];
+  NSLog(@"Proxy diagnostic: traffic=control proxyUsed=%@ status=%ld redirects=%lu durationMs=%.0f",
+        transaction.isProxyConnection ? @"yes" : @"no",
+        (long)status,
+        (unsigned long)metrics.redirectCount,
+        metrics.taskInterval.duration * 1000.0);
+}
+
+- (void)URLSession:(NSURLSession *)sessionInstance
+              task:(NSURLSessionTask *)task
+didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge
+ completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition,
+                             NSURLCredential *credential))completionHandler {
+  [[self class] handleProxyAuthenticationChallenge:challenge completionHandler:completionHandler];
 }
 
 - (void)setHermesProxy {
@@ -239,19 +274,49 @@ static void PostProxyValidity(BOOL isValid) {
 }
 
 + (void)setHermesProxy:(NSURLSessionConfiguration*)config {
-    if (!config) return;
-    
-    switch (PREF_KEY_INT(ENABLED_PROXY)) {
+    [self applyHermesProxyToConfiguration:config trafficKind:HMSProxyTrafficKindControl];
+}
+
++ (BOOL)applyHermesProxyToConfiguration:(NSURLSessionConfiguration *)config
+                            trafficKind:(HMSProxyTrafficKind)trafficKind {
+    if (!config) {
+        return NO;
+    }
+
+    NSInteger proxyType = PREF_KEY_INT(ENABLED_PROXY);
+    if (trafficKind == HMSProxyTrafficKindAudio && !PREF_KEY_BOOL(PROXY_AUDIO)) {
+        // A control-only proxy mirrors pianobar's behavior while retaining the
+        // normal macOS network policy for audio when manual audio proxying is off.
+        return YES;
+    }
+
+    switch (proxyType) {
         case PROXY_HTTP: {
             NSString *host = PREF_KEY_VALUE(PROXY_HTTP_HOST);
             NSInteger port = PREF_KEY_INT(PROXY_HTTP_PORT);
-            [self setHTTPProxy:config host:host port:port];
-            break;
+            return [self setHTTPProxy:config host:host port:port];
+        }
+        case PROXY_SOCKS: {
+            NSString *host = PREF_KEY_VALUE(PROXY_SOCKS_HOST);
+            NSInteger port = PREF_KEY_INT(PROXY_SOCKS_PORT);
+            if (![self validProxyHost:&host port:port]) {
+                return NO;
+            }
+            config.connectionProxyDictionary = @{
+                (NSString *)kCFNetworkProxiesSOCKSEnable: @YES,
+                (NSString *)kCFNetworkProxiesSOCKSProxy: host,
+                (NSString *)kCFNetworkProxiesSOCKSPort: @(port)
+            };
+            return YES;
         }
         case PROXY_SYSTEM:
-        default:
             [self setSystemProxy:config];
-            break;
+            return YES;
+        default:
+            NSLog(@"Proxy diagnostic: traffic=%@ result=invalid-type code=%ld",
+                  trafficKind == HMSProxyTrafficKindControl ? @"control" : @"audio",
+                  (long)proxyType);
+            return NO;
     }
 }
 
@@ -295,11 +360,8 @@ static void PostProxyValidity(BOOL isValid) {
         if (result != NULL) {
             freeaddrinfo(result);
         }
-        if (!isValid) {
-            NSLog(@"Cannot resolve proxy host: %@ (%s)", trimmedHost, gai_strerror(lookupResult));
-        } else {
-            NSLog(@"Proxy host resolved: %@", trimmedHost);
-        }
+        NSLog(@"Proxy diagnostic: stage=dns result=%@ code=%d",
+              isValid ? @"resolved" : @"failed", lookupResult);
         PostProxyValidity(isValid);
     });
 }
@@ -309,7 +371,7 @@ static void PostProxyValidity(BOOL isValid) {
         return NO;
     }
     
-    NSLog(@"Setting HTTP proxy to %@:%ld", host, (long)port);
+    NSLog(@"Proxy diagnostic: type=http result=configured");
     
     config.connectionProxyDictionary = @{
         @"HTTPEnable": @YES,
@@ -326,6 +388,67 @@ static void PostProxyValidity(BOOL isValid) {
 + (void)setSystemProxy:(NSURLSessionConfiguration*)config {
     if (!config) return;
     config.connectionProxyDictionary = CFBridgingRelease(CFNetworkCopySystemProxySettings());
+}
+
++ (void)handleProxyAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
+                          completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition,
+                                                      NSURLCredential *credential))completionHandler {
+    NSURLProtectionSpace *space = challenge.protectionSpace;
+    if (!space.isProxy) {
+        completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, nil);
+        return;
+    }
+
+    NSURLCredential *proposed = challenge.proposedCredential;
+    if (challenge.previousFailureCount == 0 && proposed.user.length > 0) {
+        completionHandler(NSURLSessionAuthChallengeUseCredential, proposed);
+        return;
+    }
+
+    NSLog(@"Proxy diagnostic: stage=authentication result=%@ method=%@ failures=%ld",
+          challenge.previousFailureCount == 0 ? @"required" : @"rejected",
+          space.authenticationMethod ?: @"unknown",
+          (long)challenge.previousFailureCount);
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSAlert *alert = [[NSAlert alloc] init];
+        alert.messageText = challenge.previousFailureCount == 0
+          ? NSLocalizedString(@"Proxy Login Required", @"Proxy authentication prompt title")
+          : NSLocalizedString(@"Proxy Login Was Rejected", @"Rejected proxy credentials prompt title");
+        alert.informativeText = [NSString stringWithFormat:NSLocalizedString(
+          @"Enter credentials for the configured proxy at %@:%ld.", @"Proxy authentication prompt detail"),
+          space.host ?: NSLocalizedString(@"proxy", @"Unknown proxy host fallback"), (long)space.port];
+        [alert addButtonWithTitle:NSLocalizedString(@"Connect", @"Connect to proxy button")];
+        [alert addButtonWithTitle:NSLocalizedString(@"Cancel", @"Cancel proxy login button")];
+
+        NSView *accessory = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 320, 78)];
+        NSTextField *username = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 50, 320, 24)];
+        username.placeholderString = NSLocalizedString(@"Proxy username", @"Proxy username placeholder");
+        username.stringValue = proposed.user ?: @"";
+        NSSecureTextField *password = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 24, 320, 24)];
+        password.placeholderString = NSLocalizedString(@"Proxy password", @"Proxy password placeholder");
+        NSButton *remember = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 320, 20)];
+        remember.buttonType = NSButtonTypeSwitch;
+        remember.title = NSLocalizedString(@"Remember in Keychain", @"Remember proxy password checkbox");
+        [accessory addSubview:username];
+        [accessory addSubview:password];
+        [accessory addSubview:remember];
+        alert.accessoryView = accessory;
+
+        if ([alert runModal] != NSAlertFirstButtonReturn ||
+            username.stringValue.length == 0 || password.stringValue.length == 0) {
+            completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, nil);
+            return;
+        }
+
+        NSURLCredentialPersistence persistence = remember.state == NSControlStateValueOn
+          ? NSURLCredentialPersistencePermanent
+          : NSURLCredentialPersistenceForSession;
+        NSURLCredential *credential = [NSURLCredential credentialWithUser:username.stringValue
+                                                                  password:password.stringValue
+                                                               persistence:persistence];
+        completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+    });
 }
 
 + (void)resetCachedProxySessions {

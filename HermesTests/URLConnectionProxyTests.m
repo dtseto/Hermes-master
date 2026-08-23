@@ -11,6 +11,8 @@ extern NSString * const URLConnectionProxyValidityChangedNotification;
 + (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)config
                                    delegate:(id<NSURLSessionDelegate>)delegate;
 + (void)setHermesProxy:(NSURLSessionConfiguration *)config;
++ (BOOL)applyHermesProxyToConfiguration:(NSURLSessionConfiguration *)config
+                            trafficKind:(NSInteger)trafficKind;
 + (void)validateProxyHostAsync:(NSString *)host port:(NSInteger)port;
 + (void)resetCachedProxySessions;
 - (void)cancel;
@@ -20,6 +22,10 @@ static NSString * const kEnabledProxyKey = @"enabledProxy";
 static NSString * const kHTTPHostKey = @"httpProxyHost";
 static NSString * const kHTTPPortKey = @"httpProxyPort";
 static NSInteger const kProxyHTTP = 1;
+static NSInteger const kProxySOCKS = 2;
+static NSString * const kSOCKSHostKey = @"socksProxyHost";
+static NSString * const kSOCKSPortKey = @"socksProxyPort";
+static NSString * const kProxyAudioKey = @"proxyAudio";
 
 @interface MockURLSessionDataTask : NSObject
 @property(nonatomic, copy) void (^completionHandler)(NSData *, NSURLResponse *, NSError *);
@@ -98,7 +104,48 @@ static MockProxySession *gCurrentMockProxySession = nil;
   [defaults removeObjectForKey:kEnabledProxyKey];
   [defaults removeObjectForKey:kHTTPHostKey];
   [defaults removeObjectForKey:kHTTPPortKey];
+  [defaults removeObjectForKey:kSOCKSHostKey];
+  [defaults removeObjectForKey:kSOCKSPortKey];
+  [defaults removeObjectForKey:kProxyAudioKey];
   [super tearDown];
+}
+
+- (void)testSetHermesProxyAppliesSOCKSSettingsToControlTraffic {
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  [defaults setInteger:kProxySOCKS forKey:kEnabledProxyKey];
+  [defaults setObject:@" socks.example " forKey:kSOCKSHostKey];
+  [defaults setInteger:1080 forKey:kSOCKSPortKey];
+
+  NSURLSessionConfiguration *config = [URLConnection sessionConfiguration];
+  XCTAssertTrue([URLConnection applyHermesProxyToConfiguration:config trafficKind:0]);
+
+  NSDictionary *proxy = config.connectionProxyDictionary;
+  XCTAssertEqualObjects(proxy[@"SOCKSProxy"], @"socks.example");
+  XCTAssertEqualObjects(proxy[@"SOCKSPort"], @1080);
+}
+
+- (void)testManualProxyIsNotAppliedToAudioWhenProxyAudioIsDisabled {
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  [defaults setInteger:kProxyHTTP forKey:kEnabledProxyKey];
+  [defaults setObject:@"example.com" forKey:kHTTPHostKey];
+  [defaults setInteger:8888 forKey:kHTTPPortKey];
+  [defaults setBool:NO forKey:kProxyAudioKey];
+
+  NSURLSessionConfiguration *config = [URLConnection sessionConfiguration];
+  XCTAssertTrue([URLConnection applyHermesProxyToConfiguration:config trafficKind:1]);
+  XCTAssertNil(config.connectionProxyDictionary[@"HTTPProxy"]);
+}
+
+- (void)testManualProxyIsAppliedToAudioWhenProxyAudioIsEnabled {
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  [defaults setInteger:kProxyHTTP forKey:kEnabledProxyKey];
+  [defaults setObject:@"example.com" forKey:kHTTPHostKey];
+  [defaults setInteger:8888 forKey:kHTTPPortKey];
+  [defaults setBool:YES forKey:kProxyAudioKey];
+
+  NSURLSessionConfiguration *config = [URLConnection sessionConfiguration];
+  XCTAssertTrue([URLConnection applyHermesProxyToConfiguration:config trafficKind:1]);
+  XCTAssertEqualObjects(config.connectionProxyDictionary[@"HTTPProxy"], @"example.com");
 }
 
 - (void)testSetHermesProxyAppliesHTTPSettings {

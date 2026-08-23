@@ -27,6 +27,7 @@
 #import "AudioStreamer.h"
 #import "AudioBufferManager.h"
 #import "AudioStreamerMetadata.h"
+#import "URLConnection.h"
 #import "AudioStreamerStateController.h"
 #include <errno.h>
 
@@ -863,24 +864,13 @@ static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
   sessionConfig.timeoutIntervalForRequest = timeoutInterval;
   sessionConfig.timeoutIntervalForResource = timeoutInterval * 2;
   
-  // Configure proxy if needed
-  if (proxyType != PROXY_SYSTEM) {
-    if (proxyType == PROXY_HTTP) {
-      sessionConfig.connectionProxyDictionary = @{
-          (NSString *)kCFNetworkProxiesHTTPEnable: @YES,
-          (NSString *)kCFNetworkProxiesHTTPProxy: proxyHost,
-          (NSString *)kCFNetworkProxiesHTTPPort: @(proxyPort),
-          (NSString *)kCFNetworkProxiesHTTPSEnable: @YES,
-          (NSString *)kCFNetworkProxiesHTTPSProxy: proxyHost,
-          (NSString *)kCFNetworkProxiesHTTPSPort: @(proxyPort)
-      };
-    } else if (proxyType == PROXY_SOCKS) {
-      sessionConfig.connectionProxyDictionary = @{
-          (NSString *)kCFNetworkProxiesSOCKSEnable: @YES,
-          (NSString *)kCFNetworkProxiesSOCKSProxy: proxyHost,
-          (NSString *)kCFNetworkProxiesSOCKSPort: @(proxyPort)
-      };
-    }
+  if (![URLConnection applyHermesProxyToConfiguration:sessionConfig
+                                          trafficKind:HMSProxyTrafficKindAudio]) {
+    NSLog(@"Proxy diagnostic: traffic=audio result=invalid-configuration");
+    networkError = [NSError errorWithDomain:NSURLErrorDomain
+                                       code:NSURLErrorBadURL
+                                   userInfo:@{ NSLocalizedDescriptionKey: @"Invalid proxy configuration." }];
+    return NO;
   }
   
   // Create session with delegate
@@ -948,6 +938,17 @@ completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))complet
   // Extract HTTP headers
   if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
     NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+    if (httpResponse.statusCode < 200 || httpResponse.statusCode >= 300) {
+      NSLog(@"Proxy diagnostic: traffic=audio result=http-error status=%ld",
+            (long)httpResponse.statusCode);
+      networkError = [NSError errorWithDomain:@"HTTPError"
+                                         code:httpResponse.statusCode
+                                     userInfo:@{ NSLocalizedDescriptionKey:
+                                                   [NSString stringWithFormat:@"HTTP Error: %ld", (long)httpResponse.statusCode] }];
+      [self failWithErrorCode:AS_NETWORK_CONNECTION_FAILED];
+      completionHandler(NSURLSessionResponseCancel);
+      return;
+    }
     httpHeaders = httpResponse.allHeaderFields;
     long long declaredLength = httpResponse.expectedContentLength;
     
@@ -993,6 +994,26 @@ completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))complet
   
   // Continue with the task
   completionHandler(NSURLSessionResponseAllow);
+}
+
+- (void)URLSession:(NSURLSession *)session
+              task:(NSURLSessionTask *)task
+didFinishCollectingMetrics:(NSURLSessionTaskMetrics *)metrics {
+  NSURLSessionTaskTransactionMetrics *transaction = metrics.transactionMetrics.lastObject;
+  NSInteger status = [(NSHTTPURLResponse *)task.response statusCode];
+  NSLog(@"Proxy diagnostic: traffic=audio proxyUsed=%@ status=%ld redirects=%lu durationMs=%.0f",
+        transaction.isProxyConnection ? @"yes" : @"no",
+        (long)status,
+        (unsigned long)metrics.redirectCount,
+        metrics.taskInterval.duration * 1000.0);
+}
+
+- (void)URLSession:(NSURLSession *)session
+              task:(NSURLSessionTask *)task
+didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge
+ completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition,
+                             NSURLCredential *credential))completionHandler {
+  [URLConnection handleProxyAuthenticationChallenge:challenge completionHandler:completionHandler];
 }
 
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask

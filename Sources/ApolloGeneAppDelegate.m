@@ -6,6 +6,7 @@
  */
 
 #import <MediaPlayer/MediaPlayer.h>
+#import <CFNetwork/CFNetworkErrors.h>
 
 #import "ApolloGeneAppDelegate.h"
 // Add this to the top with other imports:
@@ -959,22 +960,66 @@ static void DummyPacketsProc(void *inClientData,
   
   NSDictionary *info = [notification userInfo];
   NSString *err      = info[@"error"];
-  NSNumber *nscode   = info[@"code"];
+  NSNumber *pandoraCode = info[@"pandoraCode"];
+  NSNumber *nsErrorCode = info[@"nsErrorCode"];
+  NSString *nsErrorDomain = info[@"nsErrorDomain"];
   NSLogd(@"error received %@", info);
-  NSLog(@"[DEBUG] Pandora error code: %@, error message: %@", nscode, err);
+  NSLog(@"[DEBUG] Pandora error code: %@, network error domain: %@, network error code: %@, error message: %@",
+        pandoraCode, nsErrorDomain, nsErrorCode, err);
   /* If this is a generic error (like a network error) it's possible to retry.
    Otherewise if it's a Pandora error (with a code listed) there's likely
    nothing we can do about it */
   [errorButton setHidden:FALSE];
   lastRequest = nil;
-  int code = [nscode intValue];
-  NSString *other = [Pandora stringForErrorCode:code];
-  if (other != nil) {
-    NSLog(@"[DEBUG] Using mapped error string: %@ for code: %d", other, code);
-    err = other;
+  int code = [pandoraCode intValue];
+  BOOL manualProxyEnabled = PREF_KEY_INT(ENABLED_PROXY) != PROXY_SYSTEM;
+  if (pandoraCode != nil) {
+    NSString *other = [Pandora stringForErrorCode:code];
+    if (other != nil) {
+      NSLog(@"[DEBUG] Using mapped error string: %@ for code: %d", other, code);
+      err = other;
+    }
+  } else if ([nsErrorDomain isEqualToString:NSURLErrorDomain] &&
+             nsErrorCode.integerValue == NSURLErrorTimedOut) {
+    if (manualProxyEnabled) {
+      err = NSLocalizedString(@"The proxy did not complete the Pandora request before it timed out. Check the proxy address, port, and login, then try again.",
+                              @"Manual proxy timeout error");
+    } else {
+      err = NSLocalizedString(@"The Pandora request timed out. Check your network or system proxy settings, then try again.",
+                              @"Network timeout error");
+    }
+  } else if (manualProxyEnabled &&
+             [nsErrorDomain isEqualToString:NSURLErrorDomain] &&
+             (nsErrorCode.integerValue == NSURLErrorServerCertificateHasBadDate ||
+              nsErrorCode.integerValue == NSURLErrorServerCertificateUntrusted ||
+              nsErrorCode.integerValue == NSURLErrorServerCertificateHasUnknownRoot ||
+              nsErrorCode.integerValue == NSURLErrorServerCertificateNotYetValid)) {
+    err = NSLocalizedString(@"The proxy or network supplied an invalid certificate for Pandora. ApolloGene refused the connection to protect your login.",
+                            @"Manual proxy TLS certificate error");
+  } else if (manualProxyEnabled &&
+             [nsErrorDomain isEqualToString:(NSString *)kCFErrorDomainCFNetwork] &&
+             (nsErrorCode.integerValue == kCFErrorHTTPProxyConnectionFailure ||
+              nsErrorCode.integerValue == kCFErrorHTTPSProxyConnectionFailure ||
+              nsErrorCode.integerValue == kCFStreamErrorHTTPSProxyFailureUnexpectedResponseToCONNECTMethod)) {
+    err = NSLocalizedString(@"The proxy refused or could not create a secure connection to Pandora. Check that it supports HTTPS CONNECT and permits Pandora connections.",
+                            @"Manual HTTP proxy tunnel error");
+  } else if (manualProxyEnabled &&
+             (([nsErrorDomain isEqualToString:(NSString *)kCFErrorDomainCFNetwork] &&
+               nsErrorCode.integerValue == kCFErrorHTTPBadProxyCredentials) ||
+              ([nsErrorDomain isEqualToString:@"HTTPError"] &&
+               nsErrorCode.integerValue == 407))) {
+    err = NSLocalizedString(@"The proxy rejected its login credentials. Check the proxy username and password, then try again.",
+                            @"Manual proxy credentials error");
+  } else if (manualProxyEnabled &&
+             [nsErrorDomain isEqualToString:NSURLErrorDomain] &&
+             (nsErrorCode.integerValue == NSURLErrorCannotConnectToHost ||
+              nsErrorCode.integerValue == NSURLErrorNetworkConnectionLost ||
+              nsErrorCode.integerValue == NSURLErrorNotConnectedToInternet)) {
+    err = NSLocalizedString(@"ApolloGene could not connect through the proxy. Check the proxy address, port, availability, and network connection.",
+                            @"Manual proxy connection error");
   }
 
-  if (nscode != nil) {
+  if (pandoraCode != nil) {
     NSLog(@"[DEBUG] Handling specific error code: %d", code);
     [errorButton setHidden:TRUE];
 
